@@ -6,7 +6,7 @@ using TMPro;
 public class CircuitTable : MonoBehaviour
 {
     [Header("Sockets")]
-    public CircuitSocket[] sockets; // Array ของ Socket ทั้งหมด (SC1(1) ถึง SC1(10))
+    private CircuitSocket[] sockets; // Array ของ Socket ทั้งหมด (SC1(1) ถึง SC1(10))
     
     [Header("Display Settings")]
     public TextMeshProUGUI displayText; // Text แสดงผลบนหน้าจอ VR
@@ -16,6 +16,8 @@ public class CircuitTable : MonoBehaviour
     public List<GateData> circuitData = new List<GateData>(); // เก็บข้อมูล Circuit
     
     private bool isExecuting = false;
+
+    private string sample = null;
     
     void Start()
     {
@@ -25,6 +27,8 @@ public class CircuitTable : MonoBehaviour
             sockets = GetComponentsInChildren<CircuitSocket>();
             Debug.Log($"📊 Found {sockets.Length} sockets");
         }
+        Debug.Log($"socket length: {sockets.Length}");
+        Debug.Log($"📊 Found {sockets.Length} sockets");
         
         // เรียงลำดับ Socket ตาม index
         System.Array.Sort(sockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
@@ -39,6 +43,9 @@ public class CircuitTable : MonoBehaviour
         
         foreach (CircuitSocket socket in sockets)
         {
+            // if(socket == null){
+            //     continue;
+            // }
             if (socket.HasGate())
             {
                 circuitData.Add(new GateData

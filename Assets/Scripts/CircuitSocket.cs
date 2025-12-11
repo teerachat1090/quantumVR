@@ -91,6 +91,6 @@ public class CircuitSocket : MonoBehaviour
     // ตรวจสอบว่ามี Gate อยู่หรือไม่
     public bool HasGate()
     {
-        return currentGate != null;
+        return (currentGate != null) ? true : false;
     }
 }
