@@ -1,0 +1,11 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Foldout text="Foldout">
+        <ui:Toggle label="Using prefab" name="Toggle" binding-path="usePrefab" toggle-on-label-click="false" />
+        <ui:FloatField label="Scale Multiplier" value="0.5" binding-path="scaleMultiplier" password="false" />
+    </ui:Foldout>
+    <ui:Foldout text="Other Settings" toggle-on-label-click="true">
+        <ui:Toggle label="Destroy on floor hit" name="Toggle" binding-path="destroyOnFloorHit" />
+    </ui:Foldout>
+    <ui:VisualElement style="flex-grow: 1;" />
+    <ui:ToggleButtonGroup label="Toggle Button Group" />
+</ui:UXML>
