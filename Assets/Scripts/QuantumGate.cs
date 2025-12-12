@@ -29,4 +29,9 @@ public class QuantumGate : MonoBehaviour
     {
         return currentSocket;
     }
+
+    public int getTarget()
+    {
+        return 0;
+    }
 }

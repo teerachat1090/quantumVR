@@ -16,6 +16,7 @@ public class VRPhysicalButton : MonoBehaviour
     
     [Header("Circuit Table")]
     [SerializeField] private CircuitTable circuitTable;
+    [SerializeField] private CircuitManager circuitManager; 
     
     [Header("Python Settings")]
     [SerializeField] private string pythonScriptPath = "Assets/Scripts/qiskit_runner.py";
@@ -112,6 +113,10 @@ public class VRPhysicalButton : MonoBehaviour
         
         isPressed = true;
         canPress = false;
+
+        try                 { string newJson = circuitManager.circuitToExportInit(); } 
+        catch(Exception e)  { Debug.LogError($"❌ Error : {e.Message}");}
+        
         
         if (circuitTable != null)
         {

@@ -80,6 +80,7 @@ public class CircuitTable : MonoBehaviour
     }
     
     // Execute Circuit แบบมี delay
+    // This is Just displaying all gate :\
     private IEnumerator ExecuteCircuitSequence()
     {
         isExecuting = true;
