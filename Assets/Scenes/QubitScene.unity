@@ -572,6 +572,7 @@ GameObject:
   - component: {fileID: 53212880}
   - component: {fileID: 53212879}
   - component: {fileID: 53212881}
+  - component: {fileID: 53212882}
   m_Layer: 0
   m_Name: SC2
   m_TagString: Untagged
@@ -677,6 +678,20 @@ MonoBehaviour:
   socketIndex: 1
   socketName: SC2
   socketInteractor: {fileID: 53212879}
+  currentGate: {fileID: 0}
+--- !u!114 &53212882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 53212877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 2
   currentGate: {fileID: 0}
 --- !u!1 &63482264
 GameObject:
@@ -992,6 +1007,7 @@ GameObject:
   - component: {fileID: 96537819}
   - component: {fileID: 96537818}
   - component: {fileID: 96537820}
+  - component: {fileID: 96537821}
   m_Layer: 0
   m_Name: SC1
   m_TagString: Untagged
@@ -1097,6 +1113,20 @@ MonoBehaviour:
   socketIndex: 0
   socketName: SC1
   socketInteractor: {fileID: 96537818}
+  currentGate: {fileID: 0}
+--- !u!114 &96537821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96537816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 1
   currentGate: {fileID: 0}
 --- !u!1 &98322747
 GameObject:
@@ -2493,6 +2523,7 @@ GameObject:
   - component: {fileID: 199353688}
   - component: {fileID: 199353687}
   - component: {fileID: 199353689}
+  - component: {fileID: 199353690}
   m_Layer: 0
   m_Name: SC9
   m_TagString: Untagged
@@ -2598,6 +2629,20 @@ MonoBehaviour:
   socketIndex: 8
   socketName: SC9
   socketInteractor: {fileID: 199353687}
+  currentGate: {fileID: 0}
+--- !u!114 &199353690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199353685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 9
   currentGate: {fileID: 0}
 --- !u!1 &206301948
 GameObject:
@@ -4816,6 +4861,7 @@ GameObject:
   - component: {fileID: 403335010}
   - component: {fileID: 403335009}
   - component: {fileID: 403335011}
+  - component: {fileID: 403335012}
   m_Layer: 0
   m_Name: SC11
   m_TagString: Untagged
@@ -4921,6 +4967,20 @@ MonoBehaviour:
   socketIndex: 10
   socketName: SC3
   socketInteractor: {fileID: 403335009}
+  currentGate: {fileID: 0}
+--- !u!114 &403335012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 403335007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 11
   currentGate: {fileID: 0}
 --- !u!1 &404445419
 GameObject:
@@ -9476,6 +9536,7 @@ GameObject:
   - component: {fileID: 799016731}
   - component: {fileID: 799016730}
   - component: {fileID: 799016732}
+  - component: {fileID: 799016733}
   m_Layer: 0
   m_Name: SC10
   m_TagString: Untagged
@@ -9581,6 +9642,20 @@ MonoBehaviour:
   socketIndex: 9
   socketName: SC10
   socketInteractor: {fileID: 799016730}
+  currentGate: {fileID: 0}
+--- !u!114 &799016733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799016728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 10
   currentGate: {fileID: 0}
 --- !u!1001 &807192195
 PrefabInstance:
@@ -10568,6 +10643,7 @@ GameObject:
   m_Component:
   - component: {fileID: 869035966}
   - component: {fileID: 869035968}
+  - component: {fileID: 869035969}
   m_Layer: 0
   m_Name: Socket
   m_TagString: Untagged
@@ -10616,6 +10692,19 @@ MonoBehaviour:
   displayText: {fileID: 0}
   delayBetweenGates: 0.5
   circuitData: []
+--- !u!114 &869035969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869035965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eb52f456faf43b4494eeaed21b4fecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QubitCircuit
+  circuitIndex: 1
 --- !u!1001 &873920166
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11505,6 +11594,7 @@ GameObject:
   - component: {fileID: 940671813}
   - component: {fileID: 940671812}
   - component: {fileID: 940671814}
+  - component: {fileID: 940671815}
   m_Layer: 0
   m_Name: SC5
   m_TagString: Untagged
@@ -11610,6 +11700,20 @@ MonoBehaviour:
   socketIndex: 4
   socketName: SC5
   socketInteractor: {fileID: 940671812}
+  currentGate: {fileID: 0}
+--- !u!114 &940671815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 940671810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 5
   currentGate: {fileID: 0}
 --- !u!1 &944554461
 GameObject:
@@ -13349,6 +13453,7 @@ GameObject:
   - component: {fileID: 1078447085}
   - component: {fileID: 1078447084}
   - component: {fileID: 1078447086}
+  - component: {fileID: 1078447087}
   m_Layer: 0
   m_Name: SC6
   m_TagString: Untagged
@@ -13454,6 +13559,20 @@ MonoBehaviour:
   socketIndex: 5
   socketName: SC6
   socketInteractor: {fileID: 1078447084}
+  currentGate: {fileID: 0}
+--- !u!114 &1078447087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078447082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 6
   currentGate: {fileID: 0}
 --- !u!1 &1086396440
 GameObject:
@@ -14021,6 +14140,7 @@ GameObject:
   - component: {fileID: 1126474449}
   - component: {fileID: 1126474448}
   - component: {fileID: 1126474450}
+  - component: {fileID: 1126474451}
   m_Layer: 0
   m_Name: SC8
   m_TagString: Untagged
@@ -14126,6 +14246,20 @@ MonoBehaviour:
   socketIndex: 7
   socketName: SC8
   socketInteractor: {fileID: 1126474448}
+  currentGate: {fileID: 0}
+--- !u!114 &1126474451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126474446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 8
   currentGate: {fileID: 0}
 --- !u!1 &1128398840
 GameObject:
@@ -20249,6 +20383,7 @@ GameObject:
   - component: {fileID: 1226556293}
   - component: {fileID: 1226556292}
   - component: {fileID: 1226556294}
+  - component: {fileID: 1226556295}
   m_Layer: 0
   m_Name: SC3
   m_TagString: Untagged
@@ -20354,6 +20489,20 @@ MonoBehaviour:
   socketIndex: 2
   socketName: SC3
   socketInteractor: {fileID: 1226556292}
+  currentGate: {fileID: 0}
+--- !u!114 &1226556295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226556290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 3
   currentGate: {fileID: 0}
 --- !u!1 &1229717837
 GameObject:
@@ -22391,6 +22540,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1393955565}
+  - component: {fileID: 1393955566}
   m_Layer: 0
   m_Name: CircuitTable
   m_TagString: Untagged
@@ -22415,6 +22565,19 @@ Transform:
   - {fileID: 1063803298}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1393955566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1393955564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fee6be0e7556a3b46b9d8fb9f92d6a6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitManager
+  singleQubit: 1
 --- !u!1 &1398471434
 GameObject:
   m_ObjectHideFlags: 0
@@ -22714,6 +22877,7 @@ GameObject:
   - component: {fileID: 1442302692}
   - component: {fileID: 1442302691}
   - component: {fileID: 1442302693}
+  - component: {fileID: 1442302694}
   m_Layer: 0
   m_Name: SC7
   m_TagString: Untagged
@@ -22819,6 +22983,20 @@ MonoBehaviour:
   socketIndex: 6
   socketName: SC7
   socketInteractor: {fileID: 1442302691}
+  currentGate: {fileID: 0}
+--- !u!114 &1442302694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1442302689}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 7
   currentGate: {fileID: 0}
 --- !u!1 &1443852657
 GameObject:
@@ -26477,6 +26655,7 @@ MonoBehaviour:
   pressDepth: 0.1
   pressSpeed: 5
   circuitTable: {fileID: 0}
+  circuitManager: {fileID: 1393955566}
   pythonScriptPath: Assets/Scripts/test_connection.py
   statusText: {fileID: 0}
   logFolderPath: QuantumResults
@@ -30528,6 +30707,7 @@ GameObject:
   - component: {fileID: 2032300645}
   - component: {fileID: 2032300644}
   - component: {fileID: 2032300646}
+  - component: {fileID: 2032300647}
   m_Layer: 0
   m_Name: SC4
   m_TagString: Untagged
@@ -30633,6 +30813,20 @@ MonoBehaviour:
   socketIndex: 3
   socketName: SC4
   socketInteractor: {fileID: 2032300644}
+  currentGate: {fileID: 0}
+--- !u!114 &2032300647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032300642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GateSocket
+  socketIndex: 4
   currentGate: {fileID: 0}
 --- !u!1001 &2044322093
 PrefabInstance:
