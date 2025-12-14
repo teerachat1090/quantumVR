@@ -72,13 +72,13 @@ public static class GateRotationLibrary
             label = "I = Identity";
             return true;
 
-            case "sqrtX":
+            case "SQRTX":
             axis = Vector3.right;
             angleDeg = 90f;
             label = "√X = RX(π/2)";
             return true;
 
-            case "sqrtXt":
+            case "SQRTXT":
             axis = Vector3.right;
             angleDeg = -90f;
             label = "√X† = RX(-π/2)";
@@ -90,10 +90,10 @@ public static class GateRotationLibrary
                 label = "S = RZ(π/2)";
                 return true;
 
-            case "St":
+            case "ST":
                 axis = Vector3.up;
                 angleDeg = -90f;
-                label = "St = RZ(-π/2)";
+                label = "ST = RZ(-π/2)";
                 return true;
 
             case "T":
@@ -102,10 +102,10 @@ public static class GateRotationLibrary
                 label = "T = RZ(π/4)";
                 return true;
 
-            case "Tt":
+            case "TT":
                 axis = Vector3.up;
                 angleDeg = -45f;
-                label = "Tt = -RZ(π/4)";
+                label = "TT = -RZ(π/4)";
                 return true;            
 
             case "H":
