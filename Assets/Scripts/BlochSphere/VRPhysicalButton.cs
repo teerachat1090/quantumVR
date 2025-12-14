@@ -6,6 +6,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
+
 
 public class VRPhysicalButton : MonoBehaviour
 {
@@ -56,6 +58,8 @@ public class VRPhysicalButton : MonoBehaviour
     private Vector3 pressedPosition;
     private bool isPressed = false;
     private bool canPress = true;
+
+    private bool isRunningQiskit = false;
     private string logDirectory;
 
     private void SetStatus(ButtonStatus s, string msg = null)
@@ -89,7 +93,12 @@ public class VRPhysicalButton : MonoBehaviour
         if (statusText != null && !string.IsNullOrEmpty(msg))
             statusText.text = msg;
     }
-
+        private struct ProcResult
+    {
+        public int exitCode;
+        public string stdout;
+        public string stderr;
+    }
     void Start()
     {
         if (buttonVisual == null) buttonVisual = transform;
@@ -131,6 +140,101 @@ public class VRPhysicalButton : MonoBehaviour
         if (useTestMode)
             Debug.Log("🧪 TEST MODE ENABLED - Will not run Python");
     }
+        private ProcResult RunPythonBlocking(string pythonCommand, string fullScriptPath, string tempJsonPath)
+    {
+        var r = new ProcResult { exitCode = -1, stdout = "", stderr = "" };
+
+        var process = new System.Diagnostics.Process();
+        process.StartInfo.FileName = pythonCommand;
+        process.StartInfo.Arguments = $"\"{fullScriptPath}\" \"{tempJsonPath}\"";
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.WorkingDirectory = Application.dataPath;
+
+        process.Start();
+
+        // งานหนักอยู่ใน background thread ได้
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        r.exitCode = process.ExitCode;
+        r.stdout = output;
+        r.stderr = error;
+        return r;
+    }
+
+    private IEnumerator RunQiskitAsync(string circuitJSON)
+{
+    SetStatus(ButtonStatus.Running, "🐍 Running Qiskit...");
+
+    // 1) เตรียมไฟล์ input (ทำบน main thread ได้)
+    string tempPath = Path.Combine(Application.dataPath, "circuit_input.json");
+    File.WriteAllText(tempPath, circuitJSON);
+
+    // 2) หา python + script path (เหมือนเดิม)
+    string pythonCommand = FindPythonCommand();
+    if (string.IsNullOrEmpty(pythonCommand))
+    {
+        SetStatus(ButtonStatus.Error, "❌ Python not found");
+        yield break;
+    }
+
+    string fullScriptPath = ResolveScriptPath(pythonScriptPath);
+    if (!File.Exists(fullScriptPath))
+    {
+        SetStatus(ButtonStatus.Error, "❌ Script not found");
+        yield break;
+    }
+
+    // 3) รัน process ใน background thread
+    Task<ProcResult> task = Task.Run(() => RunPythonBlocking(pythonCommand, fullScriptPath, tempPath));
+
+    // 4) ระหว่างรอ: ไม่ค้างเฟรม (ปล่อยให้ VR ลื่น)
+    while (!task.IsCompleted)
+        yield return null;
+
+    // 5) กลับมา main thread รับผล
+    ProcResult pr = task.Result;
+
+    if (!string.IsNullOrEmpty(pr.stderr))
+    {
+        SetStatus(ButtonStatus.Error, "❌ Qiskit Error");
+        if (statusText != null) statusText.text = $"❌ Error:\n{pr.stderr}";
+        yield break;
+    }
+
+    if (string.IsNullOrEmpty(pr.stdout))
+    {
+        SetStatus(ButtonStatus.Error, "❌ No output");
+        yield break;
+    }
+
+    string jsonResult = ExtractJSONFromOutput(pr.stdout);
+    if (string.IsNullOrEmpty(jsonResult))
+    {
+        SetStatus(ButtonStatus.Error, "⚠️ Bad output");
+        yield break;
+    }
+
+    // 6) log + update visual (ทำบน main thread)
+    SaveResultLog(jsonResult, circuitJSON);
+    DisplayResultInConsole(jsonResult);
+
+    if (blochSphere != null)
+    {
+        // แนะนำ: อัปเดตจากผลก่อน (ถ้าต้องการ)
+        // blochSphere.UpdateFromQiskitResult(jsonResult);
+
+        var counts = ExtractCounts(jsonResult);
+        blochSphere.AnimateMeasurementCollapseFromCounts(counts);
+    }
+
+    SetStatus(ButtonStatus.Success, "✅ Done!");
+    if (statusText != null) statusText.text = "✅ Circuit Executed!\nCheck Bloch Sphere";
+}
 
     void Update()
     {
@@ -165,7 +269,7 @@ public class VRPhysicalButton : MonoBehaviour
 
     public void PressButton()
     {
-        if (!canPress) return;
+        if (!canPress || isRunningQiskit) return;
 
         Debug.Log("🔴 Button Pressed!");
         isPressed = true;
@@ -200,7 +304,7 @@ public class VRPhysicalButton : MonoBehaviour
         if (!useTestMode)
         {
             string circuitJSON = circuitTable.GenerateCircuitJSON();
-            RunQiskitCircuit(circuitJSON);
+            StartCoroutine(RunQiskitAsync(circuitJSON));
         }
         else
         {

@@ -1,0 +1,5 @@
+{
+    "timestamp": "2025-12-14_13-29-24",
+    "input_circuit": "{\n    \"num_qubits\": 1,\n    \"gates\": [\n        {\n            \"gate_type\": \"H\",\n            \"qubit\": 0,\n            \"target_qubit\": -1\n        }\n    ]\n}",
+    "qiskit_result": "{\"success\": true, \"total_shots\": 1024, \"num_states\": 2, \"top_state\": \"0\", \"top_probability\": 50.68359375, \"counts\": {\"1\": 505, \"0\": 519}}"
+}
