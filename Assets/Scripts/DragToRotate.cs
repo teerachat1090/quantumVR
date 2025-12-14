@@ -44,6 +44,7 @@ public class DragToRotate : MonoBehaviour
         Vector3 delta = currentPos - lastPos;
         lastPos = interactor.transform.position;
 
+        //prevent minor movement
         if(delta.magnitude > 0.0005f)
         {
         float rotZ = -delta.y * rotationSpeed; //Drag DOWN
@@ -55,11 +56,13 @@ public class DragToRotate : MonoBehaviour
 
         //------------------twisting------------------------------------
         Quaternion rot = interactor.transform.rotation;
-        Quaternion deltaRot = rot * Quaternion.Inverse(lastRot);
-        lastRot = rot;
+        Quaternion deltaRot = rot * Quaternion.Inverse(lastRot); //subtract angle
+        lastRot = rot; //update
 
+        // convert Quaternion -> group of angle:axis
         deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
 
+        //prevent minor twist
         if(axis.x > 0.5f || axis.x < -0.5f)
         {
             float xRotation = angle * Mathf.Sign(axis.x) * twistRotationSpeed;
