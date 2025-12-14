@@ -5,6 +5,11 @@
             "gate_type": "H",
             "qubit": 0,
             "target_qubit": -1
+        },
+        {
+            "gate_type": "Y",
+            "qubit": 0,
+            "target_qubit": -1
         }
     ]
 }
