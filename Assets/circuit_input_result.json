@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "timestamp": null,
+  "execution_log": [
+    "Creating circuit with 1 qubits",
+    "Adding 1 gates...",
+    "Gate 1: H on qubit 0"
+  ],
+  "quantum_results": {
+    "total_shots": 1024,
+    "num_states": 2,
+    "top_state": "0 0",
+    "top_probability": 50.8789,
+    "statistics": [
+      {
+        "state": "0 0",
+        "count": 521,
+        "probability": 50.8789
+      },
+      {
+        "state": "1 0",
+        "count": 503,
+        "probability": 49.1211
+      }
+    ],
+    "counts": {
+      "0 0": 521,
+      "1 0": 503
+    }
+  }
+}
