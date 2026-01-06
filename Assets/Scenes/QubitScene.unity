@@ -3497,14 +3497,6 @@ MonoBehaviour:
   gateName: U
   gatetype: 0
   gateDescription: 
-<<<<<<< HEAD
---- !u!4 &210190423 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-    type: 3}
-  m_PrefabInstance: {fileID: 1668561875}
-  m_PrefabAsset: {fileID: 0}
-=======
 --- !u!114 &206301954
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3517,7 +3509,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
->>>>>>> a1ddddb1439c979d47eddacaca6f3a9f9a0b8525
 --- !u!1001 &216927969
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3611,7 +3602,6 @@ Transform:
   - {fileID: 814067175}
   - {fileID: 1651406718}
   - {fileID: 1745527332}
-  - {fileID: 210190423}
   m_Father: {fileID: 1663689110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &225487902 stripped
@@ -11661,10 +11651,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4439420b125d6d45befa7006dc2cef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitTable
-<<<<<<< HEAD
-=======
   sockets: []
->>>>>>> a1ddddb1439c979d47eddacaca6f3a9f9a0b8525
   displayText: {fileID: 0}
   delayBetweenGates: 0.5
   blochSphere: {fileID: 0}
@@ -27598,74 +27585,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0759e5b8616fa854dbb807a3ac19ec2b, type: 3}
---- !u!1001 &1668561875
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 224498938}
-    m_Modifications:
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -6.834012
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2.53656
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 6.7837696
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187027, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6598815579406187037, guid: 18ddb545287c546e19cc77dc9fbb2189,
-        type: 3}
-      propertyPath: m_Name
-      value: XR Device Simulator
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 18ddb545287c546e19cc77dc9fbb2189, type: 3}
 --- !u!4 &1673436381 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 464268, guid: 83a919b0e630c394780833b59a51ab4f,

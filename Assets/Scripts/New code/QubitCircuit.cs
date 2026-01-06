@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class QubitCircuit : MonoBehaviour
@@ -29,5 +30,15 @@ public class QubitCircuit : MonoBehaviour
     public int getNumberOfGates()
     {
         return gateSockets.Length;
+    }
+
+    public List<QuantumGate> getListOfGate()
+    {
+        List<QuantumGate> gateList = new List<QuantumGate>();
+        foreach(GateSocket gateSocket in gateSockets)
+        {
+            gateList.Add(gateSocket.getCurrentGate());
+        }
+        return gateList;
     }
 }
