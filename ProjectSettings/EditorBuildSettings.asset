@@ -15,8 +15,12 @@ EditorBuildSettings:
     path: Assets/Scenes/QubitScene.unity
     guid: 1e1f7272d9b7abf44afd9d9a554bb1d9
   m_configObjects:
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: a0bfae5ad55ec514288a37362a0dbd93,
+      type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 98f44e156941ade4f935c84a4e07e139,
       type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 51daff3a11feb9d41b5d86601b8c853d,
+      type: 2}
+    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: c00dd4350935fc948aa10e94ceda0830,
       type: 2}
   m_UseUCBPForAssetBundles: 0

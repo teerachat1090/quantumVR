@@ -2,46 +2,54 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+
 //using UnityEditor;
 //using System.Data.Common;
 
 public class CircuitTable : MonoBehaviour
 {
     [Header("Sockets")]
-    public CircuitSocket[] sockets;
+    private CircuitSocket[] sockets; // Array ของ Socket ทั้งหมด (SC1(1) ถึง SC1(10))
 
     [Header("Display Settings")]
-    public TextMeshProUGUI displayText;
-    public float delayBetweenGates = 0.5f;
+    public TextMeshProUGUI displayText; // Text แสดงผลบนหน้าจอ VR
+    public float delayBetweenGates = 0.5f; // Delay ระหว่าง Gate
 
     [Header("Bloch Sphere Animation")]
     [SerializeField] private BlochSphere blochSphere;
     [SerializeField] private float gateAnimationDelay = 1.6f;
 
     [Header("Circuit Data")]
-    public List<GateData> circuitData = new List<GateData>();
+    public List<GateData> circuitData = new List<GateData>(); // เก็บข้อมูล Circuit
 
     [Header("History System")]
     [SerializeField] private bool enableSmartUndo = true;
     [Tooltip("Animate smoothly when undoing last gate")]
     [SerializeField] private bool animateUndo = true;
-
     // Core state management
     private CircuitHistory history = new CircuitHistory();
+ 
     private bool isExecuting = false;
     private bool pendingRebuild = false;
 
     // Preview cursor (0..GateCount) points into history.states
     private int previewStateIndex = -1;
-
+    private string sample = null;
+  
     void Start()
     {
+        // หา Sockets ทั้งหมดที่เป็น child
+
         if (sockets == null || sockets.Length == 0)
         {
             sockets = GetComponentsInChildren<CircuitSocket>();
             Debug.Log($"📊 Found {sockets.Length} sockets");
         }
+        
+        Debug.Log($"socket length: {sockets.Length}");
+        Debug.Log($"📊 Found {sockets.Length} sockets");
 
+        // เรียงลำดับ Socket ตาม index
         System.Array.Sort(sockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
 
         if (blochSphere == null)
@@ -53,73 +61,71 @@ public class CircuitTable : MonoBehaviour
         UpdateCircuit();
     }
 
+    //count number of gate
     private void SyncPreviewCursorToEnd()
     {
         previewStateIndex = history.GateCount;
     }
 
-    /// <summary>
-    /// CORE: Called when circuit changes (gate added/removed)
-    /// Now uses history system for smart updates!
-    /// </summary>
-public void UpdateCircuit()
-{
-    // 1) snapshot ของ circuit เดิม
-    var oldData = new List<GateData>(circuitData);
-
-    // 2) build circuit ใหม่จาก sockets
-    List<GateData> newCircuitData = new List<GateData>();
-    foreach (CircuitSocket socket in sockets)
+    // Update circuit when changed + history system
+    public void UpdateCircuit()
     {
-        if (socket.HasGate())
+        // 1) snapshot ของ circuit เดิม (copy list from "circuitData")
+        var oldData = new List<GateData>(circuitData);
+
+        // 2) build circuit ใหม่จาก sockets
+        List<GateData> newCircuitData = new List<GateData>();
+        foreach (CircuitSocket socket in sockets)
         {
-            newCircuitData.Add(new GateData
+            if (socket.HasGate())
             {
-                socketIndex = socket.socketIndex,
-                socketName = socket.socketName,
-                gateName = socket.currentGate.gateName,
-                gateDescription = socket.currentGate.gateDescription
-            });
+                newCircuitData.Add(new GateData
+                {
+                    socketIndex = socket.socketIndex,
+                    socketName = socket.socketName,
+                    gateName = socket.currentGate.gateName,
+                    gateDescription = socket.currentGate.gateDescription
+                });
+            }
         }
+
+        // 3) detect change
+        ChangeType change = DetectChange(circuitData, newCircuitData);
+
+        // 4) update circuitData
+        circuitData = newCircuitData;
+
+        Debug.Log($"📊 Circuit updated: {circuitData.Count} gates, Change: {change}");
+
+        // 5) handle change (ครั้งเดียว)
+        if (change == ChangeType.NoChange)
+        {
+            return;
+        }
+        else if (change == ChangeType.EmptyCircuit)
+        {
+            HandleEmptyCircuit();
+        }
+        else if (enableSmartUndo && change == ChangeType.RemovedLast)
+        {
+            // เกตที่ถูกถอด = ตัวสุดท้ายของ oldData
+            var removedGate = oldData[oldData.Count - 1];
+            HandleRemovedLast(removedGate.gateName);
+        }
+        else if (enableSmartUndo && change == ChangeType.AddedToEnd)
+        {
+            HandleAddedToEnd();
+        }
+        else
+        {
+            HandleComplexChange();
+        }
+
+        // 6) sync preview cursor
+        SyncPreviewCursorToEnd();
     }
 
-    // 3) detect change
-    ChangeType change = DetectChange(circuitData, newCircuitData);
-
-    // 4) update circuitData
-    circuitData = newCircuitData;
-
-    Debug.Log($"📊 Circuit updated: {circuitData.Count} gates, Change: {change}");
-
-    // 5) handle change (ครั้งเดียว)
-    if (change == ChangeType.NoChange)
-    {
-        return;
-    }
-    else if (change == ChangeType.EmptyCircuit)
-    {
-        HandleEmptyCircuit();
-    }
-    else if (enableSmartUndo && change == ChangeType.RemovedLast)
-    {
-        // เกตที่ถูกถอด = ตัวสุดท้ายของ oldData
-        var removedGate = oldData[oldData.Count - 1];
-        HandleRemovedLast(removedGate.gateName);
-    }
-    else if (enableSmartUndo && change == ChangeType.AddedToEnd)
-    {
-        HandleAddedToEnd();
-    }
-    else
-    {
-        HandleComplexChange();
-    }
-
-    // 6) sync preview cursor
-    SyncPreviewCursorToEnd();
-}
-
-
+    //list of status
     private enum ChangeType
     {
         NoChange,
@@ -136,6 +142,7 @@ public void UpdateCircuit()
 
         if (oldData.Count == newData.Count)
         {
+            //check sequence
             bool same = true;
             for (int i = 0; i < oldData.Count; i++)
             {
@@ -149,6 +156,7 @@ public void UpdateCircuit()
             return same ? ChangeType.NoChange : ChangeType.ComplexChange;
         }
 
+        //insert
         if (newData.Count == oldData.Count + 1)
         {
             bool addedToEnd = true;
@@ -164,6 +172,7 @@ public void UpdateCircuit()
             return addedToEnd ? ChangeType.AddedToEnd : ChangeType.ComplexChange;
         }
 
+        //remove
         if (newData.Count == oldData.Count - 1)
         {
             bool removedLast = true;
@@ -274,6 +283,9 @@ public void UpdateCircuit()
         SyncPreviewCursorToEnd();
     }
 
+
+
+    // เรียกจากปุ่ม - แสดงผล Circuit ทีละ Gate
     public void ExecuteCircuit()
     {
         if (isExecuting)
@@ -282,9 +294,17 @@ public void UpdateCircuit()
             return;
         }
 
+        if (circuitData.Count == 0)
+        {
+            Debug.LogWarning("⚠️ No gates placed in circuit!");
+            return;
+        }
+
+
         StopAllCoroutines();
         StartCoroutine(ExecuteCircuitSequence());
     }
+
 
     IEnumerator ExecuteCircuitSequence()
     {
@@ -298,6 +318,7 @@ public void UpdateCircuit()
             yield return new WaitForSeconds(1.0f);
         }
 
+        //copy current gates list
         List<GateData> gatesSnapshot = new List<GateData>(circuitData);
 
         if (gatesSnapshot.Count == 0)
@@ -307,35 +328,26 @@ public void UpdateCircuit()
             yield break;
         }
 
-        if (displayText != null)
-        {
-            displayText.text = $"Executing {gatesSnapshot.Count} gates...";
-        }
+        UpdateDisplayText($"Executing {gatesSnapshot.Count} gates...");
 
         for (int i = 0; i < gatesSnapshot.Count; i++)
         {
             var gate = gatesSnapshot[i];
             Debug.Log($"▶ Gate {i + 1}/{gatesSnapshot.Count}: {gate.gateName}");
 
-            if (displayText != null)
-            {
-                displayText.text = $"Gate {i + 1}/{gatesSnapshot.Count}: {gate.gateName}";
-            }
+            UpdateDisplayText($"Gate {i + 1}/{gatesSnapshot.Count}: {gate.gateName}");
 
             if (blochSphere != null)
             {
                 blochSphere.ApplyGate(gate.gateName);
             }
 
-            yield return new WaitForSeconds(gateAnimationDelay);
+            yield return new WaitForSeconds(gateAnimationDelay); //some delay
         }
 
         Debug.Log("✅ All gates applied → ready for measurement");
 
-        if (displayText != null)
-        {
-            displayText.text = "Circuit executed!\nReady for measurement";
-        }
+        UpdateDisplayText("Circuit executed!\nReady for measurement");
 
         isExecuting = false;
 
@@ -348,6 +360,7 @@ public void UpdateCircuit()
 
         SyncPreviewCursorToEnd();
     }
+
 
     public void PreviewUndoStep()
     {
@@ -379,35 +392,98 @@ public void UpdateCircuit()
 
     public Vector3 GetCurrentBlochState() => history.GetCurrentState();
 
+    // แสดงผลบน Text UI
+    private void UpdateDisplayText(string message)
+    {
+        if (displayText != null)    displayText.text = message;
+    }
+
+    // สร้าง JSON สำหรับส่งไป Python - ✨ แก้ไขแล้ว
     public string GenerateCircuitJSON()
     {
+        UpdateCircuit();
+    
         Debug.Log("🔵 GenerateCircuitJSON called!");
         Debug.Log($"📊 Gates count: {circuitData.Count}");
-
-        CircuitExport export = new CircuitExport
+    
+        if (circuitData.Count == 0)
         {
-            num_qubits = 1, // ✅ โต๊ะ 1 แถว = 1 qubit
-            gates = new List<GateExport>()
-        };
-
+            Debug.LogWarning("⚠️ No gates in circuit!");
+            CircuitExport emptyExport = new CircuitExport
+            {
+                num_qubits = 1,
+                gates = new List<GateExport>()
+            };
+            return JsonUtility.ToJson(emptyExport, true);
+        }
+    
+        // 🔍 Debug: แสดง socket indices ทั้งหมด
         foreach (GateData gate in circuitData)
         {
+            Debug.Log($"🔍 Gate: {gate.gateName} at socket {gate.socketIndex}");
+        }
+    
+        // คำนวณ max qubit
+        int maxQubit = 0;
+        foreach (GateData gate in circuitData)
+        {
+            int qubitIndex = (gate.socketIndex - 1) / 3;
+            Debug.Log($"🔍 Socket {gate.socketIndex} → Qubit {qubitIndex}");
+        
+            if (qubitIndex > maxQubit)
+            {
+                maxQubit = qubitIndex;
+            }
+        }
+    
+        int numQubitsNeeded = maxQubit + 1;
+    
+        Debug.Log($"🔢 Max qubit: {maxQubit}");
+        Debug.Log($"🔢 Qubits needed: {numQubitsNeeded}");
+    
+        CircuitExport export = new CircuitExport
+        {
+            num_qubits = numQubitsNeeded,
+            gates = new List<GateExport>()
+        };
+    
+        foreach (GateData gate in circuitData)
+        {
+            //int qubitIndex = (gate.socketIndex - 1) / 3;
+
             export.gates.Add(new GateExport
             {
                 gate_type = gate.gateName,
-                qubit = 0,          // ✅ ทุกเกตอยู่ qubit 0
+                qubit = 0,
                 target_qubit = -1
             });
         }
-
+    
         string json = JsonUtility.ToJson(export, true);
         Debug.Log($"📤 Generated JSON:\n{json}");
+
         return json;
     }
 
-
+    // แสดง Circuit ทั้งหมดแบบไม่มี delay (สำหรับ debug)
+    public void PrintCircuit()
+    {
+        UpdateCircuit();
+        
+        Debug.Log("═══════════════════════════════");
+        Debug.Log($"📊 CIRCUIT TABLE ({circuitData.Count} gates)");
+        Debug.Log("═══════════════════════════════");
+        
+        foreach (GateData gate in circuitData)
+        {
+            Debug.Log($"• {gate.socketName}: [{gate.gateName}] {gate.gateDescription}");
+        }
+        
+        Debug.Log("═══════════════════════════════");
+    }
 }
 
+// Class สำหรับเก็บข้อมูล Gate
 [System.Serializable]
 public class GateData
 {
@@ -417,6 +493,7 @@ public class GateData
     public string gateDescription;
 }
 
+// Class สำหรับ Export ไป Python
 [System.Serializable]
 public class CircuitExport
 {
@@ -427,7 +504,7 @@ public class CircuitExport
 [System.Serializable]
 public class GateExport
 {
-    public string gate_type;
-    public int qubit;
-    public int target_qubit;
+    public string gate_type; // "H", "X", "Y", "Z", "CNOT"
+    public int qubit; // Qubit index (0-based)
+    public int target_qubit; // สำหรับ 2-qubit gates เช่น CNOT (-1 ถ้าไม่ใช้)
 }
