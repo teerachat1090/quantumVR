@@ -11651,7 +11651,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4439420b125d6d45befa7006dc2cef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitTable
-  sockets: []
   displayText: {fileID: 0}
   delayBetweenGates: 0.5
   blochSphere: {fileID: 0}

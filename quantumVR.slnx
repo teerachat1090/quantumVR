@@ -6,4 +6,7 @@
   <Project Path="BlockadeLabsSDK.Tests.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="BlockadeLabsSDK.Editor.csproj" />
+  <Project Path="Unity.XR.Interaction.Toolkit.Samples.DeviceSimulator.csproj" />
+  <Project Path="Unity.XR.Interaction.Toolkit.Samples.InteractionSimulator.csproj" />
+  <Project Path="Unity.XR.Interaction.Toolkit.Samples.InteractionSimulator.Editor.csproj" />
 </Solution>

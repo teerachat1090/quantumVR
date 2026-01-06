@@ -17,7 +17,7 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-
+# load from JSON
 def load_circuit_from_json(json_path: str):
     with open(json_path, "r", encoding="utf-8") as f:
         return json.load(f)

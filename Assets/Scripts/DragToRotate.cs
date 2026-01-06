@@ -59,7 +59,7 @@ public class DragToRotate : MonoBehaviour
         Quaternion deltaRot = rot * Quaternion.Inverse(lastRot); //subtract angle
         lastRot = rot; //update
 
-        // convert Quaternion -> group of angle:axis
+        // convert Quaternion -> group of (angle:axis)
         deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
 
         //prevent minor twist

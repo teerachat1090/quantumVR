@@ -1,5 +1,5 @@
 {
-    "num_qubits": 1,
+    "num_qubits": 3,
     "gates": [
         {
             "gate_type": "H",
@@ -7,7 +7,22 @@
             "target_qubit": -1
         },
         {
-            "gate_type": "Y",
+            "gate_type": "sqrtX",
+            "qubit": 0,
+            "target_qubit": -1
+        },
+        {
+            "gate_type": "S",
+            "qubit": 0,
+            "target_qubit": -1
+        },
+        {
+            "gate_type": "RX",
+            "qubit": 0,
+            "target_qubit": -1
+        },
+        {
+            "gate_type": "T",
             "qubit": 0,
             "target_qubit": -1
         }

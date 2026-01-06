@@ -24,7 +24,7 @@ public class CircuitHistory
         }
     }
     
-    // Core state tracking
+    // Sequence of gate and state
     private List<GateOp> gates = new List<GateOp>();
     private List<Vector3> states = new List<Vector3>(); // Unit vectors on Bloch sphere
     
@@ -117,7 +117,7 @@ public class CircuitHistory
         // Trim states array to match
         // states.Count should always be gates.Count + 1
         if (states.Count > gates.Count + 1)
-            states.RemoveRange(gates.Count + 1, states.Count - gates.Count - 1);
+            states.RemoveRange(gates.Count + 1, states.Count - gates.Count - 1); //remove from last to picked one
         
         // Recompute from index onwards
         RecomputeStatesFrom(index);

@@ -114,6 +114,8 @@ public static class GateRotationLibrary
                 angleDeg = 180f;
                 label = "H = Rn(π), n=(X+Z)/√2";
                 return true;
+
+            //need default case
         }
 
         return false;
