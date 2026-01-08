@@ -10,7 +10,7 @@ public class BlochSphere : MonoBehaviour
 {
     [Header("Sphere Settings")]
     [SerializeField] private GameObject sphereMesh;
-    [SerializeField] private float sphereRadius = 2f;
+    [SerializeField] private float sphereRadius = 2f; // should make option that use "sphereMesh" as ref.
     [SerializeField][Range(0f, 1f)] private float sphereAlpha = 0.3f;
     [SerializeField] private Color sphereBaseColor = new Color(0.9f, 0.9f, 0.9f);
     [SerializeField] private bool autoPosition = true;
@@ -260,7 +260,7 @@ public class BlochSphere : MonoBehaviour
     /// </summary>
     public void ApplyGate(string gateType)
 {
-    string raw = (gateType ?? "").Trim();
+    string raw = (gateType ?? "").Trim(); //check null: if null -> "", if not -> "gateType"
 
     if (!GateRotationLibrary.TryGetRotation(raw, out Vector3 axis, out float angleDeg, out string label))
     {
@@ -272,6 +272,9 @@ public class BlochSphere : MonoBehaviour
     Vector3 localAxis = axis.normalized;
 
     // ✅ สำคัญ: กลับทิศหมุนให้ตรง Bloch convention
+    // Right-hand rule (do thumb-up): axis-นิ้วโป้ง, direction-other fingers
+    //      Because Unity use Left-hand rule rotation; 
+    //      Therefore, angle will be opposite (negative)
     float usedAngleDeg = -angleDeg;
 
     Quaternion q = Quaternion.AngleAxis(usedAngleDeg, localAxis);
@@ -279,9 +282,7 @@ public class BlochSphere : MonoBehaviour
 
     // ✨ วาด arc ตามแกนหมุนจริง (ใช้มุมเดียวกัน)
     if (showRotationArc && arcRenderer != null)
-    {
         arcRenderer.DrawGateArcWithAxis(startUnit, endUnit, axis, usedAngleDeg);
-    }
 
     if (infoText != null)
         infoText.text = $"{label}\nAxis: ({axis.x:F2},{axis.y:F2},{axis.z:F2})\nAngle: {usedAngleDeg:F0}°";
@@ -646,11 +647,11 @@ public class BlochSphere : MonoBehaviour
 
         if (stateVectorLine != null)
         {
-            Vector3 center = currentStatePosition * 0.5f;
+            Vector3 center = currentStatePosition * 0.5f; //reduce vector to half
             float length = currentStatePosition.magnitude;
 
             stateVectorLine.transform.localPosition = center;
-            if (length > 0.001f)
+            if (length > 0.001f) // ignore very small magnitude
                 stateVectorLine.transform.localRotation = Quaternion.FromToRotation(Vector3.up, currentStatePosition);
 
             stateVectorLine.transform.localScale = new Vector3(stateVectorWidth, length * 0.5f, stateVectorWidth);

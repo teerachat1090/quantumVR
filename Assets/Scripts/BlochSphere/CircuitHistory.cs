@@ -114,8 +114,7 @@ public class CircuitHistory
         
         gates.RemoveAt(index);
         
-        // Trim states array to match
-        // states.Count should always be gates.Count + 1
+        // In case of not the last index removed 
         if (states.Count > gates.Count + 1)
             states.RemoveRange(gates.Count + 1, states.Count - gates.Count - 1); //remove from last to picked one
         

@@ -23,14 +23,14 @@ public class CircuitTable : MonoBehaviour
     public List<GateData> circuitData = new List<GateData>(); // เก็บข้อมูล Circuit
 
     [Header("History System")]
-    [SerializeField] private bool enableSmartUndo = true;
+    [SerializeField] private bool enableSmartUndo = true;   //changing list using history as ref.
     [Tooltip("Animate smoothly when undoing last gate")]
     [SerializeField] private bool animateUndo = true;
     // Core state management
     private CircuitHistory history = new CircuitHistory();
  
-    private bool isExecuting = false;
-    private bool pendingRebuild = false;
+    private bool isExecuting = false; //check if calculation is running
+    private bool pendingRebuild = false; // to notice that smth. changed during executing
 
     // Preview cursor (0..GateCount) points into history.states
     private int previewStateIndex = -1;
@@ -49,9 +49,10 @@ public class CircuitTable : MonoBehaviour
         Debug.Log($"socket length: {sockets.Length}");
         Debug.Log($"📊 Found {sockets.Length} sockets");
 
-        // เรียงลำดับ Socket ตาม index
+        // sort socket by index
         System.Array.Sort(sockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
 
+        // introduce Bloch sphere object
         if (blochSphere == null)
         {
             blochSphere = FindFirstObjectByType<BlochSphere>();
@@ -61,7 +62,6 @@ public class CircuitTable : MonoBehaviour
         UpdateCircuit();
     }
 
-    //count number of gate
     private void SyncPreviewCursorToEnd()
     {
         previewStateIndex = history.GateCount;
@@ -70,10 +70,10 @@ public class CircuitTable : MonoBehaviour
     // Update circuit when changed + history system
     public void UpdateCircuit()
     {
-        // 1) snapshot ของ circuit เดิม (copy list from "circuitData")
+        // 1) copy from lastest "circuitData" list (need for comparing when update history)
         var oldData = new List<GateData>(circuitData);
 
-        // 2) build circuit ใหม่จาก sockets
+        // 2) build a new circuit list
         List<GateData> newCircuitData = new List<GateData>();
         foreach (CircuitSocket socket in sockets)
         {
@@ -89,37 +89,33 @@ public class CircuitTable : MonoBehaviour
             }
         }
 
-        // 3) detect change
+        // 3) detecting change
         ChangeType change = DetectChange(circuitData, newCircuitData);
 
-        // 4) update circuitData
+        // 4) update circuitData list
         circuitData = newCircuitData;
-
         Debug.Log($"📊 Circuit updated: {circuitData.Count} gates, Change: {change}");
 
         // 5) handle change (ครั้งเดียว)
-        if (change == ChangeType.NoChange)
-        {
+        if (change == ChangeType.NoChange)              
             return;
-        }
-        else if (change == ChangeType.EmptyCircuit)
-        {
+
+        else if (change == ChangeType.EmptyCircuit)     
             HandleEmptyCircuit();
-        }
+
         else if (enableSmartUndo && change == ChangeType.RemovedLast)
         {
-            // เกตที่ถูกถอด = ตัวสุดท้ายของ oldData
-            var removedGate = oldData[oldData.Count - 1];
+            //why need gate's name when it always remove the last one?
+            var removedGate = oldData[oldData.Count - 1]; 
             HandleRemovedLast(removedGate.gateName);
         }
+
         else if (enableSmartUndo && change == ChangeType.AddedToEnd)
-        {
             HandleAddedToEnd();
-        }
-        else
-        {
+
+        else    
             HandleComplexChange();
-        }
+        
 
         // 6) sync preview cursor
         SyncPreviewCursorToEnd();
@@ -128,11 +124,7 @@ public class CircuitTable : MonoBehaviour
     //list of status
     private enum ChangeType
     {
-        NoChange,
-        EmptyCircuit,
-        AddedToEnd,
-        RemovedLast,
-        ComplexChange
+        NoChange, EmptyCircuit, AddedToEnd, RemovedLast, ComplexChange
     }
 
     private ChangeType DetectChange(List<GateData> oldData, List<GateData> newData)
@@ -216,15 +208,15 @@ public class CircuitTable : MonoBehaviour
         if (lastIndex < 0) return;
 
         Vector3 previousState = history.RemoveGate(lastIndex);
-
+        string result_text = null;
         // ✅ หาค่าแกน/มุมของเกตที่ถูกถอด
         if (blochSphere != null && animateUndo &&
-            GateRotationLibrary.TryGetRotation(removedGateName, out Vector3 axis, out float angleDeg, out _))
+            GateRotationLibrary.TryGetRotation(removedGateName, out Vector3 axis, out float angleDeg, out result_text))
         {
             // ApplyGate ใช้ usedAngle = -angleDeg
             // Undo ต้องเป็น inverse => -usedAngle = +angleDeg
             float undoUsedAngle = +angleDeg;
-
+            Debug.Log($"Remove {result_text} with axis: {axis} angle{undoUsedAngle}");
             blochSphere.AnimateToStateWithAxis(previousState, axis, undoUsedAngle);
         }
         else if (blochSphere != null && animateUndo)
@@ -263,6 +255,7 @@ public class CircuitTable : MonoBehaviour
         SyncPreviewCursorToEnd();
     }
 
+    // Rebuild from the start
     private void HandleComplexChange()
     {
         if (isExecuting)
@@ -355,6 +348,7 @@ public class CircuitTable : MonoBehaviour
         {
             pendingRebuild = false;
             Debug.Log("🔁 pendingRebuild detected → re-executing latest circuit");
+            UpdateCircuit();
             ExecuteCircuit();
         }
 
