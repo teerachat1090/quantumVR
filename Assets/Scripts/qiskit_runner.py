@@ -51,6 +51,8 @@ def create_quantum_circuit(circuit_data):
         num_qubits = 1
 
     # ✅ 1 qreg + 1 creg (creg เดียว) ตาม num_qubits
+    # QuantumCircuit(int a, int b)
+    #   create circuit with "a" qubits, "b" bits
     qc = QuantumCircuit(num_qubits, num_qubits)
 
     print(f"Creating circuit with {num_qubits} qubits")
@@ -261,6 +263,8 @@ def main():
 
         result_json = build_result_json(counts)
         print(json.dumps(result_json, ensure_ascii=False))
+        
+        # Suggestion: create new JSON file for output 
 
     except Exception as e:
         print(f"ERROR: {str(e)}", file=sys.stderr)

@@ -8,7 +8,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-
+// Suggestion: create new file which specially deal with quantum calculation
+//      leave this files only function about button movement and triggering function
 public class VRPhysicalButton : MonoBehaviour
 {
     [Header("Button Settings")]
@@ -25,6 +26,7 @@ public class VRPhysicalButton : MonoBehaviour
     [Header("Test Mode")]
     [SerializeField] private bool useTestMode = true;
 
+    // note: can move to new file
     [Header("Python Settings")]
     [Tooltip("You can use 'Assets/..' or 'Scripts/..'. Recommended: Assets/Scripts/qiskit_runner.py")]
     [SerializeField] private string pythonScriptPath = "Assets/Scripts/qiskit_runner.py";
@@ -34,11 +36,13 @@ public class VRPhysicalButton : MonoBehaviour
     [SerializeField] private string logFolderPath = "QuantumResults";
     [SerializeField] private bool saveTimestampedLogs = true;
 
+    // use for checking if button work. Can delete in the future along with function.
     [Header("Spawn Settings")]
     [SerializeField] private GameObject spherePrefab;
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private float spawnDistance = 0.5f;
 
+    // button color according to its state
     [Header("Status Color")]
     [SerializeField] private Renderer buttonRenderer;
     [SerializeField] private Color idleColor = new Color(0.2f, 0.8f, 1f);
@@ -66,50 +70,49 @@ public class VRPhysicalButton : MonoBehaviour
     {
         _status = s;
 
-        if (_buttonMat != null)
+        if (_buttonMat == null)
         {
-            Color c = idleColor;
-            switch (s)
-            {
-                case ButtonStatus.Idle: c = idleColor; break;
-                case ButtonStatus.Running: c = runningColor; break;
-                case ButtonStatus.Success: c = successColor; break;
-                case ButtonStatus.Error: c = errorColor; break;
-                case ButtonStatus.Disabled: c = disabledColor; break;
-            }
-
-            // URP Lit: _BaseColor, Built-in: _Color
-            if (_buttonMat.HasProperty("_BaseColor")) _buttonMat.SetColor("_BaseColor", c);
-            if (_buttonMat.HasProperty("_Color")) _buttonMat.SetColor("_Color", c);
-
-            // Emission (ถ้ามี) ให้ดูเด่น
-            if (_buttonMat.HasProperty("_EmissionColor"))
-            {
-                _buttonMat.EnableKeyword("_EMISSION");
-                _buttonMat.SetColor("_EmissionColor", c * 0.8f);
-            }
+            Debug.LogWarning("button material not found!"); 
+            return;
         }
 
+        Color c = idleColor;
+        switch (s)
+        {
+            case ButtonStatus.Idle: c = idleColor; break;
+            case ButtonStatus.Running: c = runningColor; break;
+            case ButtonStatus.Success: c = successColor; break;
+            case ButtonStatus.Error: c = errorColor; break;
+            case ButtonStatus.Disabled: c = disabledColor; break;
+        }
+
+        // URP Lit: _BaseColor, Built-in: _Color
+        if (_buttonMat.HasProperty("_BaseColor")) _buttonMat.SetColor("_BaseColor", c);
+        if (_buttonMat.HasProperty("_Color")) _buttonMat.SetColor("_Color", c);
+
+        // Emission -> glow (Optionnal)
+        if (_buttonMat.IsKeywordEnabled("_EMISSION") && _buttonMat.HasProperty("_EmissionColor"))
+            _buttonMat.SetColor("_EmissionColor", c * 0.8f);
+        
         if (statusText != null && !string.IsNullOrEmpty(msg))
             statusText.text = msg;
     }
-        private struct ProcResult
+    private struct ProcResult
     {
         public int exitCode;
         public string stdout;
         public string stderr;
     }
+    
     void Start()
     {
         if (buttonVisual == null) buttonVisual = transform;
 
         if (buttonRenderer == null)
-            buttonRenderer = GetComponentInChildren<Renderer>();
-
-        if (buttonRenderer != null)
-        {
+            buttonRenderer = GetComponentInChildren<Renderer>();    // search current object then its children
+        else
             _buttonMat = buttonRenderer.material; // instance material
-        }
+
 
         SetStatus(ButtonStatus.Idle, useTestMode ? "🧪 Test Mode Ready" : "Ready");
 
@@ -141,8 +144,6 @@ public class VRPhysicalButton : MonoBehaviour
             Debug.Log("🧪 TEST MODE ENABLED - Will not run Python");
     }
 
-    //Run python script in background and send result/error out
-    // **Background process can imporve game performance**
     private ProcResult RunPythonBlocking(string pythonCommand, string fullScriptPath, string tempJsonPath)
     {
         var r = new ProcResult { exitCode = -1, stdout = "", stderr = "" };
@@ -153,7 +154,7 @@ public class VRPhysicalButton : MonoBehaviour
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.CreateNoWindow = true; //Do Backgound process
+        process.StartInfo.CreateNoWindow = true;
         process.StartInfo.WorkingDirectory = Application.dataPath;
 
         process.Start();
@@ -192,8 +193,12 @@ public class VRPhysicalButton : MonoBehaviour
             yield break;
         }
 
-        // 3) รัน process ใน background thread
+        // 3)
+        //  Run python script in background and receive result as "ProcResult" form
+        // **Background process can imporve game performance**
         Task<ProcResult> task = Task.Run(() => RunPythonBlocking(pythonCommand, fullScriptPath, tempPath));
+        // Task.Run use lambda method: () => func()
+        // From that line, it use no parameter and instead use outside variable as input for the function
 
         // 4) ระหว่างรอ: ไม่ค้างเฟรม (ปล่อยให้ VR ลื่น)
         while (!task.IsCompleted)
@@ -241,14 +246,7 @@ public class VRPhysicalButton : MonoBehaviour
 
     void Update()
     {
-        if (!isPressed)
-        {
-            buttonVisual.localPosition = Vector3.Lerp(buttonVisual.localPosition, initialPosition, Time.deltaTime * pressSpeed);
-        }
-        else
-        {
-            buttonVisual.localPosition = Vector3.Lerp(buttonVisual.localPosition, pressedPosition, Time.deltaTime * pressSpeed * 2f);
-        }
+        buttonVisual.localPosition = Vector3.Lerp(buttonVisual.localPosition, initialPosition, Time.deltaTime * pressSpeed * (isPressed ? 2f : 1f));
     }
 
     private void SpawnSphereForTesting()
@@ -290,6 +288,7 @@ public class VRPhysicalButton : MonoBehaviour
             Debug.LogError("❌ CircuitTable not assigned!");
         }
 
+        // use "?" to check if null
         onButtonPressed?.Invoke();
         Invoke(nameof(ReleaseButton), 0.2f);
     }
@@ -378,6 +377,7 @@ public class VRPhysicalButton : MonoBehaviour
         return Path.Combine(Application.dataPath, p);
     }
 
+    // not use: make game slow
     public void RunQiskitCircuit(string circuitJSON)
     {
         try
