@@ -2,7 +2,17 @@
     "num_qubits": 2,
     "gates": [
         {
-            "gate_type": "T",
+            "gate_type": "H",
+            "qubit": 0,
+            "target_qubit": -1
+        },
+        {
+            "gate_type": "Z",
+            "qubit": 0,
+            "target_qubit": -1
+        },
+        {
+            "gate_type": "H",
             "qubit": 0,
             "target_qubit": -1
         }

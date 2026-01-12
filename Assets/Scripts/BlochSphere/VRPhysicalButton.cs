@@ -7,6 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug; //there're class "Debug" in both UnityEngine and System.Diagnostics
 
 // Suggestion: create new file which specially deal with quantum calculation
 //      leave this files only function about button movement and triggering function
@@ -53,6 +55,7 @@ public class VRPhysicalButton : MonoBehaviour
 
     private Material _buttonMat;
 
+    //just for display
     private enum ButtonStatus { Idle, Running, Success, Error, Disabled }
     private ButtonStatus _status = ButtonStatus.Idle;
 
@@ -169,6 +172,8 @@ public class VRPhysicalButton : MonoBehaviour
         return r;
     }
 
+    // save JSON -> run python (background) -> check result 
+    //      -> save log, display console, update sphere
     private IEnumerator RunQiskitAsync(string circuitJSON)
     {
         SetStatus(ButtonStatus.Running, "🐍 Running Qiskit...");
@@ -268,6 +273,7 @@ public class VRPhysicalButton : MonoBehaviour
         }
     }
 
+
     public void PressButton()
     {
         if (!canPress || isRunningQiskit) return;
@@ -293,6 +299,7 @@ public class VRPhysicalButton : MonoBehaviour
         Invoke(nameof(ReleaseButton), 0.2f);
     }
 
+    // wait for circuit arrangement -> create JSON string -> start operation
     private IEnumerator WaitForExecutionThenMeasure()
     {
         SetStatus(ButtonStatus.Running, "⏳ Waiting for circuit...");
@@ -481,18 +488,35 @@ public class VRPhysicalButton : MonoBehaviour
         {
             try //running simple command: get python version
             {
-                var testProcess = new System.Diagnostics.Process();
-                testProcess.StartInfo.FileName = cmd;
-                testProcess.StartInfo.Arguments = "--version";
-                testProcess.StartInfo.UseShellExecute = false;
-                testProcess.StartInfo.RedirectStandardOutput = true;
-                testProcess.StartInfo.RedirectStandardError = true;
-                testProcess.StartInfo.CreateNoWindow = true;
+                // var testProcess = new System.Diagnostics.Process();
+                // testProcess.StartInfo.FileName = cmd;
+                // testProcess.StartInfo.Arguments = "--version";
+                // testProcess.StartInfo.UseShellExecute = false;
+                // testProcess.StartInfo.RedirectStandardOutput = true;
+                // testProcess.StartInfo.RedirectStandardError = true;
+                // testProcess.StartInfo.CreateNoWindow = true;
 
-                testProcess.Start();
-                testProcess.WaitForExit();
+                // testProcess.Start();
+                // testProcess.WaitForExit();
 
-                if (testProcess.ExitCode == 0) return cmd;
+                // if (testProcess.ExitCode == 0) return cmd;
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = cmd,
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var testProcess = Process.Start(startInfo))
+                {
+                    testProcess.WaitForExit();
+                    if (testProcess.ExitCode == 0) return cmd;
+                    
+                }
             }
             catch { }
         }
