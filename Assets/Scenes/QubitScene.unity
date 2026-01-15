@@ -342,6 +342,7 @@ GameObject:
   m_Component:
   - component: {fileID: 15878949}
   - component: {fileID: 15878950}
+  - component: {fileID: 15878951}
   m_Layer: 6
   m_Name: GameObject
   m_TagString: Untagged
@@ -376,6 +377,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e424cb1597f4474497c1c5ebed763a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SampleScript
+--- !u!114 &15878951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15878948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db3bc926e457ab945bea5ca98f2e9c75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SingleQubitOperation
+  buttonObject: {fileID: 1209107491}
+  circuitTable: {fileID: 869035968}
+  blochSphere: {fileID: 0}
+  testMode: 0
 --- !u!1001 &17650681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16647,9 +16664,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PressButtonForSingleQubit
   pressDepth: 0.05
   pressTime: 0.5
-  onPressed:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &1213230516
 GameObject:
   m_ObjectHideFlags: 0

@@ -28,7 +28,7 @@ public class VRPhysicalButton : MonoBehaviour
     [Header("Test Mode")]
     [SerializeField] private bool useTestMode = true;
 
-    // note: can move to new file
+    // note: can move this part to new file
     [Header("Python Settings")]
     [Tooltip("You can use 'Assets/..' or 'Scripts/..'. Recommended: Assets/Scripts/qiskit_runner.py")]
     [SerializeField] private string pythonScriptPath = "Assets/Scripts/qiskit_runner.py";
@@ -68,6 +68,15 @@ public class VRPhysicalButton : MonoBehaviour
 
     private bool isRunningQiskit = false;
     private string logDirectory;
+
+    private string testJSONResult = @"{
+        ""success"": true,
+        ""total_shots"": 1024,
+        ""num_states"": 2,
+        ""top_state"": ""0"",
+        ""top_probability"": 50.1953125,
+        ""counts"": { ""0"": 514, ""1"": 510 }
+    }";
 
     private void SetStatus(ButtonStatus s, string msg = null)
     {
@@ -274,6 +283,7 @@ public class VRPhysicalButton : MonoBehaviour
     }
 
 
+    // when pressed, check table -> run execute to measure
     public void PressButton()
     {
         if (!canPress || isRunningQiskit) return;
@@ -337,21 +347,12 @@ public class VRPhysicalButton : MonoBehaviour
     {
         Debug.Log("🧪 Testing Bloch Sphere directly (no Python)");
 
-        string fakeJSON = @"{
-            ""success"": true,
-            ""total_shots"": 1024,
-            ""num_states"": 2,
-            ""top_state"": ""0"",
-            ""top_probability"": 50.1953125,
-            ""counts"": { ""0"": 514, ""1"": 510 }
-        }";
-
         if (blochSphere != null)
         {
-            blochSphere.UpdateFromQiskitResult(fakeJSON);
+            blochSphere.UpdateFromQiskitResult(testJSONResult);
 
             // ✅ measurement collapse animation
-            var counts = ExtractCounts(fakeJSON);
+            var counts = ExtractCounts(testJSONResult);
             blochSphere.AnimateMeasurementCollapseFromCounts(counts);
 
             SetStatus(ButtonStatus.Success, "🧪 Test OK ✅");
@@ -367,6 +368,7 @@ public class VRPhysicalButton : MonoBehaviour
     }
 
     // ✅ รองรับทั้ง "Assets/..." และ "Scripts/..."
+    // make full file path given file name/short path
     private string ResolveScriptPath(string userPath)
     {
         if (string.IsNullOrWhiteSpace(userPath)) return "";
@@ -375,11 +377,8 @@ public class VRPhysicalButton : MonoBehaviour
 
         // If starts with Assets/ => convert to absolute using Application.dataPath
         if (p.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
-        {
-            string rel = p.Substring("Assets/".Length);
-            return Path.Combine(Application.dataPath, rel);
-        }
-
+            return Path.Combine(Application.dataPath, p.Substring("Assets/".Length));
+        
         // If starts with Scripts/ (or any) => treat as relative under Assets
         return Path.Combine(Application.dataPath, p);
     }
