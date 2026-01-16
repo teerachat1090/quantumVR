@@ -393,6 +393,7 @@ public class CircuitTable : MonoBehaviour
     }
 
     // สร้าง JSON สำหรับส่งไป Python - ✨ แก้ไขแล้ว
+    // NOTE: why don't just update the file?
     public string GenerateCircuitJSON()
     {
         UpdateCircuit();

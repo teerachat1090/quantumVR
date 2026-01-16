@@ -3,7 +3,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 using System.Diagnostics;
-using Debug = UnityEngine.Debug; //there're class "Debug" in both UnityEngine and System.Diagnostics
+using Debug = UnityEngine.Debug;
+using UnityEditor.VersionControl;
+using UnityEditor;
+using System;
+using Unity.VisualScripting; //there're class "Debug" in both UnityEngine and System.Diagnostics
 
 
 
@@ -28,23 +32,44 @@ public class SingleQubitOperation : MonoBehaviour
     }";
 
     private string jsonInputFileName = "circuit_input.json";
+    private string pythonScriptName = "qiskit_runner.py";
+    
     string inputPath, pythonCommand;
 
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
+    string dataFolderPath, inputFolderPath, outputFolderPath;
 
     // file structure:
-    //      Assets
+    //      <persistent_data_path>
     //       └  Quantum Data
     //             └    Quantum Input: single, multiple
     //             └    Quantum Result: single, multiple
-    void CheckFileStructure()
+    //
+    // <persistent_data_path> = C:\Users\esicl\AppData\LocalLow\DefaultCompany\VR quantum
+    public void CheckFileStructure()
     {
-        
+        // check folder of writable file
+        dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
+        outputFolderPath = Path.Combine(dataFolderPath, outputFolder);
+
+        if(!Directory.Exists(dataFolderPath))
+        {
+            Directory.CreateDirectory(dataFolderPath);
+            Directory.CreateDirectory(inputFolderPath);
+            Directory.CreateDirectory(outputFolderPath);
+            return;
+        }
+
+        if(!Directory.Exists(inputFolderPath)) Directory.CreateDirectory(inputFolderPath);
+        if(!Directory.Exists(outputFolderPath)) Directory.CreateDirectory(outputFolderPath);
     }
 
     void Start()
     {
-        inputPath = Path.Combine(Application.dataPath, jsonInputFileName);
+        Debug.Log($"Persistant data path is {Application.persistentDataPath}");
+        CheckFileStructure();
+
         pythonCommand = FindPythonCommand();
 
         button = buttonObject.GetComponent<ButtonAction>();
@@ -85,6 +110,28 @@ public class SingleQubitOperation : MonoBehaviour
             catch { }
         }
         return null;
+    }
+
+    // need debugging
+    private IEnumerator runQiskitBackground(string circuitJSON)
+    {
+        // 1.Put JSON to file
+        inputPath = Path.Combine(Path.Combine(Application.dataPath, "Assets"), jsonInputFileName);
+        File.WriteAllText(inputPath, circuitJSON);
+
+        // 2.Check python command - script
+        if (string.IsNullOrEmpty(pythonCommand))
+        {
+            Debug.LogError("Python command not found!");
+            yield break;
+        }
+        string scriptPath = Path.Combine(Path.Combine(Path.Combine(Application.dataPath, "Assets"), "Scripts"), pythonScriptName);
+        if (!File.Exists(scriptPath))
+        {
+            Debug.LogError("Python script not found!");
+            yield break;
+        }
+        yield break;
     }
 
     private IEnumerator StartOp()
