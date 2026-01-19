@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.IO;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
-using UnityEditor.VersionControl;
+using System.Threading.Tasks;
 using UnityEditor;
 using System;
 using Unity.VisualScripting; //there're class "Debug" in both UnityEngine and System.Diagnostics
@@ -38,6 +38,13 @@ public class SingleQubitOperation : MonoBehaviour
 
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
     string dataFolderPath, inputFolderPath, outputFolderPath;
+
+    private struct ProcResult
+    {
+        public int exitCode;
+        public string stdout;
+        public string stderr;
+    }
 
     // file structure:
     //      <persistent_data_path>
@@ -112,25 +119,102 @@ public class SingleQubitOperation : MonoBehaviour
         return null;
     }
 
-    // need debugging
-    private IEnumerator runQiskitBackground(string circuitJSON)
+    private ProcResult RunPythonScript(string scriptPath, string JsonPath)
     {
-        // 1.Put JSON to file
-        inputPath = Path.Combine(Path.Combine(Application.dataPath, "Assets"), jsonInputFileName);
+        var r = new ProcResult { exitCode = -1, stdout = "", stderr = "" };
+        string output = "", error = "";
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = pythonCommand,
+            Arguments = $"{scriptPath} {JsonPath}",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+            WorkingDirectory = Application.dataPath
+        };
+
+        using (var process = new Process())
+        {
+            process.StartInfo = startInfo;
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if(!string.IsNullOrEmpty(e.Data))   output += e.Data + "\n";
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if(!string.IsNullOrEmpty(e.Data))   error += e.Data + "\n";
+            };
+
+            process.Start();
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            process.WaitForExit();
+
+            r.exitCode = process.ExitCode;
+        }
+
+        r.stdout = output;
+        r.stderr = error;
+        return r;
+    }
+
+    // file structure (Reminder):
+    //      <persistent_data_path>
+    //       └  Quantum Data
+    //             └    Quantum Input: single, multiple
+    //             └    Quantum Result: single, multiple
+    //
+    // <persistent_data_path> = C:\Users\esicl\AppData\LocalLow\DefaultCompany\VR quantum
+    // need debugging
+    private IEnumerator RunQiskitBackground(string circuitJSON)
+    {
+        // <Persistent_data_path>\QuantumData
+        string mainInputPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        //      => \\QuantumVR\Assets\Scripts
+        string mainSciptsPath = Path.Combine(Path.Combine(Application.dataPath, "Assets"), "Scripts");
+
+        // 1.Put JSON to file -> need "Application.persistentDataPath" for write-able file
+        //      => \\QuantumData\QuantumInput\circuit_input.json
+        inputPath = Path.Combine(Path.Combine(mainInputPath, inputFolder), jsonInputFileName);
         File.WriteAllText(inputPath, circuitJSON);
 
-        // 2.Check python command - script
+        // 2.Check python command, script
         if (string.IsNullOrEmpty(pythonCommand))
         {
             Debug.LogError("Python command not found!");
             yield break;
         }
-        string scriptPath = Path.Combine(Path.Combine(Path.Combine(Application.dataPath, "Assets"), "Scripts"), pythonScriptName);
+        string scriptPath = Path.Combine(mainSciptsPath, pythonScriptName);
         if (!File.Exists(scriptPath))
         {
             Debug.LogError("Python script not found!");
             yield break;
         }
+
+        // 3.Run background process, wait, and get the result
+        Task<ProcResult> task = Task.Run(() => RunPythonScript(scriptPath, inputPath));
+        while (!task.IsCompleted)  yield return null;
+
+        ProcResult pr = task.Result;
+        if (!string.IsNullOrEmpty(pr.stderr))
+        {
+            Debug.LogError("Qiskit Error!");
+            yield break;
+        }
+        if (string.IsNullOrEmpty(pr.stdout))
+        {
+            Debug.LogWarning("Empty Result");
+            yield break;
+        }
+
+        Debug.Log("result end sucessfully");
+
         yield break;
     }
 
@@ -149,19 +233,11 @@ public class SingleQubitOperation : MonoBehaviour
         if (!testMode)
         {
             string circuitJSON = circuitTable.GenerateCircuitJSON();
-            // run qiskit background
+            RunQiskitBackground(circuitJSON);
         } else
         {
             //testing
         }
-    }
-
-    private IEnumerator RunQiskit(string JSONstring)
-    {
-        // 1.create JSON file for input
-        File.WriteAllText(inputPath, JSONstring);
-
-        
 
         yield return null;
     }
