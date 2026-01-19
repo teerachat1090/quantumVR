@@ -7,7 +7,11 @@ using Debug = UnityEngine.Debug;
 using System.Threading.Tasks;
 using UnityEditor;
 using System;
-using Unity.VisualScripting; //there're class "Debug" in both UnityEngine and System.Diagnostics
+using Unity.VisualScripting;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+//using System.Text.Json;
+//using Debug = UnityEngine.Debug; //there're class "Debug" in both UnityEngine and System.Diagnostics
 
 
 
@@ -75,6 +79,8 @@ public class SingleQubitOperation : MonoBehaviour
     void Start()
     {
         Debug.Log($"Persistant data path is {Application.persistentDataPath}");
+        Debug.Log($"Main input path: {Path.Combine(Application.persistentDataPath, dataFolder)}");
+        Debug.Log($"Game asset: {Application.dataPath}");
         CheckFileStructure();
 
         pythonCommand = FindPythonCommand();
@@ -87,6 +93,7 @@ public class SingleQubitOperation : MonoBehaviour
             return;
         }
 
+        Debug.Log("Assigning function to button");
         button.setAction(StartOp);
     }
 
@@ -127,7 +134,7 @@ public class SingleQubitOperation : MonoBehaviour
         var startInfo = new ProcessStartInfo
         {
             FileName = pythonCommand,
-            Arguments = $"{scriptPath} {JsonPath}",
+            Arguments = $"\"{scriptPath}\" \"{JsonPath}\"",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -164,6 +171,49 @@ public class SingleQubitOperation : MonoBehaviour
         return r;
     }
 
+    Dictionary<string, object> CheckOutput(string output)
+    {
+        Debug.Log($"From output: {output}");
+        try{
+        Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(output);
+        if(values.ContainsKey("success") || values.ContainsKey("total_shots"))
+        {
+            Debug.Log("output is OK");
+            return values;
+        }
+
+        Debug.Log("output is invalid");
+        return null;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"❌ Error extracting JSON: {e.Message}");
+            return null;
+        }
+    }
+
+    private void saveResult(Dictionary<string, object> resultJson, string inputCircuit)
+    {
+        try
+        {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string filename = $"result.json";
+            string logPath = Path.Combine(outputFolderPath, filename);
+
+            Debug.Log($"result:\n{resultJson}");
+            var log = new Dictionary<string, object>(resultJson);
+            log["timestamp"] = timestamp;
+            log["input_circuit"] = inputCircuit;
+
+            File.WriteAllText(logPath, JsonUtility.ToJson(log, true));
+            Debug.Log($"💾 Result saved to: {logPath}\n Log:\n{log}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"❌ Failed to save log: {e.Message}");
+        }
+    }
+
     // file structure (Reminder):
     //      <persistent_data_path>
     //       └  Quantum Data
@@ -171,18 +221,19 @@ public class SingleQubitOperation : MonoBehaviour
     //             └    Quantum Result: single, multiple
     //
     // <persistent_data_path> = C:\Users\esicl\AppData\LocalLow\DefaultCompany\VR quantum
-    // need debugging
     private IEnumerator RunQiskitBackground(string circuitJSON)
     {
+        Debug.Log("Try to Running Operation");
         // <Persistent_data_path>\QuantumData
         string mainInputPath = Path.Combine(Application.persistentDataPath, dataFolder);
         //      => \\QuantumVR\Assets\Scripts
-        string mainSciptsPath = Path.Combine(Path.Combine(Application.dataPath, "Assets"), "Scripts");
+        string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
 
         // 1.Put JSON to file -> need "Application.persistentDataPath" for write-able file
         //      => \\QuantumData\QuantumInput\circuit_input.json
         inputPath = Path.Combine(Path.Combine(mainInputPath, inputFolder), jsonInputFileName);
         File.WriteAllText(inputPath, circuitJSON);
+        Debug.Log($"1. put json to file -> path: {inputPath}");
 
         // 2.Check python command, script
         if (string.IsNullOrEmpty(pythonCommand))
@@ -204,7 +255,7 @@ public class SingleQubitOperation : MonoBehaviour
         ProcResult pr = task.Result;
         if (!string.IsNullOrEmpty(pr.stderr))
         {
-            Debug.LogError("Qiskit Error!");
+            Debug.LogError($"Qiskit Error! Reason: {pr.stderr}");
             yield break;
         }
         if (string.IsNullOrEmpty(pr.stdout))
@@ -213,7 +264,15 @@ public class SingleQubitOperation : MonoBehaviour
             yield break;
         }
 
+        Dictionary<string, object> jsonResult = CheckOutput(pr.stdout);
+        if (jsonResult is null)
+        {
+            Debug.LogWarning("Invalid result");
+            yield break;
+        }
         Debug.Log("result end sucessfully");
+
+        saveResult(jsonResult, circuitJSON);
 
         yield break;
     }
@@ -232,8 +291,10 @@ public class SingleQubitOperation : MonoBehaviour
 
         if (!testMode)
         {
+            Debug.Log("start calculating");
             string circuitJSON = circuitTable.GenerateCircuitJSON();
-            RunQiskitBackground(circuitJSON);
+            Debug.Log($"start python with JSON: \n{circuitJSON}");
+            StartCoroutine(RunQiskitBackground(circuitJSON));
         } else
         {
             //testing

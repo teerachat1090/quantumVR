@@ -527,6 +527,7 @@ public class VRPhysicalButton : MonoBehaviour
     {
         try
         {
+            //find each of "{" ?
             for (int start = output.LastIndexOf('{'); start >= 0; start = output.LastIndexOf('{', start - 1))
             {
                 int braceCount = 0;
