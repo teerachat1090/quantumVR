@@ -171,7 +171,7 @@ public class SingleQubitOperation : MonoBehaviour
         return r;
     }
 
-    Dictionary<string, object> CheckOutput(string output)
+    string CheckOutput(string output)
     {
         Debug.Log($"From output: {output}");
         try{
@@ -179,7 +179,7 @@ public class SingleQubitOperation : MonoBehaviour
         if(values.ContainsKey("success") || values.ContainsKey("total_shots"))
         {
             Debug.Log("output is OK");
-            return values;
+            return output;
         }
 
         Debug.Log("output is invalid");
@@ -192,7 +192,7 @@ public class SingleQubitOperation : MonoBehaviour
         }
     }
 
-    private void saveResult(Dictionary<string, object> resultJson, string inputCircuit)
+    private void saveResult(string resultJson, string inputCircuit)
     {
         try
         {
@@ -200,13 +200,14 @@ public class SingleQubitOperation : MonoBehaviour
             string filename = $"result.json";
             string logPath = Path.Combine(outputFolderPath, filename);
 
-            Debug.Log($"result:\n{resultJson}");
-            var log = new Dictionary<string, object>(resultJson);
-            log["timestamp"] = timestamp;
-            log["input_circuit"] = inputCircuit;
+            Debug.Log($"Result JSON file:\n {resultJson}");
+            //var log = new Dictionary<string, object>(resultJson);
+            //log["timestamp"] = timestamp;
+            //log["input_circuit"] = inputCircuit;
 
-            File.WriteAllText(logPath, JsonUtility.ToJson(log, true));
-            Debug.Log($"💾 Result saved to: {logPath}\n Log:\n{log}");
+            File.WriteAllText(logPath, JsonUtility.ToJson(resultJson, true));
+            Debug.Log($"File content: {JsonUtility.ToJson(resultJson, true)}");
+            //Debug.Log($"💾 Result saved to: {logPath}\n Log:\n{log}");
         }
         catch (Exception e)
         {
@@ -264,7 +265,7 @@ public class SingleQubitOperation : MonoBehaviour
             yield break;
         }
 
-        Dictionary<string, object> jsonResult = CheckOutput(pr.stdout);
+        string jsonResult = CheckOutput(pr.stdout);
         if (jsonResult is null)
         {
             Debug.LogWarning("Invalid result");

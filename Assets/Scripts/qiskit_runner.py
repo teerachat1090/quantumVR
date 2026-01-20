@@ -12,7 +12,7 @@ import math
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 
-testRun = True
+testRun = False
 
 # ตั้งค่า UTF-8 encoding สำหรับ Windows
 if sys.platform == "win32":
