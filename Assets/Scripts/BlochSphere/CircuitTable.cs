@@ -29,7 +29,7 @@ public class CircuitTable : MonoBehaviour
     // Core state management
     private CircuitHistory history = new CircuitHistory();
  
-    private bool isExecuting = false; //check if calculation is running
+    private bool isExecuting = false; //check if arranging is running
     private bool pendingRebuild = false; // to notice that smth. changed during executing
 
     // Preview cursor (0..GateCount) points into history.states
@@ -393,6 +393,7 @@ public class CircuitTable : MonoBehaviour
     }
 
     // สร้าง JSON สำหรับส่งไป Python - ✨ แก้ไขแล้ว
+    // NOTE: why don't just update the file?
     public string GenerateCircuitJSON()
     {
         UpdateCircuit();

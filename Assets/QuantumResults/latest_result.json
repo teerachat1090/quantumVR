@@ -1,5 +1,5 @@
 {
-    "timestamp": "2026-01-09_16-38-13",
-    "input_circuit": "{\n    \"num_qubits\": 2,\n    \"gates\": [\n        {\n            \"gate_type\": \"T\",\n            \"qubit\": 0,\n            \"target_qubit\": -1\n        }\n    ]\n}",
-    "qiskit_result": "{\"success\": true, \"total_shots\": 1024, \"num_states\": 1, \"top_state\": \"00\", \"top_probability\": 100.0, \"counts\": {\"00\": 1024}}"
+    "timestamp": "2026-01-12_14-04-29",
+    "input_circuit": "{\n    \"num_qubits\": 2,\n    \"gates\": [\n        {\n            \"gate_type\": \"H\",\n            \"qubit\": 0,\n            \"target_qubit\": -1\n        },\n        {\n            \"gate_type\": \"Z\",\n            \"qubit\": 0,\n            \"target_qubit\": -1\n        },\n        {\n            \"gate_type\": \"H\",\n            \"qubit\": 0,\n            \"target_qubit\": -1\n        }\n    ]\n}",
+    "qiskit_result": "{\"success\": true, \"total_shots\": 1024, \"num_states\": 1, \"top_state\": \"01\", \"top_probability\": 100.0, \"counts\": {\"01\": 1024}}"
 }

@@ -7,6 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug; //there're class "Debug" in both UnityEngine and System.Diagnostics
 
 // Suggestion: create new file which specially deal with quantum calculation
 //      leave this files only function about button movement and triggering function
@@ -26,7 +28,7 @@ public class VRPhysicalButton : MonoBehaviour
     [Header("Test Mode")]
     [SerializeField] private bool useTestMode = true;
 
-    // note: can move to new file
+    // note: can move this part to new file
     [Header("Python Settings")]
     [Tooltip("You can use 'Assets/..' or 'Scripts/..'. Recommended: Assets/Scripts/qiskit_runner.py")]
     [SerializeField] private string pythonScriptPath = "Assets/Scripts/qiskit_runner.py";
@@ -53,6 +55,7 @@ public class VRPhysicalButton : MonoBehaviour
 
     private Material _buttonMat;
 
+    //just for display
     private enum ButtonStatus { Idle, Running, Success, Error, Disabled }
     private ButtonStatus _status = ButtonStatus.Idle;
 
@@ -65,6 +68,15 @@ public class VRPhysicalButton : MonoBehaviour
 
     private bool isRunningQiskit = false;
     private string logDirectory;
+
+    private string testJSONResult = @"{
+        ""success"": true,
+        ""total_shots"": 1024,
+        ""num_states"": 2,
+        ""top_state"": ""0"",
+        ""top_probability"": 50.1953125,
+        ""counts"": { ""0"": 514, ""1"": 510 }
+    }";
 
     private void SetStatus(ButtonStatus s, string msg = null)
     {
@@ -169,6 +181,8 @@ public class VRPhysicalButton : MonoBehaviour
         return r;
     }
 
+    // save JSON -> run python (background) -> check result 
+    //      -> save log, display console, update sphere
     private IEnumerator RunQiskitAsync(string circuitJSON)
     {
         SetStatus(ButtonStatus.Running, "🐍 Running Qiskit...");
@@ -268,6 +282,8 @@ public class VRPhysicalButton : MonoBehaviour
         }
     }
 
+
+    // when pressed, check table -> run execute to measure
     public void PressButton()
     {
         if (!canPress || isRunningQiskit) return;
@@ -293,6 +309,7 @@ public class VRPhysicalButton : MonoBehaviour
         Invoke(nameof(ReleaseButton), 0.2f);
     }
 
+    // wait for circuit arrangement -> create JSON string -> start operation
     private IEnumerator WaitForExecutionThenMeasure()
     {
         SetStatus(ButtonStatus.Running, "⏳ Waiting for circuit...");
@@ -330,21 +347,12 @@ public class VRPhysicalButton : MonoBehaviour
     {
         Debug.Log("🧪 Testing Bloch Sphere directly (no Python)");
 
-        string fakeJSON = @"{
-            ""success"": true,
-            ""total_shots"": 1024,
-            ""num_states"": 2,
-            ""top_state"": ""0"",
-            ""top_probability"": 50.1953125,
-            ""counts"": { ""0"": 514, ""1"": 510 }
-        }";
-
         if (blochSphere != null)
         {
-            blochSphere.UpdateFromQiskitResult(fakeJSON);
+            blochSphere.UpdateFromQiskitResult(testJSONResult);
 
             // ✅ measurement collapse animation
-            var counts = ExtractCounts(fakeJSON);
+            var counts = ExtractCounts(testJSONResult);
             blochSphere.AnimateMeasurementCollapseFromCounts(counts);
 
             SetStatus(ButtonStatus.Success, "🧪 Test OK ✅");
@@ -360,6 +368,7 @@ public class VRPhysicalButton : MonoBehaviour
     }
 
     // ✅ รองรับทั้ง "Assets/..." และ "Scripts/..."
+    // make full file path given file name/short path
     private string ResolveScriptPath(string userPath)
     {
         if (string.IsNullOrWhiteSpace(userPath)) return "";
@@ -368,11 +377,8 @@ public class VRPhysicalButton : MonoBehaviour
 
         // If starts with Assets/ => convert to absolute using Application.dataPath
         if (p.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
-        {
-            string rel = p.Substring("Assets/".Length);
-            return Path.Combine(Application.dataPath, rel);
-        }
-
+            return Path.Combine(Application.dataPath, p.Substring("Assets/".Length));
+        
         // If starts with Scripts/ (or any) => treat as relative under Assets
         return Path.Combine(Application.dataPath, p);
     }
@@ -481,18 +487,35 @@ public class VRPhysicalButton : MonoBehaviour
         {
             try //running simple command: get python version
             {
-                var testProcess = new System.Diagnostics.Process();
-                testProcess.StartInfo.FileName = cmd;
-                testProcess.StartInfo.Arguments = "--version";
-                testProcess.StartInfo.UseShellExecute = false;
-                testProcess.StartInfo.RedirectStandardOutput = true;
-                testProcess.StartInfo.RedirectStandardError = true;
-                testProcess.StartInfo.CreateNoWindow = true;
+                // var testProcess = new System.Diagnostics.Process();
+                // testProcess.StartInfo.FileName = cmd;
+                // testProcess.StartInfo.Arguments = "--version";
+                // testProcess.StartInfo.UseShellExecute = false;
+                // testProcess.StartInfo.RedirectStandardOutput = true;
+                // testProcess.StartInfo.RedirectStandardError = true;
+                // testProcess.StartInfo.CreateNoWindow = true;
 
-                testProcess.Start();
-                testProcess.WaitForExit();
+                // testProcess.Start();
+                // testProcess.WaitForExit();
 
-                if (testProcess.ExitCode == 0) return cmd;
+                // if (testProcess.ExitCode == 0) return cmd;
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = cmd,
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var testProcess = Process.Start(startInfo))
+                {
+                    testProcess.WaitForExit();
+                    if (testProcess.ExitCode == 0) return cmd;
+                    
+                }
             }
             catch { }
         }
@@ -504,6 +527,7 @@ public class VRPhysicalButton : MonoBehaviour
     {
         try
         {
+            //find each of "{" ?
             for (int start = output.LastIndexOf('{'); start >= 0; start = output.LastIndexOf('{', start - 1))
             {
                 int braceCount = 0;

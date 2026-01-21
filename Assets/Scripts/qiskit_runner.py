@@ -12,6 +12,8 @@ import math
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 
+testRun = False
+
 # ตั้งค่า UTF-8 encoding สำหรับ Windows
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -47,7 +49,8 @@ def create_quantum_circuit(circuit_data):
     gates = circuit_data.get("gates", [])
 
     if len(gates) == 0:
-        print("WARNING: No gates in circuit!")
+        if testRun:
+            print("WARNING: No gates in circuit!")
         num_qubits = 1
 
     # ✅ 1 qreg + 1 creg (creg เดียว) ตาม num_qubits
@@ -55,8 +58,9 @@ def create_quantum_circuit(circuit_data):
     #   create circuit with "a" qubits, "b" bits
     qc = QuantumCircuit(num_qubits, num_qubits)
 
-    print(f"Creating circuit with {num_qubits} qubits")
-    print(f"Adding {len(gates)} gates...")
+    if testRun:
+        print(f"Creating circuit with {num_qubits} qubits")
+        print(f"Adding {len(gates)} gates...")
 
     for i, gate in enumerate(gates):
         gate_type = str(gate.get("gate_type", "")).strip().upper()
@@ -64,10 +68,12 @@ def create_quantum_circuit(circuit_data):
         target = int(gate.get("target_qubit", -1))
 
         if qubit < 0 or qubit >= num_qubits:
-            print(f"  WARNING: Gate {i+1} qubit index {qubit} out of range, skipping")
+            if testRun:
+                print(f"  WARNING: Gate {i+1} qubit index {qubit} out of range, skipping")
             continue
 
-        print(f"  Gate {i+1}: {gate_type} on qubit {qubit}")
+        if testRun:
+            print(f"  Gate {i+1}: {gate_type} on qubit {qubit}")
 
         # --------------------------
         # Single-qubit standard gates
@@ -184,22 +190,26 @@ def create_quantum_circuit(circuit_data):
             if 0 <= target < num_qubits:
                 qc.cx(qubit, target)
             else:
-                print(f"  WARNING: CX requires valid target qubit (got {target})")
+                if testRun:
+                    print(f"  WARNING: CX requires valid target qubit (got {target})")
 
         elif gate_type == "CZ":
             if 0 <= target < num_qubits:
                 qc.cz(qubit, target)
             else:
-                print(f"  WARNING: CZ requires valid target qubit (got {target})")
+                if testRun:
+                    print(f"  WARNING: CZ requires valid target qubit (got {target})")
 
         elif gate_type == "SWAP":
             if 0 <= target < num_qubits:
                 qc.swap(qubit, target)
             else:
-                print(f"  WARNING: SWAP requires valid target qubit (got {target})")
+                if testRun:
+                    print(f"  WARNING: SWAP requires valid target qubit (got {target})")
 
         else:
-            print(f"  WARNING: Unknown gate type: {gate_type}")
+            if testRun:
+                print(f"  WARNING: Unknown gate type: {gate_type}")
 
     # ✅ สำคัญ: อย่าใช้ measure_all() เพราะมันเพิ่ม creg ใหม่ → ทำให้ผลเป็น '0 0'
     qc.measure(list(range(num_qubits)), list(range(num_qubits)))
@@ -208,19 +218,26 @@ def create_quantum_circuit(circuit_data):
 
 
 def run_circuit(qc, shots=1024):
-    print(f"\nRunning circuit with {shots} shots...")
+    if testRun:
+        print(f"\nRunning circuit with {shots} shots...")
 
     simulator = AerSimulator()
     compiled = transpile(qc, simulator)
     job = simulator.run(compiled, shots=shots)
     result = job.result()
     counts = result.get_counts(compiled)
+    
+    if testRun:
+        print(f"\ncount result: {counts}")
     return counts
 
 
 def build_result_json(counts):
     # ✅ ล้างช่องว่างใน key กันเคสมีหลาย creg/format แปลก ๆ
     counts_clean = {str(k).replace(" ", ""): int(v) for k, v in counts.items()}
+    if testRun:
+        num = counts_clean.get("1")
+        print(f"\n count_clean: {counts_clean} \nget: {num}")
 
     total_shots = sum(counts_clean.values())
     sorted_counts = sorted(counts_clean.items(), key=lambda x: x[1], reverse=True)
@@ -234,30 +251,34 @@ def build_result_json(counts):
         "num_states": len(counts_clean),
         "top_state": top_state,
         "top_probability": top_prob,
-        "counts": counts_clean
+        "counts_one": counts_clean.get("1") #for single qubit
     }
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python qiskit_runner.py <circuit_json_path>")
+        if testRun:
+            print("Usage: python qiskit_runner.py <circuit_json_path>")
         sys.exit(1)
 
     json_path = sys.argv[1]
 
     try:
-        print("=" * 50)
-        print("QISKIT QUANTUM CIRCUIT RUNNER")
-        print("=" * 50)
+        if testRun:
+            print("=" * 50)
+            print("QISKIT QUANTUM CIRCUIT RUNNER")
+            print("=" * 50)
 
         circuit_data = load_circuit_from_json(json_path)
-        print(f"Loaded circuit from: {json_path}")
-        print(f"Circuit data: {json.dumps(circuit_data, indent=2)}")
+        if testRun:
+            print(f"Loaded circuit from: {json_path}")
+            print(f"Circuit data: {json.dumps(circuit_data, indent=2)}")
 
         qc = create_quantum_circuit(circuit_data)
 
-        print("\nCircuit Diagram:")
-        print(qc.draw(output="text"))
+        if testRun:
+            print("\nCircuit Diagram:")
+            print(qc.draw(output="text"))
 
         counts = run_circuit(qc, shots=1024)
 
