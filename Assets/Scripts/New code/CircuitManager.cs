@@ -78,7 +78,7 @@ public class CircuitManager : MonoBehaviour
             circuitToExport.qubits.Add(exportQubit);
         }
 
-
+        // convert [Serializable] object to json
         string json = JsonUtility.ToJson(circuitToExport, true);
         Debug.Log($"📤 Generated JSON:\n{json}");
         return json;
