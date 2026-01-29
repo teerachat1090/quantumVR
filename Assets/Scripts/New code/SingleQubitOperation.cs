@@ -56,7 +56,7 @@ public class SingleQubitOperation : MonoBehaviour
     //             └    Quantum Input: single, multiple
     //             └    Quantum Result: single, multiple
     //
-    // <persistent_data_path> = C:\Users\esicl\AppData\LocalLow\DefaultCompany\VR quantum
+    // <persistent_data_path> = C:\Users\<usernameS>\AppData\LocalLow\DefaultCompany\VR quantum
     public void CheckFileStructure()
     {
         // check folder of writable file

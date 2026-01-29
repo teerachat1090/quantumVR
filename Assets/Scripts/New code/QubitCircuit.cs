@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// For parent object that have sockets as childs object
 public class QubitCircuit : MonoBehaviour
 {
     private bool isEnabled = true;

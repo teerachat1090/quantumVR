@@ -2,23 +2,37 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.Requests;
+using System.IO;
 
 public class CircuitManager : MonoBehaviour
 {
-    public bool singleQubit = true;
+    private enum SphereType
+    {
+        BlochSphere, QSphere
+    }
+    [SerializeField]
+    private SphereType sphereType = SphereType.BlochSphere;
+
+    [SerializeField]
+    private GameObject sphere = null; //check later: bloch / Q - sphere
+
+    // Folder and file name
+    string dataFolder = "QuantumData", inputFolder = "QuantumInput";
+    private string jsonInputFileName = "circuit_input.json";
+
+    // can check each one if enable
     private QubitCircuit[] qubitCircuits; //array of qubit circuits
     private int totalQubits;
-    private CircuitToExecute circuitToExport;
     private int[] totalGatesPerQubit; //to track total gates per qubit
     private List<int> exportIndex = new List<int>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        //get all "Qubitcircuit" in children and sort
         qubitCircuits = GetComponentsInChildren<QubitCircuit>();
         Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
         totalQubits = qubitCircuits.Length;
-        
     }
 
     void initSetup()
@@ -39,7 +53,7 @@ public class CircuitManager : MonoBehaviour
     public string circuitToExportInit()
     {
         getAvailibleQubit();
-        circuitToExport = new CircuitToExecute
+        var circuitToExport = new CircuitToExecute
         {
             qubitAmount = exportIndex.Count,
             qubits = new List<Qubit>()
@@ -51,7 +65,7 @@ public class CircuitManager : MonoBehaviour
         {
             Qubit exportQubit = new Qubit()
             {
-              qubitIndex = i+1,
+              qubitIndex = i,
               gateList = new List<Gate>()  
             };
             Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
@@ -93,7 +107,7 @@ public class CircuitManager : MonoBehaviour
         {
             if(qubit.enabled) {
                 exportIndex.Add(qubit.circuitIndex);
-                Debug.Log($"get qubit no. {qubit.circuitIndex} in {exportIndex.IndexOf(qubit.circuitIndex)}");
+                Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}");
             }
         }
     }
@@ -101,6 +115,29 @@ public class CircuitManager : MonoBehaviour
     public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+        string jsonExport = circuitToExportInit();
+        updateJsonInputToFile(jsonExport);
+
+        var executor = new CircuitExecutor();
+        StartCoroutine(executor.PrepareToRunQiskit());
+        // run calculation
+    }
+
+    // NEED coordination function: dictionary => (info -> ui, vector -> sphere)
+
+    private void updateJsonInputToFile(string jsonExport)
+    {
+        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        if(!Directory.Exists(dataFolderPath))
+            Directory.CreateDirectory(dataFolderPath);
+
+        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
+        if(!Directory.Exists(inputFolderPath))
+            Directory.CreateDirectory(inputFolderPath);
+        
+        string inputPath = Path.Combine(inputFolderPath, jsonInputFileName);
+        File.WriteAllText(inputPath, jsonExport);
+        Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
     }
 }
 
