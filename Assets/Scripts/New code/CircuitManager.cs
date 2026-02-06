@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.Requests;
 using System.IO;
+using UnityEngine.InputSystem;
 
 public class CircuitManager : MonoBehaviour
 {
@@ -17,14 +18,19 @@ public class CircuitManager : MonoBehaviour
     private GameObject sphere = null; //check later: bloch / Q - sphere
 
     // Folder and file name
-    string dataFolder = "QuantumData", inputFolder = "QuantumInput";
-    private string jsonInputFileName = "circuit_input.json";
-
+    string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
+    private string jsonBlochInputFileName = "bloch_circuit_input.json", jsonQInputFileName = "q_circuit_input.json";
+    private string jsonBlochOutputFileName = "bloch_circuit_output.json", jsonQOutputFileName = "q_circuit_output.json";
+    private string pythonScriptName = "qiskit_runner.py";
+    private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
+    private string pythonScriptPath;
+    
     // can check each one if enable
     private QubitCircuit[] qubitCircuits; //array of qubit circuits
     private int totalQubits;
     private int[] totalGatesPerQubit; //to track total gates per qubit
     private List<int> exportIndex = new List<int>();
+    bool isBlochSphere;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -33,6 +39,8 @@ public class CircuitManager : MonoBehaviour
         qubitCircuits = GetComponentsInChildren<QubitCircuit>();
         Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
         totalQubits = qubitCircuits.Length;
+
+        isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
     }
 
     void initSetup()
@@ -55,6 +63,7 @@ public class CircuitManager : MonoBehaviour
         getAvailibleQubit();
         var circuitToExport = new CircuitToExecute
         {
+            blochSphere = isBlochSphere,
             qubitAmount = exportIndex.Count,
             qubits = new List<Qubit>()
         };
@@ -119,8 +128,10 @@ public class CircuitManager : MonoBehaviour
         updateJsonInputToFile(jsonExport);
 
         var executor = new CircuitExecutor();
-        StartCoroutine(executor.PrepareToRunQiskit());
-        // run calculation
+        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptName);
+        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
+        StartCoroutine(executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
+        // send output to sphere, UI (check from json output)
     }
 
     // NEED coordination function: dictionary => (info -> ui, vector -> sphere)
@@ -135,15 +146,30 @@ public class CircuitManager : MonoBehaviour
         if(!Directory.Exists(inputFolderPath))
             Directory.CreateDirectory(inputFolderPath);
         
-        string inputPath = Path.Combine(inputFolderPath, jsonInputFileName);
+        string wantedJsonFile = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
+        string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
         File.WriteAllText(inputPath, jsonExport);
         Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
+    }
+
+    private void GetJsonPath(bool isBlochSphere, out string inputPath, out string outputPath)
+    {
+        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
+        string outputFolderPath = Path.Combine(dataFolderPath, outputFolder);
+
+        // change file path (bloch sphere / q-sphere)
+        string wantedInputPath = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
+        string wantedOutputPath = isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName;
+        inputPath = Path.Combine(inputFolderPath, wantedInputPath);
+        outputPath = Path.Combine(inputFolderPath, wantedOutputPath);
     }
 }
 
 [Serializable]
 public class CircuitToExecute
 {
+    public bool blochSphere;
     public int qubitAmount;
     public List<Qubit> qubits;
 }
