@@ -6,6 +6,7 @@ using System.IO;
 using UnityEngine.InputSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 public class CircuitManager : MonoBehaviour
 {
@@ -141,7 +142,7 @@ public class CircuitManager : MonoBehaviour
 
         // convert [Serializable] object to json
         string json = JsonUtility.ToJson(circuitToExport, true);
-        Debug.Log($"📤 Generated JSON:\n{json}");
+        //Debug.Log($"📤 Generated JSON:\n{json}");
         return json;
     }
 
@@ -160,10 +161,9 @@ public class CircuitManager : MonoBehaviour
         return executor.GetResultBlochVector(gateList);
     }
 
-    private void updateBlochVectorInstant()
+    private void updateBlochVectorInstant(CircuitExecutor executor)
     {
         //update bloch sphere vector
-        var executor = new CircuitExecutor();
         if(blochSphere is not null) 
         {
             Vector3 resultVector = GetBlochVectorResult(executor);
@@ -171,18 +171,53 @@ public class CircuitManager : MonoBehaviour
         }
         else
             Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
-            
-        // calculate value
-        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
-        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
-        StartCoroutine(executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
+    }
+
+    private void calculateAndUpdateUiStarter(CircuitExecutor executor, string inputPath, string outputPath)
+    {
+        Debug.Log($"Start Async: {DateTime.Now}");
+        _ = calculateAndUpdateUi(executor, inputPath, outputPath);
+        Debug.Log("NO WAIT.");
+    }
+
+    private async Task calculateAndUpdateUi(CircuitExecutor executor, string inputPath, string outputPath)
+    {
+        Debug.Log("Asysnchronous task: Task start");
+        await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
+        Debug.Log("Showing Result");
         if(uiManager is not null)
             uiManager.ShowBlochResult(outputPath);
         else
             Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
+        Debug.Log("Showing Finished!");
+
+        //await Task.Delay(1000);
+
+        Debug.Log($"Asysnchronous task: Task complete {DateTime.Now}");
     }
+
+    // --------------------------------dummies
+    void OnPlayerEnterZone()
+{
+    Debug.Log($"Triggered! {DateTime.Now}");
+    
+    // 2. Call the async function. 
+    // Because this function isn't 'async', it won't wait. 
+    // It starts the task and immediately moves to the next line.
+    _ = RunComplexLogicAsync(); 
+    
+    Debug.Log("The regular function has already finished, but the logic is running.");
+}
+
+// 3. The async logic stays in its own "lane"
+    async Task RunComplexLogicAsync()
+    {
+    await Task.Delay(1000);
+    Debug.Log($"Logic complete. {DateTime.Now}");
+}   
+    // ---------------------------------------dummies
 
     // recalculate everytinm the circuit change
     public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
@@ -191,7 +226,15 @@ public class CircuitManager : MonoBehaviour
         string jsonExport = circuitToExportInit();
         updateJsonInputToFile(jsonExport);
 
-        updateBlochVectorInstant();
+        var executor = new CircuitExecutor();
+        updateBlochVectorInstant(executor);
+        
+        // calculate value
+        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
+        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
+        //OnPlayerEnterZone();
+        calculateAndUpdateUiStarter(executor, inputPath, outputPath);
+        
     }
 
     private void createFolderIfNotExist(string folderPath)
@@ -212,7 +255,7 @@ public class CircuitManager : MonoBehaviour
         string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
 
         File.WriteAllText(inputPath, jsonExport);
-        Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
+        //Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
     }
 
     private void createEmptyJsonIfNotExist(string jsonPath)

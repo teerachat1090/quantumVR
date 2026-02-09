@@ -41,6 +41,7 @@ public class QuantumUiStatManager : MonoBehaviour
 
     private BlochQubitStat GetJsonData(string jsonOutputPath)
     {
+        Debug.Log("Trying to get Json");
         try
         {
             string jsonString = File.ReadAllText(jsonOutputPath);
@@ -68,24 +69,25 @@ public class QuantumUiStatManager : MonoBehaviour
     private void AssignValueToTextMesh(BlochQubitStat blochStat)
     {
         double ket0_real = blochStat.ket0_real;
-        string ket0_real_str = (ket0_real < 0) ? "- " : "" ;
-        ket0_real_Text.text = ket0_real_str + blochStat.ket0_real.ToString("F3");
+        string ket0_real_str = ((ket0_real < 0) ? "- " : "") + ket0_real.ToString("F3");
+        ket0_real_Text.SetText(ket0_real_str);
 
         double ket0_imag = blochStat.ket0_imag;
-        string ket0_imag_str = (ket0_imag < 0) ? "-  " : "+  " ;
-        ket0_imag_Text.text = ket0_imag_str + blochStat.ket0_imag.ToString("F3");
+        string ket0_imag_str = ((ket0_imag < 0) ? "-  " : "+  ") + blochStat.ket0_imag.ToString("F3");
+        ket0_imag_Text.SetText(ket0_imag_str);
 
         double ket1_real = blochStat.ket1_real;
-        string ket1_real_str = (ket1_real < 0) ? "- " : "" ;
-        ket1_real_Text.text = ket1_real_str + blochStat.ket1_real.ToString("F3");
+        string ket1_real_str = ((ket1_real < 0) ? "- " : "") + blochStat.ket1_real.ToString("F3");
+        ket1_real_Text.SetText(ket1_real_str);
 
         double ket1_imag = blochStat.ket1_imag;
-        string ket1_imag_str = (ket1_imag < 0) ? "-  " : "+  " ;
-        ket1_imag_Text.text = ket1_imag_str + blochStat.ket1_imag.ToString("F3");
+        string ket1_imag_str = ((ket1_imag < 0) ? "-  " : "+  ") + blochStat.ket1_imag.ToString("F3");
+        ket1_imag_Text.SetText(ket1_imag_str);
     } 
 
     public void ShowBlochResult(string jsonOutputPath)
     {
+
         if (isBlochSphere)
         {
             BlochQubitStat stat = GetJsonData(jsonOutputPath);
@@ -94,7 +96,7 @@ public class QuantumUiStatManager : MonoBehaviour
                 Debug.LogWarning("Error: Cannot get data from json file!");
                 return;
             }
-
+            Debug.Log("Stat Not null");
             if (!isBlochTextMeshReady())
             {
                 Debug.LogWarning("Error: Some TextMesh for Bloch Sphere is missing!");
@@ -103,6 +105,8 @@ public class QuantumUiStatManager : MonoBehaviour
 
             AssignValueToTextMesh(stat);
         }
+
+        return;
     }
 
     public class BlochQubitStat

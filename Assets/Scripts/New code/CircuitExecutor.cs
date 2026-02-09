@@ -93,31 +93,31 @@ public class CircuitExecutor
     }
 
     // output name: instantBlochOutput.json
-    public IEnumerator PrepareThenRunQiskit(string scriptPath, string inputFilePath, string outputPath){
+    public void PrepareThenRunQiskit(string scriptPath, string inputFilePath, string outputPath){
         Debug.Log("-----Preparing-----");
         
         // check python script
         if (!File.Exists(scriptPath))
         {
             Debug.LogError("Python script not found!");
-            yield break;
+            return;
         }
 
         // check python command
         if (string.IsNullOrEmpty(pythonCommand))
         {
             Debug.LogError("Python command not found!");
-            yield break;
+            return;
         }
 
-        Task<ProcessResult> task = Task.Run(() => RunPythonScript(scriptPath, inputFilePath, outputPath));
-        while (!task.IsCompleted)  yield return null;
+        //Task<ProcessResult> task = Task.Run(() => RunPythonScript(scriptPath, inputFilePath, outputPath));
+        ProcessResult pr = RunPythonScript(scriptPath, inputFilePath, outputPath);
         
-        ProcessResult pr = task.Result;
         if (!string.IsNullOrEmpty(pr.stderr))
             Debug.LogError($"Qiskit Error! Reason: {pr.stderr}");
 
-        yield break;
+        Debug.Log("Python process: Finish");
+        return;
     }
 
     private static string FindPythonCommand()
