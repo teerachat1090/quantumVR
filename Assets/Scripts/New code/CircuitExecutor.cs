@@ -6,8 +6,38 @@ using System.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 using System.IO;
 
+public class GateRotation
+{
+    public Vector3 axis;
+    public float angle;
+    public GateRotation(Vector3 Axis, float Angle)
+    {
+        axis = Axis;
+        angle = Angle;
+    }
+}
+
 public class CircuitExecutor
 {
+    public static readonly Dictionary<string, GateRotation> rotationInfo;
+    static CircuitExecutor() // like __init__ in python
+    {
+        rotationInfo = new Dictionary<string, GateRotation>   // {key, value}
+        {
+            { "H",  new GateRotation((Vector3.right + Vector3.up).normalized,     180.0f) }, 
+            { "X",  new GateRotation( Vector3.right,     180.0f)},
+            { "Y",  new GateRotation( Vector3.forward,   180.0f)},
+            { "Z",  new GateRotation( Vector3.up,        180.0f)},
+            { "I",  new GateRotation( Vector3.up,        0.0f)},
+            { "T",  new GateRotation( Vector3.up,        45.0f)},
+            { "S",  new GateRotation( Vector3.up,        90.0f)},
+            { "TT", new GateRotation( Vector3.up,        -45.0f)},
+            { "ST", new GateRotation( Vector3.up,        -90.0f)},
+            { "SQRTX",  new GateRotation( Vector3.right,  90.0f)},
+            { "SQRTXT", new GateRotation( Vector3.right,  -90.0f)},
+        };
+    }
+
     private string pythonCommand = FindPythonCommand();
 
     private struct ProcessResult
@@ -82,17 +112,12 @@ public class CircuitExecutor
 
         Task<ProcessResult> task = Task.Run(() => RunPythonScript(scriptPath, inputFilePath, outputPath));
         while (!task.IsCompleted)  yield return null;
-        // <start coroutine>
-        // run python background
-        // receive data from python (check error)
+        
+        ProcessResult pr = task.Result;
+        if (!string.IsNullOrEmpty(pr.stderr))
+            Debug.LogError($"Qiskit Error! Reason: {pr.stderr}");
 
-        // save rusult as dictionary
         yield break;
-    }
-
-    private static void checkJsonInput()
-    {
-        return;
     }
 
     private static string FindPythonCommand()
@@ -122,5 +147,24 @@ public class CircuitExecutor
             catch { }
         }
         return null;
+    }
+
+    //find result vector given list of gate
+    public Vector3 GetResultBlochVector(List<string> gateList)
+    {
+        Vector3 resultVec = Vector3.up;
+        // input: list of gate name (string)
+        if(gateList.Count == 0)
+            return resultVec;
+
+        foreach(string gate in gateList)
+        {
+            if(!rotationInfo.TryGetValue(gate, out GateRotation infoResult)) continue;
+            
+            Quaternion rotation = Quaternion.AngleAxis(infoResult.angle, infoResult.axis);
+            resultVec = rotation * resultVec;
+        }
+
+        return resultVec;
     }
 }

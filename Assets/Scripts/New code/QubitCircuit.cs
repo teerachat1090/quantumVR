@@ -6,7 +6,7 @@ using UnityEngine;
 public class QubitCircuit : MonoBehaviour
 {
     private bool isEnabled = true;
-    public int circuitIndex; //0 by default
+    public int circuitIndex = 0; //0 by default
     private GateSocket[] gateSockets; 
     private CircuitManager parentManager;
     void Start()

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 from qiskit import QuantumCircuit
-from qiskit.quantum_info import Statevector
-from qiskit.circuit.library import CXGate
+from qiskit.quantum_info import Statevector, Pauli
+import datetime
 import sys
 import traceback
 import json
@@ -63,6 +63,30 @@ def create_bloch_sphere_circuit(circuit_data):
     
     return qc
 
+# TODO: make new case for Q-Sphere
+def build_result_json(is_Bloch_Sphere, qc):
+    state = Statevector.from_instruction(qc)
+    #print("Statevector:", state.data)
+    
+    probs = state.probabilities()
+    #print("Probabilities:", probs)
+
+    #print(qc.draw())
+
+    current_datetime = datetime.datetime.now()
+    formatted_datetime = current_datetime.strftime("%H:%M:%S")
+    formatted_string = current_datetime.strftime("%b %d, %Y")
+
+    return {
+        "date" : formatted_datetime,
+        "time" : formatted_string,
+        "0_real" : state[0].real,
+        "0_imag" : state[0].imag,
+        "0_prob" : probs[0],
+        "1_real" : state[1].real,
+        "1_imag" : state[1].imag,
+        "1_prob" : probs[1]
+    }
 
 def main():
     script_name = sys.argv[0]
@@ -85,15 +109,9 @@ def main():
 
         if(is_Bloch_Sphere is True):
             qc = create_bloch_sphere_circuit(circuit_data)
-            state = Statevector.from_instruction(qc)
-            print("Statevector:", state.data)
-
-            probs = state.probabilities()
-            print("Probabilities:", probs)
-
-            print(qc.draw())
-
-            # TODO: state data, prob -> dict -> dump to json
+            result_json = build_result_json(is_Bloch_Sphere, qc)
+            with open(json_output_path, "w", encoding="utf-8") as file:
+                json.dump(result_json, file, indent=4)
         else:
             #for Q-sphere
             print("for Q-sphere")

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
+using Unity.VisualScripting;
 
 public class GateSocket : MonoBehaviour
 {
@@ -58,7 +59,7 @@ public class GateSocket : MonoBehaviour
 
     void updateCircuit(bool isPlaced)
     {
-        parentCircuit.updateStatus(currentGate.gateName, socketIndex, isPlaced);
+        parentCircuit.updateStatus((currentGate != null) ? currentGate.gateName: null, socketIndex, isPlaced);
     }
 
     public QuantumGate getCurrentGate()

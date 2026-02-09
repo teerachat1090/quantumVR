@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEditor.PackageManager.Requests;
 using System.IO;
 using UnityEngine.InputSystem;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public class CircuitManager : MonoBehaviour
 {
@@ -17,11 +19,14 @@ public class CircuitManager : MonoBehaviour
     [SerializeField]
     private GameObject sphere = null; //check later: bloch / Q - sphere
 
+    [SerializeField]
+    private GameObject canvas = null;
+
     // Folder and file name
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
     private string jsonBlochInputFileName = "bloch_circuit_input.json", jsonQInputFileName = "q_circuit_input.json";
     private string jsonBlochOutputFileName = "bloch_circuit_output.json", jsonQOutputFileName = "q_circuit_output.json";
-    private string pythonScriptName = "qiskit_runner.py";
+    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     
@@ -31,6 +36,9 @@ public class CircuitManager : MonoBehaviour
     private int[] totalGatesPerQubit; //to track total gates per qubit
     private List<int> exportIndex = new List<int>();
     bool isBlochSphere;
+    private BlochSphere blochSphere = null;
+    private QuantumUiStatManager uiManager = null;
+    //private QSphere qSphere = null;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,7 +48,23 @@ public class CircuitManager : MonoBehaviour
         Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
         totalQubits = qubitCircuits.Length;
 
+        
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
+
+        if(isBlochSphere)   blochSphere = sphere.GetComponent<BlochSphere>();
+        if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+
+        if(canvas is null) Debug.LogWarning("Warning: UI canvas is missing!");
+        else
+        {
+            uiManager = canvas.GetComponent<QuantumUiStatManager>();
+            if(uiManager is null) Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
+            else Debug.Log("UI stat checking sucessful.");
+        }
+        
+
+        getAvailibleQubit();
+        updateOverallCircuit(null, -1, -1, true);
     }
 
     void initSetup()
@@ -57,10 +81,24 @@ public class CircuitManager : MonoBehaviour
         } //in case of each qubit has different number of gates
     }
 
-    //create object for export as JSON to python
+    //get list of indexes of availible qubit
+    void getAvailibleQubit()
+    {
+        exportIndex.Clear();
+        if(totalQubits == 0) return;
+        foreach (QubitCircuit qubit in qubitCircuits)
+        {
+            if(qubit.enabled) {
+                exportIndex.Add(qubit.circuitIndex);
+                Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}");
+            }
+        }
+    }
+
+    //create object to save as JSON for python
     public string circuitToExportInit()
     {
-        getAvailibleQubit();
+        if(!isBlochSphere) getAvailibleQubit();
         var circuitToExport = new CircuitToExecute
         {
             blochSphere = isBlochSphere,
@@ -107,65 +145,109 @@ public class CircuitManager : MonoBehaviour
         return json;
     }
 
-    //get list of indexes of availible qubit
-    void getAvailibleQubit()
+    // find result bloch vector given gate
+    public Vector3 GetBlochVectorResult(CircuitExecutor executor)
     {
-        exportIndex.Clear();
-        if(totalQubits == 0) return;
-        foreach (QubitCircuit qubit in qubitCircuits)
+        List<string> gateList = new List<string>();
+        QubitCircuit targetQubit = qubitCircuits[Array.FindIndex(qubitCircuits, q => q.circuitIndex == exportIndex[0])];
+        List<QuantumGate> gates = targetQubit.getListOfGate();
+        foreach(QuantumGate gate in gates)
         {
-            if(qubit.enabled) {
-                exportIndex.Add(qubit.circuitIndex);
-                Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}");
-            }
+            if (gate == null) continue;
+            gateList.Add(gate.gateName);
         }
+        // we gate list of string
+        return executor.GetResultBlochVector(gateList);
     }
 
+    private void updateBlochVectorInstant()
+    {
+        //update bloch sphere vector
+        var executor = new CircuitExecutor();
+        if(blochSphere is not null) 
+        {
+            Vector3 resultVector = GetBlochVectorResult(executor);
+            blochSphere.AnimateToStateDirectly(resultVector);
+        }
+        else
+            Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
+            
+        // calculate value
+        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
+        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
+        StartCoroutine(executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
+
+        // show value
+        if(uiManager is not null)
+            uiManager.ShowBlochResult(outputPath);
+        else
+            Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
+    }
+
+    // recalculate everytinm the circuit change
     public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
         string jsonExport = circuitToExportInit();
         updateJsonInputToFile(jsonExport);
 
-        var executor = new CircuitExecutor();
-        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptName);
-        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
-        StartCoroutine(executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
-        // send output to sphere, UI (check from json output)
+        updateBlochVectorInstant();
     }
 
-    // NEED coordination function: dictionary => (info -> ui, vector -> sphere)
+    private void createFolderIfNotExist(string folderPath)
+    {
+        if(!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+    }
 
     private void updateJsonInputToFile(string jsonExport)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
-        if(!Directory.Exists(dataFolderPath))
-            Directory.CreateDirectory(dataFolderPath);
+        createFolderIfNotExist(dataFolderPath);
 
         string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
-        if(!Directory.Exists(inputFolderPath))
-            Directory.CreateDirectory(inputFolderPath);
+        createFolderIfNotExist(inputFolderPath);
         
         string wantedJsonFile = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
         string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
+
         File.WriteAllText(inputPath, jsonExport);
         Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
     }
 
+    private void createEmptyJsonIfNotExist(string jsonPath)
+    {
+        if (!File.Exists(jsonPath))
+            File.WriteAllText(jsonPath, "{}");
+    }
+
+    // create full path of input and output json
     private void GetJsonPath(bool isBlochSphere, out string inputPath, out string outputPath)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        createFolderIfNotExist(dataFolderPath);
+
         string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
+        createFolderIfNotExist(inputFolderPath);
+
+
         string outputFolderPath = Path.Combine(dataFolderPath, outputFolder);
+        createFolderIfNotExist(outputFolderPath);
 
         // change file path (bloch sphere / q-sphere)
         string wantedInputPath = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
         string wantedOutputPath = isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName;
+        
+
         inputPath = Path.Combine(inputFolderPath, wantedInputPath);
-        outputPath = Path.Combine(inputFolderPath, wantedOutputPath);
+        outputPath = Path.Combine(outputFolderPath, wantedOutputPath);
+
+        createEmptyJsonIfNotExist(inputPath);
+        createEmptyJsonIfNotExist(outputPath);
     }
 }
 
+// object for saving as json file
 [Serializable]
 public class CircuitToExecute
 {
