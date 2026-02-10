@@ -1,22 +1,34 @@
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using Unity.Mathematics;
+using System.Linq;
 
 public class QuantumUiStatManager : MonoBehaviour
 {
     [Header("UI Option")]
     [SerializeField]    private bool isBlochSphere = true;
 
+    [Header("RequireScript")]
+    [SerializeField] private ProbHistogram hist;
+
+    [Header("Canvas")]
+    [SerializeField]    private Canvas canvas = null;
+    [SerializeField]    private RectTransform backgroundImage = null;
+
     [Header("Bloch UI")]
     [SerializeField]    private TMP_Text ket0_real_Text = null;
     [SerializeField]    private TMP_Text ket0_imag_Text = null;
     [SerializeField]    private TMP_Text ket1_real_Text = null;
     [SerializeField]    private TMP_Text ket1_imag_Text = null;
+
+    //[Header("Background Image")]
 
     //more variable for Q-sphere
 
@@ -32,6 +44,13 @@ public class QuantumUiStatManager : MonoBehaviour
         
     }
 
+    // 1:2:1:2:...:1
+    // space -> 1, br -> 2
+
+    // have list of bar: (val, image)
+    // update: same amount-change val, diff amount-empty and re-edit
+    // **when destroy -> we need to destroy GameObject (Image)
+
     public bool isBlochTextMeshReady()
     {
         bool flag = (ket0_real_Text is not null) && (ket0_imag_Text is not null) && 
@@ -39,19 +58,31 @@ public class QuantumUiStatManager : MonoBehaviour
         return flag;
     }
 
-    private BlochQubitStat GetJsonData(string jsonOutputPath)
+    private List<QubitStat> GetJsonBlochData(string jsonOutputPath)
     {
-        Debug.Log("Trying to get Json");
+        double numQubit = 1.0f;
+        int numState = (int)math.round(math.pow(2.0f,numQubit));
         try
         {
             string jsonString = File.ReadAllText(jsonOutputPath);
             JObject jsondata = JObject.Parse(jsonString);
 
-            var blochStat = new BlochQubitStat(
-                (double)jsondata["0_real"],(double)jsondata["0_imag"],(double)jsondata["0_prob"],
-                (double)jsondata["1_real"],(double)jsondata["1_imag"],(double)jsondata["1_prob"]);
+            JArray stats = (JArray)jsondata["state"];
+            List<QubitStat> statList = new List<QubitStat>();
 
-            return blochStat;
+            foreach (JObject item in stats)
+            {
+                QubitStat qStat = new QubitStat(
+                    (int)item["value"],
+                    (double)item["real_part"],
+                    (double)item["imag_part"],
+                    (double)item["prob"]
+                );
+
+                statList.Add(qStat);
+            }
+
+            return statList;
         }
         catch (FileNotFoundException)
         {
@@ -66,63 +97,69 @@ public class QuantumUiStatManager : MonoBehaviour
     }
 
     // 1 space for real, 2 spaces for imag
-    private void AssignValueToTextMesh(BlochQubitStat blochStat)
+    private void AssignBlochValueToTextMesh(List<QubitStat> blochStat)
     {
-        double ket0_real = blochStat.ket0_real;
-        string ket0_real_str = ((ket0_real < 0) ? "- " : "") + ket0_real.ToString("F3");
+        var ket0 = blochStat.FirstOrDefault(s => s.val == 0);
+        var ket1 = blochStat.FirstOrDefault(s => s.val == 1);
+
+        double ket0_real = ket0.realPart;
+        string ket0_real_str = ((ket0_real < 0) ? "- " : "") + math.abs(ket0_real).ToString("F3");
         ket0_real_Text.SetText(ket0_real_str);
 
-        double ket0_imag = blochStat.ket0_imag;
-        string ket0_imag_str = ((ket0_imag < 0) ? "-  " : "+  ") + blochStat.ket0_imag.ToString("F3");
+        double ket0_imag = ket0.imagPart;
+        string ket0_imag_str = ((ket0_imag < 0) ? "-  " : "+  ") + math.abs(ket0_imag).ToString("F3");
         ket0_imag_Text.SetText(ket0_imag_str);
 
-        double ket1_real = blochStat.ket1_real;
-        string ket1_real_str = ((ket1_real < 0) ? "- " : "") + blochStat.ket1_real.ToString("F3");
+        double ket1_real = ket1.realPart;
+        string ket1_real_str = ((ket1_real < 0) ? "- " : "") + math.abs(ket1_real).ToString("F3");
         ket1_real_Text.SetText(ket1_real_str);
 
-        double ket1_imag = blochStat.ket1_imag;
-        string ket1_imag_str = ((ket1_imag < 0) ? "-  " : "+  ") + blochStat.ket1_imag.ToString("F3");
+        double ket1_imag = ket1.imagPart;
+        string ket1_imag_str = ((ket1_imag < 0) ? "-  " : "+  ") + math.abs(ket1_imag).ToString("F3");
         ket1_imag_Text.SetText(ket1_imag_str);
     } 
 
     public void ShowBlochResult(string jsonOutputPath)
     {
-
         if (isBlochSphere)
         {
-            BlochQubitStat stat = GetJsonData(jsonOutputPath);
-            if(stat is null)
+            List<QubitStat> stat = GetJsonBlochData(jsonOutputPath);
+            if(stat is null || stat.Count == 0)
             {
                 Debug.LogWarning("Error: Cannot get data from json file!");
                 return;
             }
-            Debug.Log("Stat Not null");
+            //Debug.Log("Stat Not null");
             if (!isBlochTextMeshReady())
             {
                 Debug.LogWarning("Error: Some TextMesh for Bloch Sphere is missing!");
                 return;
             }
 
-            AssignValueToTextMesh(stat);
+            AssignBlochValueToTextMesh(stat);
+
+            Debug.Log("Updating Histrogram");
+            hist.UpdateHist(stat);
+            //adjust histogram
         }
 
         return;
     }
 
-    public class BlochQubitStat
+    public class QubitStat
     {
-        public double ket0_real {get;  set;} 
-        public double ket0_imag{ get; set;} 
-        public double ket0_prob { get; set;}
-        public double ket1_real { get; set;}
-        public double ket1_imag { get; set;}
-        public double ket1_prob{ get; set;}
+        public int val;
+        public double realPart, imagPart;
+        public double prob;
 
-        public BlochQubitStat(  double _ket0_real, double _ket0_imag, double _ket0_prob, 
-                                double _ket1_real, double _ket1_imag, double _ket1_prob)
+        public QubitStat(int Val, double Real, double Imag, double Prob)
         {
-            ket0_real = _ket0_real;     ket0_imag = _ket0_imag;     ket1_prob = _ket0_prob;
-            ket1_real = _ket1_real;     ket1_imag = _ket1_imag;     ket1_prob = _ket1_prob;
+            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;
         }
     }
+
+    // 0 1
+    // 00 01 10 11
+    // 000 001 010 011 100 101 110 111
+    // 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111
 }

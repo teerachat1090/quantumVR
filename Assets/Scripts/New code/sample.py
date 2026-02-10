@@ -65,10 +65,10 @@ def create_bloch_sphere_circuit(circuit_data):
 
 # TODO: make new case for Q-Sphere
 def build_result_json(is_Bloch_Sphere, qc):
-    state = Statevector.from_instruction(qc)
+    states = Statevector.from_instruction(qc)
     #print("Statevector:", state.data)
     
-    probs = state.probabilities()
+    probs = states.probabilities()
     #print("Probabilities:", probs)
 
     #print(qc.draw())
@@ -77,16 +77,18 @@ def build_result_json(is_Bloch_Sphere, qc):
     formatted_datetime = current_datetime.strftime("%H:%M:%S")
     formatted_string = current_datetime.strftime("%b %d, %Y")
 
-    return {
-        "date" : formatted_datetime,
-        "time" : formatted_string,
-        "0_real" : state[0].real,
-        "0_imag" : state[0].imag,
-        "0_prob" : probs[0],
-        "1_real" : state[1].real,
-        "1_imag" : state[1].imag,
-        "1_prob" : probs[1]
+    data = {
+        "date": formatted_datetime,
+        "time": formatted_string,
+        "state" : []
     }
+
+    for i, state in enumerate(states):
+        entry = {"value":i, "real_part":state.real, "imag_part":state.imag, "prob":probs[i]}
+        data["state"].append(entry)
+    # print(data)
+
+    return data
 
 def main():
     script_name = sys.argv[0]

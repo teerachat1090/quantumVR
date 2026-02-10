@@ -173,13 +173,6 @@ public class CircuitManager : MonoBehaviour
             Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
     }
 
-    private void calculateAndUpdateUiStarter(CircuitExecutor executor, string inputPath, string outputPath)
-    {
-        Debug.Log($"Start Async: {DateTime.Now}");
-        _ = calculateAndUpdateUi(executor, inputPath, outputPath);
-        Debug.Log("NO WAIT.");
-    }
-
     private async Task calculateAndUpdateUi(CircuitExecutor executor, string inputPath, string outputPath)
     {
         Debug.Log("Asysnchronous task: Task start");
@@ -198,27 +191,6 @@ public class CircuitManager : MonoBehaviour
         Debug.Log($"Asysnchronous task: Task complete {DateTime.Now}");
     }
 
-    // --------------------------------dummies
-    void OnPlayerEnterZone()
-{
-    Debug.Log($"Triggered! {DateTime.Now}");
-    
-    // 2. Call the async function. 
-    // Because this function isn't 'async', it won't wait. 
-    // It starts the task and immediately moves to the next line.
-    _ = RunComplexLogicAsync(); 
-    
-    Debug.Log("The regular function has already finished, but the logic is running.");
-}
-
-// 3. The async logic stays in its own "lane"
-    async Task RunComplexLogicAsync()
-    {
-    await Task.Delay(1000);
-    Debug.Log($"Logic complete. {DateTime.Now}");
-}   
-    // ---------------------------------------dummies
-
     // recalculate everytinm the circuit change
     public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
@@ -232,8 +204,8 @@ public class CircuitManager : MonoBehaviour
         // calculate value
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
         GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
-        //OnPlayerEnterZone();
-        calculateAndUpdateUiStarter(executor, inputPath, outputPath);
+
+        _ = calculateAndUpdateUi(executor, inputPath, outputPath);
         
     }
 
