@@ -53,8 +53,9 @@ def create_bloch_sphere_circuit(circuit_data):
         sys.exit(1)
     
     qc = QuantumCircuit(qubit)
+    print(type(gates))
     for gate in gates:
-        gate_type = str(gate.get("gateName", "")).strip().upper()
+        gate_type = str(gate.get("gateName", None)).strip().upper()
         if gate_type is None:
             continue
 
@@ -66,27 +67,12 @@ def create_bloch_sphere_circuit(circuit_data):
 # TODO: make new case for Q-Sphere
 def build_result_json(is_Bloch_Sphere, qc):
     states = Statevector.from_instruction(qc)
-    #print("Statevector:", state.data)
-    
     probs = states.probabilities()
-    #print("Probabilities:", probs)
-
-    #print(qc.draw())
-
-    current_datetime = datetime.datetime.now()
-    formatted_datetime = current_datetime.strftime("%H:%M:%S")
-    formatted_string = current_datetime.strftime("%b %d, %Y")
-
-    data = {
-        "date": formatted_datetime,
-        "time": formatted_string,
-        "state" : []
-    }
+    data = {"state" : []}
 
     for i, state in enumerate(states):
         entry = {"value":i, "real_part":state.real, "imag_part":state.imag, "prob":probs[i]}
         data["state"].append(entry)
-    # print(data)
 
     return data
 
@@ -112,6 +98,13 @@ def main():
         if(is_Bloch_Sphere is True):
             qc = create_bloch_sphere_circuit(circuit_data)
             result_json = build_result_json(is_Bloch_Sphere, qc)
+
+            current_datetime = datetime.datetime.now()
+            formatted_datetime = current_datetime.strftime("%H:%M:%S")
+            formatted_string = current_datetime.strftime("%b %d, %Y")
+            result_json["date"] = formatted_datetime
+            result_json["time"] = formatted_string
+
             with open(json_output_path, "w", encoding="utf-8") as file:
                 json.dump(result_json, file, indent=4)
         else:

@@ -164,13 +164,13 @@ public class CircuitManager : MonoBehaviour
     private void updateBlochVectorInstant(CircuitExecutor executor)
     {
         //update bloch sphere vector
-        if(blochSphere is not null) 
-        {
-            Vector3 resultVector = GetBlochVectorResult(executor);
-            blochSphere.AnimateToStateDirectly(resultVector);
-        }
-        else
+        if(blochSphere is null) {
             Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
+            return;
+        }
+        
+        Vector3 resultVector = GetBlochVectorResult(executor);
+        blochSphere.AnimateToStateDirectly(resultVector);
     }
 
     private async Task calculateAndUpdateUi(CircuitExecutor executor, string inputPath, string outputPath)
@@ -179,16 +179,10 @@ public class CircuitManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        Debug.Log("Showing Result");
         if(uiManager is not null)
             uiManager.ShowBlochResult(outputPath);
         else
             Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
-        Debug.Log("Showing Finished!");
-
-        //await Task.Delay(1000);
-
-        Debug.Log($"Asysnchronous task: Task complete {DateTime.Now}");
     }
 
     // recalculate everytinm the circuit change
@@ -215,6 +209,7 @@ public class CircuitManager : MonoBehaviour
             Directory.CreateDirectory(folderPath);
     }
 
+    // TODO: add list input for checking any file
     private void updateJsonInputToFile(string jsonExport)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);

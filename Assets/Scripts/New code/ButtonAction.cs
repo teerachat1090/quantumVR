@@ -17,6 +17,7 @@ public class ButtonAction : MonoBehaviour
     private XRGrabInteractable grabInteractable;
 
     private Func<IEnumerator> onPressed; //any function that: no input, and return IEnumerator
+    [SerializeField] private UnityEvent whenOnPressed;
 
     void Awake()
     {
@@ -80,7 +81,7 @@ public class ButtonAction : MonoBehaviour
         pressed = true;
         yield return MoveButton(pressDepth, pressTime);
 
-        if (onPressed != null)  yield return StartCoroutine(onPressed());
+        if (onPressed != null)  whenOnPressed.Invoke();
         else                    Debug.LogWarning("No function connect to this button!");
 
         pressed = false;
