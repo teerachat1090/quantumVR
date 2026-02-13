@@ -10,7 +10,7 @@ import sample #custom python script
 
 # cd "Assets/Scripts/New code"
 # py ./QuantumSequence.py "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\bloch_circuit_input.json" 
-# "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\bloch_circuit_output_sequence.json"
+# "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\bloch_circuit_sequence.json"
 
 single_input_gate = sample.single_input_gate
 
@@ -37,8 +37,14 @@ def singleQubitSequence(circuit_data: str):
         "time" : formatted_string,
     }
     qc = QuantumCircuit(qubit)
-    
+
     index=0
+    qubit_result_list = sample.build_result_json(True, qc)
+    qubit_result = { "sequenceIndex": index}
+    qubit_result = {**qubit_result, **qubit_result_list}
+    result_list.append(qubit_result)
+    index += 1
+    
     for  gate in list(gates):
         gate_type = str(gate.get("gateName", None)).strip().upper()
         if gate_type is None:
@@ -54,7 +60,7 @@ def singleQubitSequence(circuit_data: str):
 
             index+=1
     
-    sequence_list["gateAmount"] = index
+    sequence_list["gateAmount"] = index-1
     sequence_list["resultList"] = result_list
     return sequence_list
 

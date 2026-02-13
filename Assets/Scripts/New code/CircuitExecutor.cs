@@ -94,8 +94,6 @@ public class CircuitExecutor
 
     // output name: instantBlochOutput.json
     public void PrepareThenRunQiskit(string scriptPath, string inputFilePath, string outputPath){
-        Debug.Log("-----Preparing-----");
-        
         // check python script
         if (!File.Exists(scriptPath))
         {
@@ -116,7 +114,6 @@ public class CircuitExecutor
         if (!string.IsNullOrEmpty(pr.stderr))
             Debug.LogError($"Qiskit Error! Reason: {pr.stderr}");
 
-        Debug.Log("Python process: Finish");
         return;
     }
 
@@ -166,5 +163,14 @@ public class CircuitExecutor
         }
 
         return resultVec;
+    }
+
+    public Vector3 DoRotate(Vector3 vector, string gate, bool isInverse)
+    {
+        if(!rotationInfo.TryGetValue(gate, out GateRotation infoResult)) return vector;
+            
+        Quaternion rotation = Quaternion.AngleAxis(infoResult.angle * (isInverse ? -1 : 1), infoResult.axis);
+        vector = rotation * vector;
+        return vector;
     }
 }

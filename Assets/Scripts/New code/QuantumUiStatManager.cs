@@ -32,18 +32,6 @@ public class QuantumUiStatManager : MonoBehaviour
 
     //more variable for Q-sphere
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     // 1:2:1:2:...:1
     // space -> 1, br -> 2
 
@@ -58,16 +46,32 @@ public class QuantumUiStatManager : MonoBehaviour
         return flag;
     }
 
-    private List<QubitStat> GetJsonBlochData(string jsonOutputPath)
+    private JArray getStatFromJson(string jsonOutputPath)
     {
-        double numQubit = 1.0f;
-        int numState = (int)math.round(math.pow(2.0f,numQubit));
         try
         {
             string jsonString = File.ReadAllText(jsonOutputPath);
             JObject jsondata = JObject.Parse(jsonString);
-
             JArray stats = (JArray)jsondata["state"];
+            return stats;
+        }
+        catch (FileNotFoundException)
+        {
+            Debug.LogWarning($"Error: The file '{jsonOutputPath}' was not found.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Error occurred: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    private List<QubitStat> GetJsonBlochData(JArray stats)
+    {
+        Debug.Log($"Input type: {stats.Type}");
+        try
+        {
             List<QubitStat> statList = new List<QubitStat>();
 
             foreach (JObject item in stats)
@@ -84,10 +88,6 @@ public class QuantumUiStatManager : MonoBehaviour
 
             return statList;
         }
-        catch (FileNotFoundException)
-        {
-            Debug.LogWarning($"Error: The file '{jsonOutputPath}' was not found.");
-        }
         catch (Exception ex)
         {
             Debug.LogWarning($"Error occurred: {ex.Message}");
@@ -99,6 +99,11 @@ public class QuantumUiStatManager : MonoBehaviour
     // 1 space for real, 2 spaces for imag
     private void AssignBlochValueToTextMesh(List<QubitStat> blochStat)
     {
+        if(blochStat is null)
+        {
+            Debug.LogWarning("Warning: Error occur when process json object.");
+            return;
+        }
         var ket0 = blochStat.FirstOrDefault(s => s.val == 0);
         var ket1 = blochStat.FirstOrDefault(s => s.val == 1);
 
@@ -123,7 +128,8 @@ public class QuantumUiStatManager : MonoBehaviour
     {
         if (isBlochSphere)
         {
-            List<QubitStat> stat = GetJsonBlochData(jsonOutputPath);
+            JArray JsonStats = getStatFromJson(jsonOutputPath);
+            List<QubitStat> stat = GetJsonBlochData(JsonStats);
             if(stat is null || stat.Count == 0)
             {
                 Debug.LogWarning("Error: Cannot get data from json file!");
@@ -144,6 +150,68 @@ public class QuantumUiStatManager : MonoBehaviour
         }
 
         return;
+    }
+
+    private JArray GetStatFromJsonByIndex(string jsonSequenceOutputPath, int index)
+    {
+        try
+        {
+            string jsonString = File.ReadAllText(jsonSequenceOutputPath);
+            JObject jsondata = JObject.Parse(jsonString);
+            JArray statsList = (JArray)jsondata["resultList"];
+            var statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == index);
+            return statSequence["state"] as JArray;
+        }
+        catch (FileNotFoundException)
+        {
+            Debug.LogWarning($"Error: The file '{jsonSequenceOutputPath}' was not found.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Error occurred: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    public void ShowBlochResultByIndex(string jsonSequenceOutputPath, int index)
+    {
+        JArray jsonStat = GetStatFromJsonByIndex(jsonSequenceOutputPath, index);
+        List<QubitStat> stat = GetJsonBlochData(jsonStat);
+        if(stat is null || stat.Count == 0)
+        {
+            Debug.LogWarning("Error: Cannot get data from json file!");
+            return;
+        }
+        //Debug.Log("Stat Not null");
+        if (!isBlochTextMeshReady())
+        {
+            Debug.LogWarning("Error: Some TextMesh for Bloch Sphere is missing!");
+            return;
+        
+        }
+        AssignBlochValueToTextMesh(stat);
+        hist.UpdateHist(stat);
+    }
+
+    public int getSequenceAmount(string jsonSequenceOutputPath)
+    {
+        try
+        {
+            string jsonString = File.ReadAllText(jsonSequenceOutputPath);
+            JObject jsondata = JObject.Parse(jsonString);
+            int seqAmount = (int)jsondata["gateAmount"] + 1;
+            return seqAmount;
+        }
+        catch (FileNotFoundException)
+        {
+            Debug.LogWarning($"Error: The file '{jsonSequenceOutputPath}' was not found.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Error occurred: {ex.Message}");
+        }
+        return 0;
     }
 
     public class QubitStat

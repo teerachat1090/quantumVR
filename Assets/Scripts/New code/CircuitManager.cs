@@ -27,7 +27,8 @@ public class CircuitManager : MonoBehaviour
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
     private string jsonBlochInputFileName = "bloch_circuit_input.json", jsonQInputFileName = "q_circuit_input.json";
     private string jsonBlochOutputFileName = "bloch_circuit_output.json", jsonQOutputFileName = "q_circuit_output.json";
-    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py";
+    private string jsonBlochSequenceFileName = "bloch_circuit_sequence.json", jsonQSequenceFileName = "q_circuit_sequence.json";
+    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "QuantumSequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     
@@ -40,6 +41,7 @@ public class CircuitManager : MonoBehaviour
     private BlochSphere blochSphere = null;
     private QuantumUiStatManager uiManager = null;
     //private QSphere qSphere = null;
+    private SequenceManager sqManager = null;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -51,9 +53,14 @@ public class CircuitManager : MonoBehaviour
 
         
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
-
-        if(isBlochSphere)   blochSphere = sphere.GetComponent<BlochSphere>();
-        if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+        if(isBlochSphere)   
+        {
+            blochSphere = sphere.GetComponent<BlochSphere>();
+            if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+        } else
+        {
+            //try to get Q-sphere
+        }
 
         if(canvas is null) Debug.LogWarning("Warning: UI canvas is missing!");
         else
@@ -62,6 +69,11 @@ public class CircuitManager : MonoBehaviour
             if(uiManager is null) Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
             else Debug.Log("UI stat checking sucessful.");
         }
+
+        sqManager = GetComponent<SequenceManager>();
+        if(sqManager is null)
+            Debug.LogWarning("Warning: Sequence manager component is missing!");
+        
         
 
         getAvailibleQubit();
@@ -133,22 +145,20 @@ public class CircuitManager : MonoBehaviour
                     gateName = gate.gateName,
                     targetQubit = (gate.gatetype == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
                 };
-                Debug.Log($"create gate: {gate}");
                 exportQubit.gateList.Add(newGate);
             }
 
             circuitToExport.qubits.Add(exportQubit);
         }
 
-        // convert [Serializable] object to json
         string json = JsonUtility.ToJson(circuitToExport, true);
-        //Debug.Log($"📤 Generated JSON:\n{json}");
         return json;
     }
 
     // find result bloch vector given gate
-    public Vector3 GetBlochVectorResult(CircuitExecutor executor)
+    public List<string> GetGateList()
     {
+        CircuitExecutor executor = new CircuitExecutor();
         List<string> gateList = new List<string>();
         QubitCircuit targetQubit = qubitCircuits[Array.FindIndex(qubitCircuits, q => q.circuitIndex == exportIndex[0])];
         List<QuantumGate> gates = targetQubit.getListOfGate();
@@ -157,25 +167,24 @@ public class CircuitManager : MonoBehaviour
             if (gate == null) continue;
             gateList.Add(gate.gateName);
         }
-        // we gate list of string
-        return executor.GetResultBlochVector(gateList);
+
+        return gateList;
     }
 
     private void updateBlochVectorInstant(CircuitExecutor executor)
     {
-        //update bloch sphere vector
         if(blochSphere is null) {
             Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
             return;
         }
         
-        Vector3 resultVector = GetBlochVectorResult(executor);
+        List<string> gateList = GetGateList();
+        Vector3 resultVector = executor.GetResultBlochVector(gateList);
         blochSphere.AnimateToStateDirectly(resultVector);
     }
 
     private async Task calculateAndUpdateUi(CircuitExecutor executor, string inputPath, string outputPath)
     {
-        Debug.Log("Asysnchronous task: Task start");
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
@@ -197,10 +206,12 @@ public class CircuitManager : MonoBehaviour
         
         // calculate value
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
-        GetJsonPath(isBlochSphere, out string inputPath, out string outputPath);
+
+        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
+                     isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName, 
+                     out string inputPath, out string outputPath);
 
         _ = calculateAndUpdateUi(executor, inputPath, outputPath);
-        
     }
 
     private void createFolderIfNotExist(string folderPath)
@@ -232,7 +243,7 @@ public class CircuitManager : MonoBehaviour
     }
 
     // create full path of input and output json
-    private void GetJsonPath(bool isBlochSphere, out string inputPath, out string outputPath)
+    private void GetJsonPath(string inputFile, string outputFile, out string inputPath, out string outputPath)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
         createFolderIfNotExist(dataFolderPath);
@@ -240,20 +251,45 @@ public class CircuitManager : MonoBehaviour
         string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
         createFolderIfNotExist(inputFolderPath);
 
-
         string outputFolderPath = Path.Combine(dataFolderPath, outputFolder);
-        createFolderIfNotExist(outputFolderPath);
+        createFolderIfNotExist(outputFolderPath);   
 
-        // change file path (bloch sphere / q-sphere)
-        string wantedInputPath = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
-        string wantedOutputPath = isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName;
-        
-
-        inputPath = Path.Combine(inputFolderPath, wantedInputPath);
-        outputPath = Path.Combine(outputFolderPath, wantedOutputPath);
+        inputPath = Path.Combine(inputFolderPath, inputFile);
+        outputPath = Path.Combine(outputFolderPath, outputFile);
 
         createEmptyJsonIfNotExist(inputPath);
         createEmptyJsonIfNotExist(outputPath);
+    }
+
+    public void PrepareForAnimation()
+    {
+        if(sqManager is null)
+        {
+            Debug.LogWarning("Warning: Sequence manager component is missing!");
+            return;
+        }
+
+        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
+        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
+                     isBlochSphere ? jsonBlochSequenceFileName : jsonQSequenceFileName, 
+                     out string inputPath, out string outputPath);
+                     
+        _ = sqManager.prepareSequence(pythonScriptPath, inputPath, outputPath);
+    }
+
+    public void BackToNormal()
+    {
+        // get vector and ui back
+        Debug.Log("Back to normal");
+    }
+
+    public string getJsonInputPath()
+    {
+        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
+                     isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName, 
+                     out string inputPath, out string _);
+        
+        return inputPath;
     }
 }
 

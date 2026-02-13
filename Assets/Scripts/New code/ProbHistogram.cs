@@ -71,7 +71,6 @@ public class ProbHistogram : MonoBehaviour
         probStateList.Clear();
         foreach(QubitStat qubitStat in stats)
         {
-            Debug.Log($"Prob: {qubitStat.prob}");
             probStateList.Add(qubitStat.prob);
         }
     }
