@@ -281,6 +281,9 @@ public class CircuitManager : MonoBehaviour
     {
         // get vector and ui back
         Debug.Log("Back to normal");
+
+        CircuitExecutor executor = new CircuitExecutor();
+        updateBlochVectorInstant(executor);
     }
 
     public string getJsonInputPath()

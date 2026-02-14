@@ -118,6 +118,7 @@ public class SequenceManager : MonoBehaviour
     public void backtoNormal()
     {
         toggleAnimateButton(false);
+        uiManager.ShowBlochResultByIndex(sequencefile, seqAmount-1);
         Debug.Log("Reset to Normal mode");
     }
 
