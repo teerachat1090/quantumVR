@@ -6,11 +6,13 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Newtonsoft.Json.Linq;
+using TMPro;
 
 public class SequenceManager : MonoBehaviour
 {
     private CircuitManager headManager = null;
 
+    [SerializeField] private GameObject markerPrefab = null;
     [SerializeField] private GameObject canvas = null;
 
     private enum SphereType
@@ -33,8 +35,9 @@ public class SequenceManager : MonoBehaviour
     private string sequencefile = null;
     private Vector3 currVector = Vector3.up;
     private List<string> gateList = new List<string>();
+    private GameObject marker = null;
 
-    void Start()
+    private void componentCheck()
     {
         headManager = GetComponent<CircuitManager>();
         if(headManager is null)  Debug.LogWarning("Warning: Manager script is missing!");
@@ -76,6 +79,21 @@ public class SequenceManager : MonoBehaviour
             if(uiManager is null) Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
             else Debug.Log("UI stat checking sucessful.");
         }
+
+
+        if(markerPrefab is null) Debug.LogWarning("Warning: Marker is missing!");
+        else
+        {
+            marker = Instantiate(markerPrefab);
+            marker.transform.Rotate(new Vector3(60.0f, 90.0f, 0.0f));
+            marker.SetActive(false);
+            Debug.Log("Marker deployed!");
+        }
+    }
+
+    void Start()
+    {
+        componentCheck();
     }
 
     private void toggleAnimateButton(bool isShow)
@@ -119,6 +137,7 @@ public class SequenceManager : MonoBehaviour
     {
         toggleAnimateButton(false);
         uiManager.ShowBlochResultByIndex(sequencefile, seqAmount-1);
+        marker.SetActive(false);
         Debug.Log("Reset to Normal mode");
     }
 
@@ -135,6 +154,20 @@ public class SequenceManager : MonoBehaviour
         currVector = executor.DoRotate(currVector, targetGate, isInverse);
     }
 
+    private void UpdateMarker()
+    {
+        if(seqIndex == 0) 
+        {
+            marker.SetActive(false);
+            return;
+        }
+
+        Vector3 targetPosition = headManager.GetNthGatePosInQubit(0, seqIndex);
+
+        marker.transform.position = targetPosition;
+        marker.SetActive(true);
+    }
+
     public void setPrevSeqence()
     {
         if(seqIndex == 0) return;
@@ -142,6 +175,7 @@ public class SequenceManager : MonoBehaviour
         uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
         updateVector(true);
         blochSphere.AnimateToStateDirectly(currVector);
+        UpdateMarker();
     }
 
     public void setNextSeqence()
@@ -151,5 +185,6 @@ public class SequenceManager : MonoBehaviour
         uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
         updateVector(false);
         blochSphere.AnimateToStateDirectly(currVector);
+        UpdateMarker();
     }
 }

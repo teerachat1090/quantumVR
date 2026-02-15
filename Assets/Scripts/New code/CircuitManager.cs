@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using TMPro;
 
 public class CircuitManager : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class CircuitManager : MonoBehaviour
 
     [SerializeField]
     private GameObject canvas = null;
+    [SerializeField] private TMP_Text modeText = null;
+    [SerializeField] private GameObject storageBlocker = null;
+    [SerializeField] private GameObject circuitBlocker = null;
 
     // Folder and file name
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
@@ -43,15 +47,8 @@ public class CircuitManager : MonoBehaviour
     //private QSphere qSphere = null;
     private SequenceManager sqManager = null;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void ComponentCheck()
     {
-        //get all "Qubitcircuit" in children and sort
-        qubitCircuits = GetComponentsInChildren<QubitCircuit>();
-        Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
-        totalQubits = qubitCircuits.Length;
-
-        
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
         if(isBlochSphere)   
         {
@@ -73,8 +70,25 @@ public class CircuitManager : MonoBehaviour
         sqManager = GetComponent<SequenceManager>();
         if(sqManager is null)
             Debug.LogWarning("Warning: Sequence manager component is missing!");
-        
-        
+
+        if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
+
+        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
+        else storageBlocker.SetActive(false);
+
+        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
+        else circuitBlocker.SetActive(false);
+    }
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        //get all "Qubitcircuit" in children and sort
+        qubitCircuits = GetComponentsInChildren<QubitCircuit>();
+        Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
+        totalQubits = qubitCircuits.Length;
+
+        ComponentCheck();
 
         getAvailibleQubit();
         updateOverallCircuit(null, -1, -1, true);
@@ -269,6 +283,17 @@ public class CircuitManager : MonoBehaviour
             return;
         }
 
+        if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
+        else                    modeText.SetText("Sequence Mode");
+
+        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
+        else storageBlocker.SetActive(true);
+
+        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
+        else circuitBlocker.SetActive(true);
+
+        FreezeGateBlock(true);
+
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
         GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
                      isBlochSphere ? jsonBlochSequenceFileName : jsonQSequenceFileName, 
@@ -282,6 +307,17 @@ public class CircuitManager : MonoBehaviour
         // get vector and ui back
         Debug.Log("Back to normal");
 
+        if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
+        else                    modeText.SetText("Instant Mode");
+
+        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
+        else storageBlocker.SetActive(false);
+
+        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
+        else circuitBlocker.SetActive(false);
+
+        FreezeGateBlock(false);
+        
         CircuitExecutor executor = new CircuitExecutor();
         updateBlochVectorInstant(executor);
     }
@@ -293,6 +329,23 @@ public class CircuitManager : MonoBehaviour
                      out string inputPath, out string _);
         
         return inputPath;
+    }
+
+    public Vector3 GetNthGatePosInQubit(int qubit, int rank)
+    {
+        if (isBlochSphere)
+        {
+            return qubitCircuits[0].GetNthGatePos(rank);
+        }
+        return Vector3.up;
+    }
+
+    private void FreezeGateBlock(bool flag)
+    {
+        foreach(QubitCircuit circuit in qubitCircuits)
+        {
+            circuit.FreezeGateBlock(flag);
+        }
     }
 }
 
