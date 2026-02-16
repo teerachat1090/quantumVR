@@ -1,13 +1,11 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEditor.PackageManager.Requests;
 using System.IO;
-using UnityEngine.InputSystem;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class CircuitManager : MonoBehaviour
 {
@@ -24,8 +22,10 @@ public class CircuitManager : MonoBehaviour
     [SerializeField]
     private GameObject canvas = null;
     [SerializeField] private TMP_Text modeText = null;
-    [SerializeField] private GameObject storageBlocker = null;
-    [SerializeField] private GameObject circuitBlocker = null;
+    [SerializeField] private GameObject storage = null;
+    [SerializeField] private InteractionLayerMask defaultInteractionLayer;
+
+    private XRGrabInteractable[] sourceGates;
 
     // Folder and file name
     string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
@@ -73,11 +73,12 @@ public class CircuitManager : MonoBehaviour
 
         if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
 
-        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
-        else storageBlocker.SetActive(false);
-
-        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
-        else circuitBlocker.SetActive(false);
+        if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
+        else
+        {
+            sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
+            if(sourceGates is null) Debug.LogWarning("Warning: Unable to get component from source gate in storage!");
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -286,12 +287,6 @@ public class CircuitManager : MonoBehaviour
         if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
         else                    modeText.SetText("Sequence Mode");
 
-        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
-        else storageBlocker.SetActive(true);
-
-        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
-        else circuitBlocker.SetActive(true);
-
         FreezeGateBlock(true);
 
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
@@ -309,12 +304,6 @@ public class CircuitManager : MonoBehaviour
 
         if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
         else                    modeText.SetText("Instant Mode");
-
-        if(storageBlocker is null) Debug.LogWarning("Warning: storage blocker is missing! User can access storage during animation!");
-        else storageBlocker.SetActive(false);
-
-        if(circuitBlocker is null) Debug.LogWarning("Warning: circuit blocker is missing! User can access circuit during animation!");
-        else circuitBlocker.SetActive(false);
 
         FreezeGateBlock(false);
         
@@ -340,11 +329,16 @@ public class CircuitManager : MonoBehaviour
         return Vector3.up;
     }
 
-    private void FreezeGateBlock(bool flag)
+    private void FreezeGateBlock(bool doDisable)
     {
         foreach(QubitCircuit circuit in qubitCircuits)
         {
-            circuit.FreezeGateBlock(flag);
+            circuit.FreezeGateBlock(doDisable);
+        }
+
+        foreach(XRGrabInteractable xrGrab in sourceGates)
+        {
+            xrGrab.interactionLayers = doDisable ? 0 : defaultInteractionLayer;
         }
     }
 }

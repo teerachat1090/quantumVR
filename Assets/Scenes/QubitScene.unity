@@ -7869,6 +7869,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 1505826995306642031, guid: c6054497dd8e1cb4bb92e5a76ad02656,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4693485186993835011, guid: c6054497dd8e1cb4bb92e5a76ad02656,
         type: 3}
       propertyPath: m_Enabled
@@ -18066,12 +18071,6 @@ Transform:
   - {fileID: 543821345}
   m_Father: {fileID: 1345981414}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1167045293 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1505826995306642031, guid: c6054497dd8e1cb4bb92e5a76ad02656,
-    type: 3}
-  m_PrefabInstance: {fileID: 538924610}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1167045298 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6037365993886115802, guid: c6054497dd8e1cb4bb92e5a76ad02656,
@@ -26746,8 +26745,9 @@ MonoBehaviour:
   sphere: {fileID: 1790211772}
   canvas: {fileID: 1996036097}
   modeText: {fileID: 637434938}
-  storageBlocker: {fileID: 970009012}
-  circuitBlocker: {fileID: 1167045293}
+  storage: {fileID: 839460600}
+  defaultInteractionLayer:
+    m_Bits: 1073741824
 --- !u!114 &1393955567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39474,6 +39474,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Cabinet
+      objectReference: {fileID: 0}
+    - target: {fileID: 1505826995306642031, guid: c6054497dd8e1cb4bb92e5a76ad02656,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4693485186993835011, guid: c6054497dd8e1cb4bb92e5a76ad02656,
         type: 3}
