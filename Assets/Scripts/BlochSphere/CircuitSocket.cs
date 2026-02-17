@@ -62,7 +62,7 @@ public class CircuitSocket : MonoBehaviour
             currentGate = gate;
             gate.SetCurrentSocket(this); // บอก Gate ว่ามันอยู่ใน Socket นี้
             
-            Debug.Log($"✅ Gate '{gate.gateName}' placed in {socketName}");
+            Debug.Log($"✅ Gate '{gate.getGateName()}' placed in {socketName}");
             
             if (circuitTable != null)
             {
@@ -76,7 +76,7 @@ public class CircuitSocket : MonoBehaviour
     {
         if (currentGate != null)
         {
-            Debug.Log($"❌ Gate '{currentGate.gateName}' removed from {socketName}");
+            Debug.Log($"❌ Gate '{currentGate.getGateName()}' removed from {socketName}");
             
             currentGate.SetCurrentSocket(null);
             currentGate = null;

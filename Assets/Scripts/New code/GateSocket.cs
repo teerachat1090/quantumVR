@@ -32,7 +32,7 @@ public class GateSocket : MonoBehaviour
         
         //update circuit table
 
-        if(gate.gatetype != QuantumGate.inputType.Single)
+        if(gate.getGateType() != QuantumGate.inputType.Single)
         {
             //remove additional gates if not single input
             socketInteractor.interactionManager.SelectExit(socketInteractor, args.interactableObject);
@@ -59,7 +59,7 @@ public class GateSocket : MonoBehaviour
 
     void updateCircuit(bool isPlaced)
     {
-        parentCircuit.updateStatus((currentGate != null) ? currentGate.gateName: null, socketIndex, isPlaced);
+        parentCircuit.updateStatus((currentGate != null) ? currentGate.getGateName(): null, socketIndex, isPlaced);
     }
 
     public QuantumGate getCurrentGate()

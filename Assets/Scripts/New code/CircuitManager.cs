@@ -157,8 +157,8 @@ public class CircuitManager : MonoBehaviour
 
                 Gate newGate = new Gate
                 {
-                    gateName = gate.gateName,
-                    targetQubit = (gate.gatetype == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
+                    gateName = gate.getGateName(),
+                    targetQubit = (gate.getGateType() == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
                 };
                 exportQubit.gateList.Add(newGate);
             }
@@ -180,7 +180,7 @@ public class CircuitManager : MonoBehaviour
         foreach(QuantumGate gate in gates)
         {
             if (gate == null) continue;
-            gateList.Add(gate.gateName);
+            gateList.Add(gate.getGateName());
         }
 
         return gateList;
