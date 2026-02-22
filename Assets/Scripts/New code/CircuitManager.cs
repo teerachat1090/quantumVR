@@ -9,43 +9,43 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class CircuitManager : MonoBehaviour
 {
+    [SerializeField] private SocketsManager socketsManager = null;
+    // use component.getComponentsInChildren<thatComponent>(false, thatList);
+    //      to store as List instead of array (no reallocate !) - false = not count inactive child
+
     private enum SphereType
     {
         BlochSphere, QSphere
     }
-    [SerializeField]
-    private SphereType sphereType = SphereType.BlochSphere;
+    [Header("Sphere setting")]
+    [SerializeField] private SphereType sphereType = SphereType.BlochSphere;
+    [SerializeField] private GameObject sphere = null; //check later: bloch / Q - sphere
+    [SerializeField] private int multipleQubitAmount = 1;
 
-    [SerializeField]
-    private GameObject sphere = null; //check later: bloch / Q - sphere
+    [Header("Display setting")]
+    [SerializeField] private QuantumUiStatManager uiManager = null; //showing result
+    [SerializeField] private TMP_Text modeText = null; //display mode
 
-    [SerializeField]
-    private GameObject canvas = null;
-    [SerializeField] private TMP_Text modeText = null;
-    [SerializeField] private GameObject storage = null;
-    [SerializeField] private InteractionLayerMask defaultInteractionLayer;
+    [Header("Interaction setting")]
+    [SerializeField] private GameObject storage = null; //disable grabbable when in animated mode
+    [SerializeField] private InteractionLayerMask interactionLayer;
 
     private XRGrabInteractable[] sourceGates;
 
     // Folder and file name
-    string dataFolder = "QuantumData", inputFolder = "QuantumInput", outputFolder = "QuantumOutput";
-    private string jsonBlochInputFileName = "bloch_circuit_input.json", jsonQInputFileName = "q_circuit_input.json";
-    private string jsonBlochOutputFileName = "bloch_circuit_output.json", jsonQOutputFileName = "q_circuit_output.json";
-    private string jsonBlochSequenceFileName = "bloch_circuit_sequence.json", jsonQSequenceFileName = "q_circuit_sequence.json";
     private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "QuantumSequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     
     // can check each one if enable
-    private QubitCircuit[] qubitCircuits; //array of qubit circuits
-    private int totalQubits;
-    private int[] totalGatesPerQubit; //to track total gates per qubit
-    private List<int> exportIndex = new List<int>();
-    bool isBlochSphere;
+    private List<QubitCircuit> qubitCircuits;
+    private bool isBlochSphere;
     private BlochSphere blochSphere = null;
-    private QuantumUiStatManager uiManager = null;
     //private QSphere qSphere = null;
     private SequenceManager sqManager = null;
+
+    private CircuitExecutor executor = new CircuitExecutor();
+    private FileManager fileManager = new FileManager();
 
     private void ComponentCheck()
     {
@@ -59,19 +59,16 @@ public class CircuitManager : MonoBehaviour
             //try to get Q-sphere
         }
 
-        if(canvas is null) Debug.LogWarning("Warning: UI canvas is missing!");
-        else
-        {
-            uiManager = canvas.GetComponent<QuantumUiStatManager>();
-            if(uiManager is null) Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
-            else Debug.Log("UI stat checking sucessful.");
-        }
+        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
+        else                    Debug.Log("UI stat checking sucessful.");
+        
 
         sqManager = GetComponent<SequenceManager>();
-        if(sqManager is null)
-            Debug.LogWarning("Warning: Sequence manager component is missing!");
+        if(sqManager is null) Debug.LogWarning("Warning: Sequence manager component is missing!");
 
         if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
+
+        if(socketsManager is null) Debug.LogWarning("Warning: Socket manager is missing!");
 
         if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
@@ -84,198 +81,59 @@ public class CircuitManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        //get all "Qubitcircuit" in children and sort
-        qubitCircuits = GetComponentsInChildren<QubitCircuit>();
-        Array.Sort(qubitCircuits, (a, b) => a.circuitIndex.CompareTo(b.circuitIndex));
-        totalQubits = qubitCircuits.Length;
-
         ComponentCheck();
 
-        getAvailibleQubit();
+        if(socketsManager is null) Debug.LogError("socketsManager is missing");
+
+        qubitCircuits = socketsManager.initSocketPrefabSpawn(isBlochSphere ? 1: multipleQubitAmount);
+
         updateOverallCircuit(null, -1, -1, true);
     }
 
-    void initSetup()
-    {
-        //getGatePerQubit();
-    }
-
-    void getGatePerQubit()
-    {
-        totalGatesPerQubit = new int[totalQubits];
-        for(int i=0; i<totalQubits; i++)
-        {
-            totalGatesPerQubit[i] = qubitCircuits[i].getNumberOfGates();
-        } //in case of each qubit has different number of gates
-    }
-
-    //get list of indexes of availible qubit
-    void getAvailibleQubit()
-    {
-        exportIndex.Clear();
-        if(totalQubits == 0) return;
-        foreach (QubitCircuit qubit in qubitCircuits)
-        {
-            if(qubit.enabled) {
-                exportIndex.Add(qubit.circuitIndex);
-                Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}");
-            }
-        }
-    }
-
-    //create object to save as JSON for python
-    public string circuitToExportInit()
-    {
-        if(!isBlochSphere) getAvailibleQubit();
-        var circuitToExport = new CircuitToExecute
-        {
-            blochSphere = isBlochSphere,
-            qubitAmount = exportIndex.Count,
-            qubits = new List<Qubit>()
-        };
-        Debug.Log($"create structure, qubit amount: {circuitToExport.qubitAmount}");
-
-        //to each avilible qubit (check by exportIndex)
-        for(int i=0; i<exportIndex.Count; i++)
-        {
-            Qubit exportQubit = new Qubit()
-            {
-              qubitIndex = i,
-              gateList = new List<Gate>()  
-            };
-            Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
-
-            QubitCircuit targetQubit = qubitCircuits[Array.FindIndex(qubitCircuits, q => q.circuitIndex == exportIndex[i])];
-            List<QuantumGate> gates = targetQubit.getListOfGate();
-
-            foreach(QuantumGate gate in gates)
-            {
-                if (gate == null) {
-                    exportQubit.gateList.Add(null);
-                    continue;
-                }
-
-                Gate newGate = new Gate
-                {
-                    gateName = gate.getGateName(),
-                    targetQubit = (gate.getGateType() == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
-                };
-                exportQubit.gateList.Add(newGate);
-            }
-
-            circuitToExport.qubits.Add(exportQubit);
-        }
-
-        string json = JsonUtility.ToJson(circuitToExport, true);
-        return json;
-    }
-
-    // find result bloch vector given gate
-    public List<string> GetGateList()
-    {
-        CircuitExecutor executor = new CircuitExecutor();
-        List<string> gateList = new List<string>();
-        QubitCircuit targetQubit = qubitCircuits[Array.FindIndex(qubitCircuits, q => q.circuitIndex == exportIndex[0])];
-        List<QuantumGate> gates = targetQubit.getListOfGate();
-        foreach(QuantumGate gate in gates)
-        {
-            if (gate == null) continue;
-            gateList.Add(gate.getGateName());
-        }
-
-        return gateList;
-    }
-
-    private void updateBlochVectorInstant(CircuitExecutor executor)
+    private void updateBlochVectorInstant()
     {
         if(blochSphere is null) {
             Debug.LogWarning("Warning: Sphere model is missing. Unable to animated!");
             return;
         }
         
-        List<string> gateList = GetGateList();
+        List<string> gateList = socketsManager.GetGateAsStringList(0);
         Vector3 resultVector = executor.GetResultBlochVector(gateList);
         blochSphere.AnimateToStateDirectly(resultVector);
     }
 
-    private async Task calculateAndUpdateUi(CircuitExecutor executor, string inputPath, string outputPath)
+    public List<string> GetGateAsStringList(int index)
+    {
+        return socketsManager.GetGateAsStringList(index);
+    }
+
+    private async Task calculateAndUpdateUi(string inputPath, string outputPath)
     {
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        if(uiManager is not null)
-            uiManager.ShowBlochResult(outputPath);
-        else
-            Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
+        if(uiManager is not null)   uiManager.ShowBlochResult(outputPath);
+        else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
     }
 
     // recalculate everytinm the circuit change
     public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
-        string jsonExport = circuitToExportInit();
-        updateJsonInputToFile(jsonExport);
+        string jsonExport = socketsManager.circuitToExportInit(isBlochSphere);
 
-        var executor = new CircuitExecutor();
-        updateBlochVectorInstant(executor);
+        fileManager.updateJsonInputToFile(jsonExport, isBlochSphere);
+        updateBlochVectorInstant();
         
         // calculate value
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
 
-        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
-                     isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName, 
-                     out string inputPath, out string outputPath);
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
 
-        _ = calculateAndUpdateUi(executor, inputPath, outputPath);
+        _ = calculateAndUpdateUi(inputPath, outputPath);
     }
 
-    private void createFolderIfNotExist(string folderPath)
-    {
-        if(!Directory.Exists(folderPath))
-            Directory.CreateDirectory(folderPath);
-    }
-
-    // TODO: add list input for checking any file
-    private void updateJsonInputToFile(string jsonExport)
-    {
-        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
-        createFolderIfNotExist(dataFolderPath);
-
-        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
-        createFolderIfNotExist(inputFolderPath);
-        
-        string wantedJsonFile = isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName;
-        string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
-
-        File.WriteAllText(inputPath, jsonExport);
-        //Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
-    }
-
-    private void createEmptyJsonIfNotExist(string jsonPath)
-    {
-        if (!File.Exists(jsonPath))
-            File.WriteAllText(jsonPath, "{}");
-    }
-
-    // create full path of input and output json
-    private void GetJsonPath(string inputFile, string outputFile, out string inputPath, out string outputPath)
-    {
-        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
-        createFolderIfNotExist(dataFolderPath);
-
-        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
-        createFolderIfNotExist(inputFolderPath);
-
-        string outputFolderPath = Path.Combine(dataFolderPath, outputFolder);
-        createFolderIfNotExist(outputFolderPath);   
-
-        inputPath = Path.Combine(inputFolderPath, inputFile);
-        outputPath = Path.Combine(outputFolderPath, outputFile);
-
-        createEmptyJsonIfNotExist(inputPath);
-        createEmptyJsonIfNotExist(outputPath);
-    }
-
+    // assigned to button
     public void PrepareForAnimation()
     {
         if(sqManager is null)
@@ -287,81 +145,30 @@ public class CircuitManager : MonoBehaviour
         if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
         else                    modeText.SetText("Sequence Mode");
 
-        FreezeGateBlock(true);
+        socketsManager.FreezeGateBlock(true);
 
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
-        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
-                     isBlochSphere ? jsonBlochSequenceFileName : jsonQSequenceFileName, 
-                     out string inputPath, out string outputPath);
+
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
                      
         _ = sqManager.prepareSequence(pythonScriptPath, inputPath, outputPath);
     }
 
+    // assigned to button
     public void BackToNormal()
     {
-        // get vector and ui back
-        Debug.Log("Back to normal");
-
         if(modeText is null)    Debug.LogWarning("Wrning: Text object is missing");
         else                    modeText.SetText("Instant Mode");
 
-        FreezeGateBlock(false);
+        socketsManager.FreezeGateBlock(false);
         
-        CircuitExecutor executor = new CircuitExecutor();
-        updateBlochVectorInstant(executor);
-    }
-
-    public string getJsonInputPath()
-    {
-        GetJsonPath( isBlochSphere ? jsonBlochInputFileName : jsonQInputFileName, 
-                     isBlochSphere ? jsonBlochOutputFileName : jsonQOutputFileName, 
-                     out string inputPath, out string _);
-        
-        return inputPath;
+        updateBlochVectorInstant();
     }
 
     public Vector3 GetNthGatePosInQubit(int qubit, int rank)
     {
-        if (isBlochSphere)
-        {
-            return qubitCircuits[0].GetNthGatePos(rank);
-        }
-        return Vector3.up;
+        if (isBlochSphere)  return qubitCircuits[qubit].GetNthGatePos(rank);
+        
+        return Vector3.zero;
     }
-
-    private void FreezeGateBlock(bool doDisable)
-    {
-        foreach(QubitCircuit circuit in qubitCircuits)
-        {
-            circuit.FreezeGateBlock(doDisable);
-        }
-
-        foreach(XRGrabInteractable xrGrab in sourceGates)
-        {
-            xrGrab.interactionLayers = doDisable ? 0 : defaultInteractionLayer;
-        }
-    }
-}
-
-// object for saving as json file
-[Serializable]
-public class CircuitToExecute
-{
-    public bool blochSphere;
-    public int qubitAmount;
-    public List<Qubit> qubits;
-}
-
-[Serializable]
-public class Qubit
-{
-    public int qubitIndex;
-    public List<Gate> gateList;
-}
-
-[Serializable]
-public class Gate
-{
-    public string gateName; //Identity gate if none specified
-    public int targetQubit; //-1 if single qubit gate
 }

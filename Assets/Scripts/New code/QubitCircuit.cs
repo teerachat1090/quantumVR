@@ -12,12 +12,14 @@ public class QubitCircuit : MonoBehaviour
     public InteractionLayerMask defaultInteractionLayer;
     private GateSocket[] gateSockets; 
     private CircuitManager parentManager;
-    private List<QuantumGate> quantumGates = new List<QuantumGate>();
-    void Start()
+    private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
+    void Awake()
     {
         parentManager = GetComponentInParent<CircuitManager>();
         gateSockets = GetComponentsInChildren<GateSocket>();
         Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
+
+        Debug.Log("Start function finished");
     }
 
     // Update is called once per frame
@@ -47,6 +49,7 @@ public class QubitCircuit : MonoBehaviour
         return gateList;
     }
 
+    // get position of Nth gate
     public Vector3 GetNthGatePos(int rank)
     {
         int count = 0;
@@ -76,21 +79,23 @@ public class QubitCircuit : MonoBehaviour
                 if(quantumGate is null) {
                     continue;
                 }
-                quantumGates.Add(quantumGate);
+                gatesForUnfreeze.Add(quantumGate);
                 XRGrabInteractable quantumGateInteractable = quantumGate.GetComponent<XRGrabInteractable>();
-                quantumGateInteractable.interactionLayers = flag ? 0 : defaultInteractionLayer;
+                quantumGateInteractable.interactionLayers = InteractionLayerMask.GetMask("Default");
             }
         }
         else
         {
-            foreach(QuantumGate quantumGate in quantumGates)
+            foreach(QuantumGate quantumGate in gatesForUnfreeze)
             {
                 XRGrabInteractable quantumGateInteractable = quantumGate.GetComponent<XRGrabInteractable>();
-                quantumGateInteractable.interactionLayers = flag ? 0 : defaultInteractionLayer;
+                quantumGateInteractable.interactionLayers = defaultInteractionLayer;
             }
-            quantumGates.Clear();
+            gatesForUnfreeze.Clear();
         }
         
         toggleCircuit();
     }
+
+
 }

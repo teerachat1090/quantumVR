@@ -20,7 +20,9 @@ public class GateRotation
 public class CircuitExecutor
 {
     public static readonly Dictionary<string, GateRotation> rotationInfo;
-    static CircuitExecutor() // like __init__ in python
+
+    // object initialization function
+    static CircuitExecutor()
     {
         rotationInfo = new Dictionary<string, GateRotation>   // {key, value}
         {

@@ -12,16 +12,19 @@ public class SequenceManager : MonoBehaviour
 {
     private CircuitManager headManager = null;
 
-    [SerializeField] private GameObject markerPrefab = null;
-    [SerializeField] private GameObject canvas = null;
-
     private enum SphereType
     {
         BlochSphere, QSphere
     }
+    [Header("Sphere setting")]
     [SerializeField]    private SphereType sphereType = SphereType.BlochSphere;
     [SerializeField]    private GameObject sphere = null; //check later: bloch / Q - sphere
 
+    [Header("Display setting")]
+    [SerializeField] private GameObject markerPrefab = null;
+    [SerializeField] private QuantumUiStatManager uiManager = null;
+
+    [Header("Button attachment")]
     [SerializeField]    private GameObject prevButton = null;
     [SerializeField]    private GameObject nextButton = null;
 
@@ -30,7 +33,6 @@ public class SequenceManager : MonoBehaviour
     private XRGrabInteractable press = null;
     private bool isBlochSphere;
     private BlochSphere blochSphere = null;
-    private QuantumUiStatManager uiManager = null;
     private int seqIndex = 0, seqAmount = 0;
     private string sequencefile = null;
     private Vector3 currVector = Vector3.up;
@@ -72,14 +74,9 @@ public class SequenceManager : MonoBehaviour
         }
         
         
-        if(canvas is null) Debug.LogWarning("Warning: UI canvas is missing!");
-        else
-        {
-            uiManager = canvas.GetComponent<QuantumUiStatManager>();
-            if(uiManager is null) Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
-            else Debug.Log("UI stat checking sucessful.");
-        }
-
+        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
+        else                    Debug.Log("UI stat checking sucessful.");
+        
 
         if(markerPrefab is null) Debug.LogWarning("Warning: Marker is missing!");
         else
@@ -119,8 +116,8 @@ public class SequenceManager : MonoBehaviour
         seqAmount = uiManager.getSequenceAmount(outputPath);
         blochSphere.AnimateToStateDirectly(currVector);
 
-        //only for bloch sphere
-        gateList = headManager.GetGateList();
+        // REMINDER: only for bloch sphere (index = 0)
+        gateList = headManager.GetGateAsStringList(0);
         int i=0;
         foreach(string gate in gateList)
         {

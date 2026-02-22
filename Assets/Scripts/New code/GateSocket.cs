@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 
 public class GateSocket : MonoBehaviour
 {
-    public int socketIndex; //0 by default
+    public int socketIndex = 0; //0 by default
     public QuantumGate currentGate = null;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
@@ -65,5 +65,10 @@ public class GateSocket : MonoBehaviour
     public QuantumGate getCurrentGate()
     {
         return currentGate;
+    }
+
+    public void setQubitIndex(int index)
+    {
+        socketIndex = index;
     }
 }
