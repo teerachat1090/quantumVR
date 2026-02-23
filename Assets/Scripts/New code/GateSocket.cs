@@ -2,11 +2,10 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
-using Unity.VisualScripting;
 
 public class GateSocket : MonoBehaviour
 {
-    public int socketIndex = 0; //0 by default
+    public int socketIndex; //0 by default
     public QuantumGate currentGate = null;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
@@ -32,7 +31,7 @@ public class GateSocket : MonoBehaviour
         
         //update circuit table
 
-        if(gate.getGateType() != QuantumGate.inputType.Single)
+        if(gate.gatetype != QuantumGate.inputType.Single)
         {
             //remove additional gates if not single input
             socketInteractor.interactionManager.SelectExit(socketInteractor, args.interactableObject);
@@ -59,16 +58,11 @@ public class GateSocket : MonoBehaviour
 
     void updateCircuit(bool isPlaced)
     {
-        parentCircuit.updateStatus((currentGate != null) ? currentGate.getGateName(): null, socketIndex, isPlaced);
+        parentCircuit.updateStatus(currentGate.gateName, socketIndex, isPlaced);
     }
 
     public QuantumGate getCurrentGate()
     {
         return currentGate;
-    }
-
-    public void setQubitIndex(int index)
-    {
-        socketIndex = index;
     }
 }

@@ -1,25 +1,18 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-// For parent object that have sockets as childs object
 public class QubitCircuit : MonoBehaviour
 {
     private bool isEnabled = true;
-    public int circuitIndex = 0; //0 by default
-    public InteractionLayerMask defaultInteractionLayer;
+    public int circuitIndex; //0 by default
     private GateSocket[] gateSockets; 
     private CircuitManager parentManager;
-    private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
-    void Awake()
+    void Start()
     {
         parentManager = GetComponentInParent<CircuitManager>();
         gateSockets = GetComponentsInChildren<GateSocket>();
         Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
-
-        Debug.Log("Start function finished");
     }
 
     // Update is called once per frame
@@ -48,54 +41,4 @@ public class QubitCircuit : MonoBehaviour
         }
         return gateList;
     }
-
-    // get position of Nth gate
-    public Vector3 GetNthGatePos(int rank)
-    {
-        int count = 0;
-        foreach(GateSocket socket in gateSockets)
-        {
-            if(socket.getCurrentGate() is null) continue;
-
-            count++;
-            if(count == rank)
-            {
-                return socket.transform.position;
-            }
-        }
-
-        return Vector3.zero;
-    }
-
-    public void FreezeGateBlock(bool flag)
-    {
-        toggleCircuit();
-
-        if (flag)
-        {
-            foreach(GateSocket socket in gateSockets)
-            {
-                QuantumGate quantumGate = socket.getCurrentGate();
-                if(quantumGate is null) {
-                    continue;
-                }
-                gatesForUnfreeze.Add(quantumGate);
-                XRGrabInteractable quantumGateInteractable = quantumGate.GetComponent<XRGrabInteractable>();
-                quantumGateInteractable.interactionLayers = InteractionLayerMask.GetMask("Default");
-            }
-        }
-        else
-        {
-            foreach(QuantumGate quantumGate in gatesForUnfreeze)
-            {
-                XRGrabInteractable quantumGateInteractable = quantumGate.GetComponent<XRGrabInteractable>();
-                quantumGateInteractable.interactionLayers = defaultInteractionLayer;
-            }
-            gatesForUnfreeze.Clear();
-        }
-        
-        toggleCircuit();
-    }
-
-
 }

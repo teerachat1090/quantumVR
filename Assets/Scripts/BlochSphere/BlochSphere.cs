@@ -219,16 +219,6 @@ public class BlochSphere : MonoBehaviour
         Debug.Log($"📍 State set directly to: {stateUnit}");
     }
     
-    
-    public void AnimatedInstantFromResult()
-    {
-        // open and receive json
-
-        // create vector
-
-        // animated
-    }
-
     public void AnimateToStateDirectly(Vector3 targetStateUnit)
     {
         Vector3 startUnit = currentStatePosition.normalized;

@@ -83,8 +83,8 @@ public class CircuitTable : MonoBehaviour
                 {
                     socketIndex = socket.socketIndex,
                     socketName = socket.socketName,
-                    gateName = socket.currentGate.getGateName(),
-                    gateDescription = socket.currentGate.getGateDescription()
+                    gateName = socket.currentGate.gateName,
+                    gateDescription = socket.currentGate.gateDescription
                 });
             }
         }
