@@ -6471,7 +6471,7 @@ GameObject:
   - component: {fileID: 135069433}
   - component: {fileID: 135069436}
   - component: {fileID: 135069435}
-  - component: {fileID: 135069434}
+  - component: {fileID: 135069437}
   m_Layer: 0
   m_Name: SC4
   m_TagString: Untagged
@@ -6495,23 +6495,6 @@ Transform:
   - {fileID: 638385161}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &135069434
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 135069432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 3
-  socketName: SC4
-  rowIndex: 0
-  socketInteractor: {fileID: 135069435}
-  currentGate: {fileID: 0}
 --- !u!114 &135069435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6579,6 +6562,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &135069437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135069432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 135069435}
+  currentGate: {fileID: 0}
 --- !u!1 &136460554
 GameObject:
   m_ObjectHideFlags: 0
@@ -10127,7 +10127,7 @@ GameObject:
   - component: {fileID: 219525878}
   - component: {fileID: 219525881}
   - component: {fileID: 219525880}
-  - component: {fileID: 219525879}
+  - component: {fileID: 219525882}
   m_Layer: 0
   m_Name: SC1
   m_TagString: Untagged
@@ -10151,23 +10151,6 @@ Transform:
   - {fileID: 1061159992}
   m_Father: {fileID: 2064831795}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &219525879
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 219525877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 0
-  socketName: SC1
-  rowIndex: 1
-  socketInteractor: {fileID: 219525880}
-  currentGate: {fileID: 0}
 --- !u!114 &219525880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10235,6 +10218,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &219525882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219525877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1001 &220043149
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12342,6 +12342,7 @@ GameObject:
   - component: {fileID: 280061303}
   - component: {fileID: 280061302}
   - component: {fileID: 280061301}
+  - component: {fileID: 280061304}
   m_Layer: 0
   m_Name: SC4
   m_TagString: Untagged
@@ -12449,6 +12450,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &280061304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 280061299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1001 &289555360
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13666,6 +13684,7 @@ GameObject:
   - component: {fileID: 318617908}
   - component: {fileID: 318617907}
   - component: {fileID: 318617906}
+  - component: {fileID: 318617909}
   m_Layer: 0
   m_Name: SC7
   m_TagString: Untagged
@@ -13773,6 +13792,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &318617909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318617904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &319569383
 GameObject:
   m_ObjectHideFlags: 0
@@ -17796,6 +17832,7 @@ GameObject:
   - component: {fileID: 433053737}
   - component: {fileID: 433053736}
   - component: {fileID: 433053735}
+  - component: {fileID: 433053738}
   m_Layer: 0
   m_Name: SC2
   m_TagString: Untagged
@@ -17903,6 +17940,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &433053738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433053733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &437519847
 GameObject:
   m_ObjectHideFlags: 0
@@ -18059,6 +18113,7 @@ GameObject:
   - component: {fileID: 438010620}
   - component: {fileID: 438010619}
   - component: {fileID: 438010618}
+  - component: {fileID: 438010621}
   m_Layer: 0
   m_Name: SC5
   m_TagString: Untagged
@@ -18166,6 +18221,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &438010621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438010616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &440074538
 GameObject:
   m_ObjectHideFlags: 0
@@ -21273,7 +21345,7 @@ GameObject:
   - component: {fileID: 512673235}
   - component: {fileID: 512673238}
   - component: {fileID: 512673237}
-  - component: {fileID: 512673236}
+  - component: {fileID: 512673239}
   m_Layer: 0
   m_Name: SC1
   m_TagString: Untagged
@@ -21297,23 +21369,6 @@ Transform:
   - {fileID: 457130381}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &512673236
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512673234}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 0
-  socketName: SC1
-  rowIndex: 0
-  socketInteractor: {fileID: 512673237}
-  currentGate: {fileID: 0}
 --- !u!114 &512673237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21381,6 +21436,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &512673239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 512673234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: SC1
+  rowIndex: 1
+  socketInteractor: {fileID: 512673237}
+  currentGate: {fileID: 0}
 --- !u!1 &517417780
 GameObject:
   m_ObjectHideFlags: 0
@@ -27159,7 +27231,7 @@ GameObject:
   - component: {fileID: 698080995}
   - component: {fileID: 698080998}
   - component: {fileID: 698080997}
-  - component: {fileID: 698080996}
+  - component: {fileID: 698080999}
   m_Layer: 0
   m_Name: SC9
   m_TagString: Untagged
@@ -27183,23 +27255,6 @@ Transform:
   - {fileID: 739496111}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &698080996
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 698080994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 8
-  socketName: SC9
-  rowIndex: 0
-  socketInteractor: {fileID: 698080997}
-  currentGate: {fileID: 0}
 --- !u!114 &698080997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27267,6 +27322,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &698080999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 698080994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 698080997}
+  currentGate: {fileID: 0}
 --- !u!1 &700351812
 GameObject:
   m_ObjectHideFlags: 0
@@ -31192,7 +31264,7 @@ GameObject:
   - component: {fileID: 816532532}
   - component: {fileID: 816532535}
   - component: {fileID: 816532534}
-  - component: {fileID: 816532533}
+  - component: {fileID: 816532536}
   m_Layer: 0
   m_Name: SC7
   m_TagString: Untagged
@@ -31216,23 +31288,6 @@ Transform:
   - {fileID: 1202779882}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &816532533
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816532531}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 6
-  socketName: SC7
-  rowIndex: 0
-  socketInteractor: {fileID: 816532534}
-  currentGate: {fileID: 0}
 --- !u!114 &816532534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31300,6 +31355,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &816532536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816532531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 816532534}
+  currentGate: {fileID: 0}
 --- !u!1 &823744973
 GameObject:
   m_ObjectHideFlags: 0
@@ -35791,6 +35863,7 @@ GameObject:
   - component: {fileID: 928032496}
   - component: {fileID: 928032495}
   - component: {fileID: 928032494}
+  - component: {fileID: 928032497}
   m_Layer: 0
   m_Name: SC3
   m_TagString: Untagged
@@ -35898,6 +35971,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &928032497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928032492}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &935301249
 GameObject:
   m_ObjectHideFlags: 0
@@ -42305,6 +42395,7 @@ GameObject:
   - component: {fileID: 1100333048}
   - component: {fileID: 1100333047}
   - component: {fileID: 1100333046}
+  - component: {fileID: 1100333049}
   m_Layer: 0
   m_Name: SC10
   m_TagString: Untagged
@@ -42412,6 +42503,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1100333049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100333044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &1104993681
 GameObject:
   m_ObjectHideFlags: 0
@@ -48378,7 +48486,7 @@ GameObject:
   - component: {fileID: 1276477006}
   - component: {fileID: 1276477009}
   - component: {fileID: 1276477008}
-  - component: {fileID: 1276477007}
+  - component: {fileID: 1276477010}
   m_Layer: 0
   m_Name: SC2
   m_TagString: Untagged
@@ -48402,23 +48510,6 @@ Transform:
   - {fileID: 587313132}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1276477007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1276477005}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 1
-  socketName: SC2
-  rowIndex: 0
-  socketInteractor: {fileID: 1276477008}
-  currentGate: {fileID: 0}
 --- !u!114 &1276477008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48486,6 +48577,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1276477010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276477005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 1276477008}
+  currentGate: {fileID: 0}
 --- !u!1 &1277858747
 GameObject:
   m_ObjectHideFlags: 0
@@ -49207,6 +49315,7 @@ GameObject:
   - component: {fileID: 1295073647}
   - component: {fileID: 1295073646}
   - component: {fileID: 1295073645}
+  - component: {fileID: 1295073648}
   m_Layer: 0
   m_Name: SC6
   m_TagString: Untagged
@@ -49314,6 +49423,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1295073648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1295073643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &1300624466
 GameObject:
   m_ObjectHideFlags: 0
@@ -54341,6 +54467,7 @@ GameObject:
   - component: {fileID: 1447569814}
   - component: {fileID: 1447569813}
   - component: {fileID: 1447569812}
+  - component: {fileID: 1447569815}
   m_Layer: 0
   m_Name: SC8
   m_TagString: Untagged
@@ -54448,6 +54575,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1447569815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447569810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1001 &1449302982
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54996,6 +55140,7 @@ GameObject:
   - component: {fileID: 1462798451}
   - component: {fileID: 1462798450}
   - component: {fileID: 1462798449}
+  - component: {fileID: 1462798452}
   m_Layer: 0
   m_Name: SC9
   m_TagString: Untagged
@@ -55103,6 +55248,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1462798452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1462798447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &1462985290
 GameObject:
   m_ObjectHideFlags: 0
@@ -55467,7 +55629,7 @@ GameObject:
   - component: {fileID: 1473700084}
   - component: {fileID: 1473700087}
   - component: {fileID: 1473700086}
-  - component: {fileID: 1473700085}
+  - component: {fileID: 1473700088}
   m_Layer: 0
   m_Name: SC10
   m_TagString: Untagged
@@ -55491,23 +55653,6 @@ Transform:
   - {fileID: 681743368}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1473700085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1473700083}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 9
-  socketName: SC10
-  rowIndex: 0
-  socketInteractor: {fileID: 1473700086}
-  currentGate: {fileID: 0}
 --- !u!114 &1473700086
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55575,6 +55720,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1473700088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473700083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: SC10
+  rowIndex: 10
+  socketInteractor: {fileID: 1473700086}
+  currentGate: {fileID: 0}
 --- !u!1 &1473926606
 GameObject:
   m_ObjectHideFlags: 0
@@ -59938,7 +60100,7 @@ GameObject:
   - component: {fileID: 1571713034}
   - component: {fileID: 1571713037}
   - component: {fileID: 1571713036}
-  - component: {fileID: 1571713035}
+  - component: {fileID: 1571713038}
   m_Layer: 0
   m_Name: SC6
   m_TagString: Untagged
@@ -59962,23 +60124,6 @@ Transform:
   - {fileID: 245096938}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1571713035
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1571713033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 5
-  socketName: SC6
-  rowIndex: 0
-  socketInteractor: {fileID: 1571713036}
-  currentGate: {fileID: 0}
 --- !u!114 &1571713036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60046,6 +60191,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1571713038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571713033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 1571713036}
+  currentGate: {fileID: 0}
 --- !u!1 &1576311725
 GameObject:
   m_ObjectHideFlags: 0
@@ -60732,7 +60894,7 @@ GameObject:
   - component: {fileID: 1597720265}
   - component: {fileID: 1597720268}
   - component: {fileID: 1597720267}
-  - component: {fileID: 1597720266}
+  - component: {fileID: 1597720269}
   m_Layer: 0
   m_Name: SC11
   m_TagString: Untagged
@@ -60756,23 +60918,6 @@ Transform:
   - {fileID: 660311220}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1597720266
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1597720264}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 10
-  socketName: SC3
-  rowIndex: 0
-  socketInteractor: {fileID: 1597720267}
-  currentGate: {fileID: 0}
 --- !u!114 &1597720267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60840,6 +60985,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1597720269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1597720264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: SC11
+  rowIndex: 11
+  socketInteractor: {fileID: 1597720267}
+  currentGate: {fileID: 0}
 --- !u!1 &1600315632
 GameObject:
   m_ObjectHideFlags: 0
@@ -63456,7 +63618,7 @@ GameObject:
   - component: {fileID: 1647112987}
   - component: {fileID: 1647112990}
   - component: {fileID: 1647112989}
-  - component: {fileID: 1647112988}
+  - component: {fileID: 1647112991}
   m_Layer: 0
   m_Name: SC3
   m_TagString: Untagged
@@ -63480,23 +63642,6 @@ Transform:
   - {fileID: 1537313673}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1647112988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1647112986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 2
-  socketName: SC3
-  rowIndex: 0
-  socketInteractor: {fileID: 1647112989}
-  currentGate: {fileID: 0}
 --- !u!114 &1647112989
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63564,6 +63709,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1647112991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1647112986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 1647112989}
+  currentGate: {fileID: 0}
 --- !u!1 &1647447089
 GameObject:
   m_ObjectHideFlags: 0
@@ -64049,6 +64211,7 @@ GameObject:
   - component: {fileID: 1669077742}
   - component: {fileID: 1669077741}
   - component: {fileID: 1669077740}
+  - component: {fileID: 1669077743}
   m_Layer: 0
   m_Name: SC11
   m_TagString: Untagged
@@ -64156,6 +64319,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1669077743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1669077738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 0}
+  currentGate: {fileID: 0}
 --- !u!1 &1671057838
 GameObject:
   m_ObjectHideFlags: 0
@@ -65995,7 +66175,7 @@ PrefabInstance:
     - target: {fileID: 448210269873617749, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.4568388
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 448210269873617749, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
@@ -66005,7 +66185,7 @@ PrefabInstance:
     - target: {fileID: 448210269873617749, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.787
       objectReference: {fileID: 0}
     - target: {fileID: 448210269873617749, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
@@ -66050,32 +66230,32 @@ PrefabInstance:
     - target: {fileID: 448210269873617749, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_ConstrainProportionsScale
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.35355335
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.61237246
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.35355335
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.61237246
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 120
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 4381584623154880653, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
@@ -66090,27 +66270,27 @@ PrefabInstance:
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.35355335
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.61237246
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.35355335
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.61237246
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 120
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 9094047338062426719, guid: c3216be477bbc4441aee9d98b14be5e0,
         type: 3}
@@ -75977,7 +76157,7 @@ GameObject:
   - component: {fileID: 1972686422}
   - component: {fileID: 1972686425}
   - component: {fileID: 1972686424}
-  - component: {fileID: 1972686423}
+  - component: {fileID: 1972686426}
   m_Layer: 0
   m_Name: SC8
   m_TagString: Untagged
@@ -76001,23 +76181,6 @@ Transform:
   - {fileID: 354772347}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1972686423
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1972686421}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 7
-  socketName: SC8
-  rowIndex: 0
-  socketInteractor: {fileID: 1972686424}
-  currentGate: {fileID: 0}
 --- !u!114 &1972686424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76085,6 +76248,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1972686426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1972686421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 1972686424}
+  currentGate: {fileID: 0}
 --- !u!1 &1975342740
 GameObject:
   m_ObjectHideFlags: 0
@@ -77097,7 +77277,7 @@ GameObject:
   - component: {fileID: 2009718706}
   - component: {fileID: 2009718709}
   - component: {fileID: 2009718708}
-  - component: {fileID: 2009718707}
+  - component: {fileID: 2009718710}
   m_Layer: 0
   m_Name: SC5
   m_TagString: Untagged
@@ -77121,23 +77301,6 @@ Transform:
   - {fileID: 501859052}
   m_Father: {fileID: 811491104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2009718707
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2009718705}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f11560bf9805b24f96d78aeb8c8c788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
-  socketIndex: 4
-  socketName: SC5
-  rowIndex: 0
-  socketInteractor: {fileID: 2009718708}
-  currentGate: {fileID: 0}
 --- !u!114 &2009718708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77205,6 +77368,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2009718710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009718705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
+  socketIndex: 0
+  socketName: 
+  rowIndex: 0
+  socketInteractor: {fileID: 2009718708}
+  currentGate: {fileID: 0}
 --- !u!1 &2027610188
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,7 +6,12 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 public class CXTargetVisual : MonoBehaviour
 {
     public CXSpawnedGate ParentGate { get; private set; }
-    public CircuitSocket PlacedSocket { get; private set; }
+
+    // ✅ เก็บได้ทั้งสองแบบ
+    public CircuitSocket_Chap3 PlacedSocket       { get; private set; }
+    public CircuitSocket       PlacedSocketLegacy { get; private set; }
+
+    public bool IsPlaced => PlacedSocket != null || PlacedSocketLegacy != null;
 
     private XRGrabInteractable grabInteractable;
     private bool isBeingHeld = false;
@@ -22,7 +27,7 @@ public class CXTargetVisual : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = true;
-            rb.useGravity = false;
+            rb.useGravity  = false;
             rb.constraints = RigidbodyConstraints.FreezeAll;
         }
     }
@@ -52,7 +57,7 @@ public class CXTargetVisual : MonoBehaviour
         if (rb != null)
         {
             rb.constraints = RigidbodyConstraints.None;
-            rb.useGravity = false;
+            rb.useGravity  = false;
             rb.isKinematic = false;
         }
     }
@@ -62,41 +67,52 @@ public class CXTargetVisual : MonoBehaviour
         isBeingHeld = false;
 
         Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null && PlacedSocket != null)
+        if (rb != null && IsPlaced)
         {
             rb.isKinematic = true;
-            rb.useGravity = false;
+            rb.useGravity  = false;
             rb.constraints = RigidbodyConstraints.FreezeAll;
         }
 
-        if (PlacedSocket == null)
+        if (!IsPlaced)
             ParentGate?.HideDashedPreview();
     }
 
-    public void OnPlacedOnSocket(CircuitSocket socket)
+    // ✅ Chap3
+    public void OnPlacedOnSocket(CircuitSocket_Chap3 socket)
     {
         PlacedSocket = socket;
-        isBeingHeld = false;
+        isBeingHeld  = false;
+        SnapToSocket(socket.transform.position, socket.transform.rotation);
+        ParentGate?.OnTargetPlaced(socket);
+    }
 
-        transform.SetPositionAndRotation(
-            socket.transform.position,
-            socket.transform.rotation
-        );
+    // ✅ Legacy (BlochSphere)
+    public void OnPlacedOnSocket(CircuitSocket socket)
+    {
+        PlacedSocketLegacy = socket;
+        isBeingHeld        = false;
+        SnapToSocket(socket.transform.position, socket.transform.rotation);
+        ParentGate?.OnTargetPlaced(socket);
+    }
+
+    private void SnapToSocket(Vector3 position, Quaternion rotation)
+    {
+        transform.SetPositionAndRotation(position, rotation);
 
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.isKinematic = true;
-            rb.useGravity = false;
+            rb.useGravity  = false;
             rb.constraints = RigidbodyConstraints.FreezeAll;
         }
-
-        ParentGate?.OnTargetPlaced(socket);
     }
 
     public void OnRemovedFromSocket()
     {
-        PlacedSocket = null;
+        PlacedSocket       = null;
+        PlacedSocketLegacy = null;
         ParentGate?.OnTargetRemoved();
     }
 }
