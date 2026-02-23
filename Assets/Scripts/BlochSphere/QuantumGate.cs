@@ -1,12 +1,14 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class QuantumGate : MonoBehaviour
 {
     [Header("Gate Info")]
-    public string gateName; // H, X, Y, Z, CNOT, etc.
-    public enum inputType{Single,Double,Triple}; 
-    public inputType gatetype;
-    public string gateDescription; // (Optional)
+    [SerializeField] private string gateName; // H, X, Y, Z, CNOT, etc.
+    public enum inputType{Single, Double, Triple}; 
+    [SerializeField] private inputType gatetype;
+    [SerializeField] private string gateDescription; // (Optional)
+    
     private CircuitSocket currentSocket;
     
     void Start()
@@ -18,8 +20,6 @@ public class QuantumGate : MonoBehaviour
         if (string.IsNullOrEmpty(gateDescription)) gateDescription = $"{gateName} Gate";
     }
     
-
-    // Function for external script to call -> like API
     public void SetCurrentSocket(CircuitSocket socket)
     {
         currentSocket = socket;
@@ -33,5 +33,20 @@ public class QuantumGate : MonoBehaviour
     public int getTarget()
     {
         return 0;
+    }
+
+    public string getGateName()
+    {
+        return gateName;
+    }
+
+    public string getGateDescription()
+    {
+        return gateDescription;
+    }
+
+    public inputType getGateType()
+    {
+        return gatetype; 
     }
 }
