@@ -23,9 +23,8 @@ public class ProbHistogram : MonoBehaviour
 
     void Start()
     {
-        histParent = new GameObject();
+        histParent = new GameObject(histParentName);
         histParent.transform.SetParent(canvas.transform, false);
-        histParent.name = histParentName;
     }
 
     public void ClearHistogram()

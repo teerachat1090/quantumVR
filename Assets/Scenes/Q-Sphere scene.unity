@@ -3182,14 +3182,14 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8062524429887855069, guid: 8c07255898e8a714cb03010827e49661,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 374125514}
     - targetCorrespondingSourceObject: {fileID: 2420879153576347145, guid: 8c07255898e8a714cb03010827e49661,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 59292287}
+    - targetCorrespondingSourceObject: {fileID: 8062524429887855069, guid: 8c07255898e8a714cb03010827e49661,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 374125514}
   m_SourcePrefab: {fileID: 100100000, guid: 8c07255898e8a714cb03010827e49661, type: 3}
 --- !u!1 &264462286
 GameObject:
@@ -10554,6 +10554,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1041590405}
+  - component: {fileID: 1041590406}
   m_Layer: 0
   m_Name: QSphere
   m_TagString: Untagged
@@ -10578,6 +10579,21 @@ Transform:
   - {fileID: 913515478}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &1041590406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041590404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e956517943125df498ad74ec77fd9f9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QSphere
+  stateParent: {fileID: 913515477}
+  stateVectorPrefab: {fileID: 0}
+  QubitAmount: 5
 --- !u!1001 &1044112864
 PrefabInstance:
   m_ObjectHideFlags: 0
