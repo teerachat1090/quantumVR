@@ -18,7 +18,6 @@ using Newtonsoft.Json;
 public class SingleQubitOperation : MonoBehaviour
 {
     [SerializeField] private GameObject buttonObject;
-    private ButtonAction button;
 
     // related script: table, sphere
     [SerializeField] private CircuitTable circuitTable;
@@ -56,7 +55,7 @@ public class SingleQubitOperation : MonoBehaviour
     //             └    Quantum Input: single, multiple
     //             └    Quantum Result: single, multiple
     //
-    // <persistent_data_path> = C:\Users\esicl\AppData\LocalLow\DefaultCompany\VR quantum
+    // <persistent_data_path> = C:\Users\<usernameS>\AppData\LocalLow\DefaultCompany\VR quantum
     public void CheckFileStructure()
     {
         // check folder of writable file
@@ -84,17 +83,6 @@ public class SingleQubitOperation : MonoBehaviour
         CheckFileStructure();
 
         pythonCommand = FindPythonCommand();
-
-        button = buttonObject.GetComponent<ButtonAction>();
-
-        if(button is null)
-        {
-            Debug.LogWarning("Need button to make this script work!");
-            return;
-        }
-
-        Debug.Log("Assigning function to button");
-        button.setAction(StartOp);
     }
 
     private string FindPythonCommand()
@@ -276,6 +264,11 @@ public class SingleQubitOperation : MonoBehaviour
         saveResult(jsonResult, circuitJSON);
 
         yield break;
+    }
+
+    public void CoRoutineOnStartOp()
+    {
+        StartCoroutine("StartOp");
     }
 
     private IEnumerator StartOp()

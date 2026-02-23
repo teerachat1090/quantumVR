@@ -2,10 +2,24 @@ using UnityEngine;
 
 public class SampleScript : MonoBehaviour
 {
+
+    private Material mat = null;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        Renderer renderer = GetComponent<Renderer>();
+
+        if(renderer is null)
+        {
+            Debug.LogWarning("can't find renderer");
+            return;
+        }
+        renderer.material.color = Color.red;
+        Debug.Log("change success");
+
+        if(renderer.material.color == Color.red) Debug.Log("color correct");
+        else Debug.LogWarning("color incorrect");
     }
 
     // Update is called once per frame

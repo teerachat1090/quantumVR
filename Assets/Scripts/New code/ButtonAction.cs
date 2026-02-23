@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -7,24 +8,21 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class ButtonAction : MonoBehaviour
 {
-    public float pressDepth = 1f;
-    public float pressTime = .25f;
+    [SerializeField] private float pressDepth = 1f;
+    [SerializeField] private float pressTime = .25f;
 
-    //public UnityEvent onPressed; //connect to other file and use coroutine in that file
+    [SerializeField] private List<UnityEvent> whenOnPressed = new List<UnityEvent>();
+
+    [SerializeField] private int funcIndex = 0;
 
     private bool pressed = false;
     private float funcDelay = 1f;
     private XRGrabInteractable grabInteractable;
 
-    private Func<IEnumerator> onPressed; //any function that: no input, and return IEnumerator
-
     void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
     }
-
-    // outside script need to use this function to connect to the button
-    public void setAction(Func<IEnumerator> action) => onPressed = action;
     
     private void OnEnable()
     {
@@ -74,14 +72,22 @@ public class ButtonAction : MonoBehaviour
         transform.position = startPos;
     }
 
+    private void CycleIndex()
+    {
+        int functionAmount = whenOnPressed.Count;
+        Debug.Log($"amount function: {functionAmount}");
+        if(funcIndex != functionAmount - 1) funcIndex++;
+        else funcIndex = 0;
+    }
+
     // routine
     private IEnumerator PressingButton()
     {
         pressed = true;
         yield return MoveButton(pressDepth, pressTime);
 
-        if (onPressed != null)  yield return StartCoroutine(onPressed());
-        else                    Debug.LogWarning("No function connect to this button!");
+        whenOnPressed[funcIndex].Invoke();
+        if(whenOnPressed.Count != 1)CycleIndex();
 
         pressed = false;
         yield return new WaitForSeconds(funcDelay);
