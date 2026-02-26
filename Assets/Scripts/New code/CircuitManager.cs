@@ -20,7 +20,7 @@ public class CircuitManager : MonoBehaviour
     [Header("Sphere setting")]
     [SerializeField] private SphereType sphereType = SphereType.BlochSphere;
     [SerializeField] private GameObject sphere = null; //check later: bloch / Q - sphere
-    [SerializeField] private int multipleQubitAmount = 1;
+    [SerializeField] private int qubitAmount = 1;
 
     [Header("Display setting")]
     [SerializeField] private QuantumUiStatManager uiManager = null; //showing result
@@ -41,6 +41,7 @@ public class CircuitManager : MonoBehaviour
     private List<QubitCircuit> qubitCircuits;
     private bool isBlochSphere;
     private BlochSphere blochSphere = null;
+    private QSphere qSphere = null;
     //private QSphere qSphere = null;
     private SequenceManager sqManager = null;
 
@@ -56,7 +57,8 @@ public class CircuitManager : MonoBehaviour
             if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
         } else
         {
-            //try to get Q-sphere
+            qSphere = sphere.GetComponent<QSphere>();
+            if(qSphere is null)     Debug.LogWarning("Warning: Sphere model is missing!");          
         }
 
         if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
@@ -85,9 +87,14 @@ public class CircuitManager : MonoBehaviour
 
         if(socketsManager is null) Debug.LogError("socketsManager is missing");
 
-        qubitCircuits = socketsManager.initSocketPrefabSpawn(isBlochSphere ? 1: multipleQubitAmount);
+        qubitCircuits = socketsManager.initSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
 
-        updateOverallCircuit(null, -1, -1, true);
+        if(isBlochSphere is true)   updateOverallCircuit(null, -1, -1, true);
+
+        if(isBlochSphere is false && qSphere is not null)
+        {
+            qSphere.ChangeQubitAmount(qubitAmount);
+        }
     }
 
     private void updateBlochVectorInstant()

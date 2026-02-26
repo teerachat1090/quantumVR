@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.IO.Hashing;
 using UnityEngine;
+using Unity.Mathematics;
 
 public class QSphere : MonoBehaviour
 {
@@ -8,7 +11,7 @@ public class QSphere : MonoBehaviour
 
     [SerializeField] GameObject stateVectorPrefab = null;
 
-    [SerializeField] int QubitAmount = 5;
+    private int qubitAmount = 0;
 
     private List<StateVector> vectorList = new List<StateVector>();
 
@@ -24,8 +27,117 @@ public class QSphere : MonoBehaviour
         if(stateVectorPrefab is null) Debug.LogWarning("Warning: Prefab for state vector is missing!");
     }
 
+    public void ChangeQubitAmount(int newAmount)
+    {
+        if(newAmount == qubitAmount)
+        {
+            Debug.Log("Qubit amount unchanged");
+            return;
+        }
+
+        qubitAmount = newAmount;
+        setStateVector();
+    }
+
+    // nCr = n!/(r! * (n-r)!)
+    //
+    //  n * (n-1) * ... * (n-r+1)
+    //  ---------------------------
+    //   r * (r-1) * ... * (1)
+    private int Comb(int n, int r)
+    {
+        if (r < 0 || r > n) return 0; //invalid case
+
+        if (r == 0 || r == n) return 1; //edge case
+
+        if (r > n / 2) r = n - r;   //nCr(n, r) = nCr(n, n-r)
+        
+        int result = 1;
+        for (int i = 1; i <= r; i++)    result = result * (n - r + i) / i;
+        
+        return result;
+    }
+
+    private int[] GetHalfCombArray(int n)
+    {
+        if(n < 1) return null;
+        var arr = new int[n/2+1];
+
+        for(int i=0; i<=n/2; i++) arr[i] = Comb(n, i);
+
+        return arr;
+    }
+
     private void setStateVector()
     {
-        // use qubit amount
+        Debug.Log("Setting state vector");
+
+        if(stateVectorPrefab is null)
+        {
+            Debug.LogWarning("Warning: Prefab for create state vector is missing");
+            return;
+        }
+
+        // clear list if have one
+        if(vectorList.Count == 0){
+            //clear list
+        }
+
+        // set array of max number (M) - combinatorics
+        var maxAmount = GetHalfCombArray(qubitAmount);
+
+        // trace from end
+        int[] endAmount = maxAmount.Select(i => i-1).ToArray();
+        for(int i=0; i<endAmount.Length; i++)
+        {
+            Debug.Log($"{endAmount[i]}");
+        }
+
+        // trace from start
+        var startAmount = new int[qubitAmount/2+1]; //array of 0
+
+        int round = 1 << qubitAmount-1;
+        int bitFlip = (round  << 1) - 1 ;
+        
+        Debug.Log($"bitflip: {bitFlip}");
+        for(int i=0; i<round; i++)
+        {
+            int ones = Convert.ToString(i, 2).Count(c => c == '1');
+            int num = i, flipNum = i^bitFlip;
+            bool trackFromEnd = false;
+            if(ones > qubitAmount/2)
+            { 
+                (num, flipNum) = (flipNum, num);
+                trackFromEnd = true;
+                ones = qubitAmount - ones;
+            }
+
+            // upper node
+            GameObject spawned = Instantiate(stateVectorPrefab, stateParent.transform);
+            spawned.name = $"Statevector {num}";
+            StateVector vector = spawned.GetComponent<StateVector>();
+            vector.SetStateValue(i, qubitAmount);
+
+            // lower node (opposited)
+            GameObject spawnedCounter = Instantiate(stateVectorPrefab, stateParent.transform);
+            spawnedCounter.name = $"Statevector {flipNum}";
+            StateVector vectorCounter = spawnedCounter.GetComponent<StateVector>();
+            vectorCounter.SetStateValue(i^bitFlip, qubitAmount);
+
+            float y = (float) - (float) (trackFromEnd ? endAmount[ones] : startAmount[ones]) / maxAmount[ones] * 360.0f;
+            float z = (float) ones/qubitAmount*180.0f;
+
+            Debug.Log($"{(float) (trackFromEnd ? endAmount[ones] : startAmount[ones])}");
+            Debug.Log($"round:{i}, Y:{y}, Z:{z}");
+
+            spawned.transform.eulerAngles = new Vector3(0.0f, y, z);
+            spawnedCounter.transform.eulerAngles = new Vector3(0.0f, y + 180.0f, 180.0f - z);
+
+            vectorList.Add(vector);
+            vectorList.Add(vectorCounter);
+
+            if(trackFromEnd)    endAmount[ones]--;
+            else                startAmount[ones]++;
+        }
     }
 }

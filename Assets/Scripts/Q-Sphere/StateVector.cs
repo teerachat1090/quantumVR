@@ -41,10 +41,11 @@ public class StateVector : MonoBehaviour
         valueText.text = $"|{state}\u27E9";
     }
 
-    public void SetStateValue(int value)
+    public void SetStateValue(int value, int qubitAmount)
     {
         stateVal = value;
-        string valStr = Convert.ToString(value, 2);
+        string valStr = Convert.ToString(value, 2).PadLeft(qubitAmount, '0');
+
         SetStateDisplay(valStr);
     }
 }
