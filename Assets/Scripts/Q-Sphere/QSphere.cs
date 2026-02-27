@@ -80,7 +80,11 @@ public class QSphere : MonoBehaviour
 
         // clear list if have one
         if(vectorList.Count == 0){
-            //clear list
+            foreach(StateVector vector in vectorList)
+            {
+                Destroy(vector.gameObject);
+            }
+            vectorList.Clear();
         }
 
         // set array of max number (M) - combinatorics

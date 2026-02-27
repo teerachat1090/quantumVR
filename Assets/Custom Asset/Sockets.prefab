@@ -321,6 +321,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 9
   socketName: SC10
+  rowIndex: 0
   socketInteractor: {fileID: 8853682408626369433}
   currentGate: {fileID: 0}
 --- !u!114 &8592239050165876449
@@ -454,6 +455,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 4
   socketName: SC5
+  rowIndex: 0
   socketInteractor: {fileID: 663838851027382034}
   currentGate: {fileID: 0}
 --- !u!114 &5893815024034136861
@@ -587,6 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 0
   socketName: SC1
+  rowIndex: 0
   socketInteractor: {fileID: 1752590144311740620}
   currentGate: {fileID: 0}
 --- !u!114 &1079233185441109734
@@ -720,6 +723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 10
   socketName: SC3
+  rowIndex: 0
   socketInteractor: {fileID: 2435157118386573140}
   currentGate: {fileID: 0}
 --- !u!114 &4312366536792074756
@@ -884,6 +888,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 5
   socketName: SC6
+  rowIndex: 0
   socketInteractor: {fileID: 1997313294043609411}
   currentGate: {fileID: 0}
 --- !u!114 &6546031775271300942
@@ -898,7 +903,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GateSocket
-  socketIndex: 5
+  socketIndex: 6
   currentGate: {fileID: 0}
 --- !u!1 &5787751974936039683
 GameObject:
@@ -1158,6 +1163,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 5
   socketName: SC6
+  rowIndex: 0
   socketInteractor: {fileID: 4811300420019747306}
   currentGate: {fileID: 0}
 --- !u!114 &3566424382889458296
@@ -1291,6 +1297,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 5
   socketName: SC6
+  rowIndex: 0
   socketInteractor: {fileID: 9220364579051851636}
   currentGate: {fileID: 0}
 --- !u!114 &4412791122066377625
@@ -1305,7 +1312,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GateSocket
-  socketIndex: 5
+  socketIndex: 7
   currentGate: {fileID: 0}
 --- !u!1 &7202208110566781051
 GameObject:
@@ -1424,6 +1431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 1
   socketName: SC2
+  rowIndex: 0
   socketInteractor: {fileID: 8875775101110330643}
   currentGate: {fileID: 0}
 --- !u!114 &901354183602222308
@@ -1557,6 +1565,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 3
   socketName: SC4
+  rowIndex: 0
   socketInteractor: {fileID: 6653840150689179097}
   currentGate: {fileID: 0}
 --- !u!114 &2207099022092906365
@@ -1752,6 +1761,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 8
   socketName: SC9
+  rowIndex: 0
   socketInteractor: {fileID: 6234316424974308916}
   currentGate: {fileID: 0}
 --- !u!114 &574257108209686193
@@ -1947,6 +1957,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket
   socketIndex: 2
   socketName: SC3
+  rowIndex: 0
   socketInteractor: {fileID: 4725226039013978420}
   currentGate: {fileID: 0}
 --- !u!114 &2360131315964348624

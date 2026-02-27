@@ -15,6 +15,7 @@ public class SocketsManager : MonoBehaviour
 
     private XRGrabInteractable[] sourceGates;
 
+    // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private List<int> exportIndex = new List<int>();
     private int totalQubits = 0;
@@ -67,7 +68,7 @@ public class SocketsManager : MonoBehaviour
 
     // position 0.5 to -0.5, offset 0.1, space 0.2
     // Limit to 5 qubits for now
-    public List<QubitCircuit> initSocketPrefabSpawn(int qubitAmount)
+    public List<QubitCircuit> InitSocketPrefabSpawn(int qubitAmount)
     {
         if(!IsPrefabValid()) return null;
 
@@ -81,12 +82,14 @@ public class SocketsManager : MonoBehaviour
             qubitAmount = 1;
         }
 
-        float xPos = (qubitAmount%2 == 0 ? 0.1f : 0.2f) * (qubitAmount - 1);
+        float xPos = 0.0f + (qubitAmount - 1.0f) * 0.1f + (qubitAmount%2==0? 0.1f: 0.0f);
+        // 0.0f - (qubitAmount - 1)*0.1 - (0.1 or 0.0)
 
         for(int i=0; i<qubitAmount; i++)
         {
             GameObject spawned = Instantiate(qubitSocketPrefab, gameObject.transform, false);
             spawned.transform.Translate(xPos*Vector3.right);
+            spawned.name = qubitSocketPrefab.name + i;
 
             var qubitCircuit = spawned.GetComponent<QubitCircuit>();
             qubitCircuit.circuitIndex = i;

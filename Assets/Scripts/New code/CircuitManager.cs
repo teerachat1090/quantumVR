@@ -87,7 +87,7 @@ public class CircuitManager : MonoBehaviour
 
         if(socketsManager is null) Debug.LogError("socketsManager is missing");
 
-        qubitCircuits = socketsManager.initSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
+        qubitCircuits = socketsManager.InitSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
 
         if(isBlochSphere is true)   updateOverallCircuit(null, -1, -1, true);
 
