@@ -140,7 +140,11 @@ public class CircuitSocket_Chap3 : MonoBehaviour
         isTargetSocket  = isTarget;
 
         if (socketInteractor != null)
+        {
             socketInteractor.socketActive = false;
+            // ✅ ปิด hover mesh ไม่ให้ซ้อนกับ gate
+            socketInteractor.showInteractableHoverMeshes = false;
+        }
 
         Debug.Log($"[CircuitSocket_Chap3] {socketName} occupied by CX (control={isControl}, target={isTarget})");
     }
@@ -152,7 +156,11 @@ public class CircuitSocket_Chap3 : MonoBehaviour
         isTargetSocket  = false;
 
         if (socketInteractor != null)
+        {
             socketInteractor.socketActive = true;
+            // ✅ เปิด hover mesh กลับ
+            socketInteractor.showInteractableHoverMeshes = true;
+        }
 
         Debug.Log($"[CircuitSocket_Chap3] {socketName} CX state cleared");
     }

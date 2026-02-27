@@ -4,7 +4,8 @@ using System.Collections;
 
 /// <summary>
 /// แนบกับ CX_Spawn_Prefab root
-/// ชื่อ children ต้องตรงเป๊ะ: "Control", "Target", "Cylinder"
+/// ชื่อ children ต้องตรงเป๊ะ: "Control", "Target"
+/// "Cylinder" ถ้าไม่มีใน Prefab จะสร้างอัตโนมัติ
 /// </summary>
 public class CXSpawnedGate : MonoBehaviour
 {
@@ -61,11 +62,22 @@ public class CXSpawnedGate : MonoBehaviour
 
         if (controlVisual == null) Debug.LogError("[CXSpawnedGate] Missing child 'Control'");
         if (targetVisual  == null) Debug.LogError("[CXSpawnedGate] Missing child 'Target'");
-        if (cylinder      == null) Debug.LogError("[CXSpawnedGate] Missing child 'Cylinder'");
+
+        // ✅ สร้าง Cylinder ใน code ถ้าไม่มี child (ไม่ต้องพึ่งชื่อใน Prefab)
+        if (cylinder == null)
+        {
+            GameObject cyl = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cyl.name = "Cylinder";
+            cyl.transform.SetParent(transform);
+            cyl.transform.localPosition = Vector3.zero;
+            cyl.transform.localRotation = Quaternion.identity;
+            Destroy(cyl.GetComponent<Collider>());
+            cylinder = cyl.transform;
+            Debug.Log("[CXSpawnedGate] Cylinder created at runtime.");
+        }
 
         targetVisualComponent = targetVisual?.GetComponent<CXTargetVisual>();
-
-        if (cylinder != null) cylinder.gameObject.SetActive(false);
+        cylinder.gameObject.SetActive(false);
 
         SetupDashedLine();
     }
@@ -113,6 +125,7 @@ public class CXSpawnedGate : MonoBehaviour
 
     private void InitCommon(Transform socketTransform, string socketName)
     {
+        // ✅ snap root ให้ตรง socket ทั้ง position และ rotation (เอียงตามโต๊ะ)
         transform.SetPositionAndRotation(socketTransform.position, socketTransform.rotation);
 
         if (rb != null)
@@ -127,7 +140,7 @@ public class CXSpawnedGate : MonoBehaviour
         if (controlVisual != null)
         {
             controlVisual.localPosition = Vector3.zero;
-            controlVisual.localRotation = Quaternion.identity;
+            controlVisual.localRotation = Quaternion.identity; // ✅ FIX: reset rotation ให้ขนานโต๊ะ
             XRGrabInteractable grab = controlVisual.GetComponent<XRGrabInteractable>();
             if (grab != null) grab.trackRotation = false;
         }
@@ -144,7 +157,7 @@ public class CXSpawnedGate : MonoBehaviour
                 trb.constraints     = RigidbodyConstraints.FreezeAll;
             }
             targetVisual.localPosition = targetFloatOffset;
-            targetVisual.localRotation = Quaternion.identity;
+            targetVisual.localRotation = Quaternion.identity; // ✅ FIX: reset rotation ให้ขนานโต๊ะ
             XRGrabInteractable grab = targetVisual.GetComponent<XRGrabInteractable>();
             if (grab != null) grab.trackRotation = false;
             targetVisual.gameObject.SetActive(true);
@@ -152,7 +165,7 @@ public class CXSpawnedGate : MonoBehaviour
                 targetVisualComponent.SetParentGate(this);
         }
 
-        if (cylinder != null) cylinder.gameObject.SetActive(false);
+        cylinder.gameObject.SetActive(false);
 
         StartCoroutine(SubscribeControlGrabNextFrame());
         Debug.Log($"[CXSpawnedGate] ✅ Init FINAL. Control={socketName}");
@@ -229,10 +242,9 @@ public class CXSpawnedGate : MonoBehaviour
 
     private void OnTargetPlacedCommon()
     {
-        if (dashedLine != null) HideDashedPreview();
-        if (controlVisual != null && cylinder != null) UpdateCylinder();
-        if (TeleportationCircuitManager.Instance != null)
-            TeleportationCircuitManager.Instance.RegisterCXGate(this);
+        HideDashedPreview(); // ✅ FIX: เรียกตรงๆ ไม่ต้อง check null ซ้ำ (method จัดการเองอยู่แล้ว)
+        UpdateCylinder();    // ✅ FIX: เรียกตรงๆ cylinder guaranteed ไม่ null แล้ว
+        TeleportationCircuitManager.Instance?.RegisterCXGate(this);
     }
 
     public void OnTargetRemoved()
