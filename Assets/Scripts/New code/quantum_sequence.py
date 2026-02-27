@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
-from qiskit import QuantumCircuit
-from qiskit.quantum_info import Statevector, Pauli
+"""this is module"""
 import datetime
 import sys
 import traceback
 import json
-import sample #custom python script
+from qiskit import QuantumCircuit
+import sample #custom python script: needed rename
 
 # cd "Assets/Scripts/New code"
 # py ./QuantumSequence.py "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\bloch_circuit_input.json" 
@@ -14,16 +14,24 @@ import sample #custom python script
 
 single_input_gate = sample.single_input_gate
 
-def singleQubitSequence(circuit_data: str):
+def single_qubit_sequence(circuit_data: dict):
+    """_summary_
+
+    Args:
+        circuit_data (str): _description_
+
+    Returns:
+        _type_: _description_
+    """
     qubit = 1
     qubits = circuit_data.get("qubits", None)
-    if(qubits is None):
+    if qubits is None :
         print("Json file error: no field name (qubits - array)!")
         sys.exit(1)
 
     gates = qubits[0].get("gateList", None)
 
-    if(gates is None):
+    if gates is None :
         print("Json file error: no field name (gateList - array)!")
         sys.exit(1)
 
@@ -35,16 +43,18 @@ def singleQubitSequence(circuit_data: str):
     sequence_list = {
         "date" : formatted_datetime,
         "time" : formatted_string,
+        "gateAmount" : 0,
+        "resultList" : None
     }
     qc = QuantumCircuit(qubit)
 
     index=0
     qubit_result_list = sample.build_result_json(True, qc)
     qubit_result = { "sequenceIndex": index}
-    qubit_result = {**qubit_result, **qubit_result_list}
+    qubit_result = {**qubit_result, **qubit_result_list} # merge dictionary
     result_list.append(qubit_result)
     index += 1
-    
+
     for  gate in list(gates):
         gate_type = str(gate.get("gateName", None)).strip().upper()
         if gate_type is None:
@@ -59,30 +69,31 @@ def singleQubitSequence(circuit_data: str):
             result_list.append(qubit_result)
 
             index+=1
-    
+
     sequence_list["gateAmount"] = index-1
     sequence_list["resultList"] = result_list
     return sequence_list
 
 def main():
+    """Main function: Start the script here"""
     script_name = sys.argv[0]
     if len(sys.argv) < 3:
         print(f"Usage: python {script_name} <arg1> <arg2>")
         print("Invalid arguments provided.")
         sys.exit(1)
-    
+
     json_input_path = sys.argv[1]   # input
     json_output_path = sys.argv[2]  # output
 
     try:
         circuit_data = sample.load_circuit_from_json(json_input_path)
-        is_Bloch_Sphere = circuit_data.get("blochSphere", None)
-        if(is_Bloch_Sphere is None):
+        is_bloch_sphere = circuit_data.get("blochSphere", None)
+        if is_bloch_sphere is None :
             print("Json file error: no field name (blochSphere - bool)!")
             sys.exit(1)
 
-        if(is_Bloch_Sphere is True):
-            result_sequencs_json = singleQubitSequence(circuit_data)
+        if is_bloch_sphere is True :
+            result_sequencs_json = single_qubit_sequence(circuit_data)
 
             with open(json_output_path, "w", encoding="utf-8") as file:
                 json.dump(result_sequencs_json, file, indent=4)
@@ -92,9 +103,10 @@ def main():
             print("for Q-sphere")
 
         return
-    except:
+    except FileNotFoundError:
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":
     main()
+    

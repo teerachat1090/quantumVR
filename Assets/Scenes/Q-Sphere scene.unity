@@ -1672,7 +1672,7 @@ MonoBehaviour:
   m_InteractionManager: {fileID: 1167720171}
   m_Colliders: []
   m_InteractionLayers:
-    m_Bits: 1
+    m_Bits: 2147483648
   m_DistanceCalculationMode: 1
   m_SelectMode: 1
   m_FocusMode: 1
@@ -1759,7 +1759,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 11.806119, y: 0.45204723, z: 12.204578}
-  m_Center: {x: 0, y: 0.011142068, z: 0}
+  m_Center: {x: 0, y: 0.1, z: 0}
 --- !u!1 &128585787
 GameObject:
   m_ObjectHideFlags: 0
@@ -11082,7 +11082,7 @@ PrefabInstance:
     - target: {fileID: 6598815579406187037, guid: 18ddb545287c546e19cc77dc9fbb2189,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19697,12 +19697,13 @@ MonoBehaviour:
   socketsManager: {fileID: 1466281647}
   sphereType: 1
   sphere: {fileID: 1041590404}
-  qubitAmount: 5
+  qubitAmount: 3
   uiManager: {fileID: 1996036103}
   modeText: {fileID: 0}
   storage: {fileID: 839460600}
   interactionLayer:
     m_Bits: 1073741824
+  isBlochSphere: 0
 --- !u!114 &1393955567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30134,7 +30135,7 @@ PrefabInstance:
     - target: {fileID: 5887405409416211165, guid: f1dd218b0c8ed78418ba1d59529020fb,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

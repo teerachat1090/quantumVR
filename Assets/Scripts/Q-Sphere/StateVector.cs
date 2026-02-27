@@ -48,4 +48,9 @@ public class StateVector : MonoBehaviour
 
         SetStateDisplay(valStr);
     }
+
+    public int GetStateVal()
+    {
+        return stateVal;
+    }
 }

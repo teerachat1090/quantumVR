@@ -33,13 +33,13 @@ public class CircuitManager : MonoBehaviour
     private XRGrabInteractable[] sourceGates;
 
     // Folder and file name
-    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "QuantumSequence.py";
+    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "quantum_sequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     
     // can check each one if enable
     private List<QubitCircuit> qubitCircuits;
-    private bool isBlochSphere;
+    public bool isBlochSphere;
     private BlochSphere blochSphere = null;
     private QSphere qSphere = null;
     //private QSphere qSphere = null;
@@ -47,6 +47,11 @@ public class CircuitManager : MonoBehaviour
 
     private CircuitExecutor executor = new CircuitExecutor();
     private FileManager fileManager = new FileManager();
+
+    public bool isItBlochSphere()
+    {
+        return isBlochSphere;
+    }
 
     private void ComponentCheck()
     {
@@ -80,16 +85,19 @@ public class CircuitManager : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        ComponentCheck();
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        ComponentCheck();
-
         if(socketsManager is null) Debug.LogError("socketsManager is missing");
 
         qubitCircuits = socketsManager.InitSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
 
-        if(isBlochSphere is true)   updateOverallCircuit(null, -1, -1, true);
+        if(isBlochSphere is true)   socketsManager.updateCircuitByJson(null, -1, -1, true);
 
         if(isBlochSphere is false && qSphere is not null)
         {
@@ -124,12 +132,9 @@ public class CircuitManager : MonoBehaviour
     }
 
     // recalculate everytinm the circuit change
-    public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
+    public void updateOverallCircuit(string circuitJson)
     {
-        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
-        string jsonExport = socketsManager.circuitToExportInit(isBlochSphere);
-
-        fileManager.updateJsonInputToFile(jsonExport, isBlochSphere);
+        fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);
         updateBlochVectorInstant();
         
         // calculate value

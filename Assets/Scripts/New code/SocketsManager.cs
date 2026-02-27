@@ -14,19 +14,22 @@ public class SocketsManager : MonoBehaviour
     [SerializeField] private InteractionLayerMask interactionLayer;
 
     private XRGrabInteractable[] sourceGates;
-
+    private CircuitManager headManager;
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private List<int> exportIndex = new List<int>();
     private int totalQubits = 0;
 
-    void Start()
+    void Awake()
     {
         if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
         {
             sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
             if(sourceGates is null) Debug.LogWarning("Warning: Unable to get component from source gate in storage!");
+
+            headManager = GetComponentInParent<CircuitManager>();
+            if(headManager is null) Debug.LogWarning("Warning: Unable to get component CircuitManager!");
         }
     }
 
@@ -83,7 +86,6 @@ public class SocketsManager : MonoBehaviour
         }
 
         float xPos = 0.0f + (qubitAmount - 1.0f) * 0.1f + (qubitAmount%2==0? 0.1f: 0.0f);
-        // 0.0f - (qubitAmount - 1)*0.1 - (0.1 or 0.0)
 
         for(int i=0; i<qubitAmount; i++)
         {
@@ -131,6 +133,14 @@ public class SocketsManager : MonoBehaviour
         }
 
         return gateList;
+    }
+
+    public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
+    {
+        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+
+        string circuitJson = circuitToExportInit(headManager.isItBlochSphere());
+        headManager.updateOverallCircuit(circuitJson);
     }
 
     public string circuitToExportInit(bool isBlochSphere)

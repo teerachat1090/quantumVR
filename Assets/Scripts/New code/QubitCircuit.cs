@@ -12,10 +12,12 @@ public class QubitCircuit : MonoBehaviour
     public InteractionLayerMask defaultInteractionLayer;
     private GateSocket[] gateSockets; 
     private CircuitManager parentManager;
+    private SocketsManager socketsManager;
     private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
     void Awake()
     {
         parentManager = GetComponentInParent<CircuitManager>();
+        socketsManager = GetComponentInParent<SocketsManager>();
         gateSockets = GetComponentsInChildren<GateSocket>();
         Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
 
@@ -26,7 +28,7 @@ public class QubitCircuit : MonoBehaviour
     public void updateStatus(string gateName, int socketIndex, bool isPlaced)
     {
         if(!isEnabled) return;
-        parentManager.updateOverallCircuit(gateName, socketIndex, circuitIndex, isPlaced);
+        socketsManager.updateCircuitByJson(gateName, socketIndex, circuitIndex, isPlaced);
     }
 
     void toggleCircuit()

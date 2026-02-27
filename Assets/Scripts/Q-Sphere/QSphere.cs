@@ -47,9 +47,7 @@ public class QSphere : MonoBehaviour
     private int Comb(int n, int r)
     {
         if (r < 0 || r > n) return 0; //invalid case
-
         if (r == 0 || r == n) return 1; //edge case
-
         if (r > n / 2) r = n - r;   //nCr(n, r) = nCr(n, n-r)
         
         int result = 1;
@@ -80,10 +78,9 @@ public class QSphere : MonoBehaviour
 
         // clear list if have one
         if(vectorList.Count == 0){
-            foreach(StateVector vector in vectorList)
-            {
+            foreach(StateVector vector in vectorList)   
                 Destroy(vector.gameObject);
-            }
+            
             vectorList.Clear();
         }
 
@@ -92,10 +89,6 @@ public class QSphere : MonoBehaviour
 
         // trace from end
         int[] endAmount = maxAmount.Select(i => i-1).ToArray();
-        for(int i=0; i<endAmount.Length; i++)
-        {
-            Debug.Log($"{endAmount[i]}");
-        }
 
         // trace from start
         var startAmount = new int[qubitAmount/2+1]; //array of 0
@@ -103,7 +96,6 @@ public class QSphere : MonoBehaviour
         int round = 1 << qubitAmount-1;
         int bitFlip = (round  << 1) - 1 ;
         
-        Debug.Log($"bitflip: {bitFlip}");
         for(int i=0; i<round; i++)
         {
             int ones = Convert.ToString(i, 2).Count(c => c == '1');
@@ -131,9 +123,6 @@ public class QSphere : MonoBehaviour
             float y = (float) - (float) (trackFromEnd ? endAmount[ones] : startAmount[ones]) / maxAmount[ones] * 360.0f;
             float z = (float) ones/qubitAmount*180.0f;
 
-            Debug.Log($"{(float) (trackFromEnd ? endAmount[ones] : startAmount[ones])}");
-            Debug.Log($"round:{i}, Y:{y}, Z:{z}");
-
             spawned.transform.eulerAngles = new Vector3(0.0f, y, z);
             spawnedCounter.transform.eulerAngles = new Vector3(0.0f, y + 180.0f, 180.0f - z);
 
@@ -143,5 +132,7 @@ public class QSphere : MonoBehaviour
             if(trackFromEnd)    endAmount[ones]--;
             else                startAmount[ones]++;
         }
+
+        vectorList.Sort((a,b) => a.GetStateVal().CompareTo(b.GetStateVal()));
     }
 }

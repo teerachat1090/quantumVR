@@ -9,7 +9,7 @@ public class FileManager
     private string jsonBlochinputFileNameName = "bloch_circuit_input.json", jsonQinputFileNameName = "q_circuit_input.json";
     private string jsonBlochoutputFileNameName = "bloch_circuit_output.json", jsonQoutputFileNameName = "q_circuit_output.json";
     private string jsonBlochSequenceFileName = "bloch_circuit_sequence.json", jsonQSequenceFileName = "q_circuit_sequence.json";
-    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "QuantumSequence.py";
+    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "quantum_sequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
 
