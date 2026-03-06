@@ -6,13 +6,13 @@ import sys
 import traceback
 import json
 from qiskit import QuantumCircuit
-import sample #custom python script: needed rename
+import quantum_circuit #custom python script: needed rename
 
 # cd "Assets/Scripts/New code"
 # py ./QuantumSequence.py "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\bloch_circuit_input.json" 
 # "C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\bloch_circuit_sequence.json"
 
-single_input_gate = sample.single_input_gate
+single_input_gate = quantum_circuit.single_input_gate
 
 def single_qubit_sequence(circuit_data: dict):
     """_summary_
@@ -49,7 +49,7 @@ def single_qubit_sequence(circuit_data: dict):
     qc = QuantumCircuit(qubit)
 
     index=0
-    qubit_result_list = sample.build_result_json(True, qc)
+    qubit_result_list = quantum_circuit.build_result_json(True, qc)
     qubit_result = { "sequenceIndex": index}
     qubit_result = {**qubit_result, **qubit_result_list} # merge dictionary
     result_list.append(qubit_result)
@@ -62,7 +62,7 @@ def single_qubit_sequence(circuit_data: dict):
 
         if gate_type in single_input_gate:
             single_input_gate[gate_type](qc,qubit-1)
-            qubit_result_list = sample.build_result_json(True, qc)
+            qubit_result_list = quantum_circuit.build_result_json(True, qc)
 
             qubit_result = { "sequenceIndex": index}
             qubit_result = {**qubit_result, **qubit_result_list}
@@ -86,7 +86,7 @@ def main():
     json_output_path = sys.argv[2]  # output
 
     try:
-        circuit_data = sample.load_circuit_from_json(json_input_path)
+        circuit_data = quantum_circuit.load_circuit_from_json(json_input_path)
         is_bloch_sphere = circuit_data.get("blochSphere", None)
         if is_bloch_sphere is None :
             print("Json file error: no field name (blochSphere - bool)!")
@@ -109,4 +109,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

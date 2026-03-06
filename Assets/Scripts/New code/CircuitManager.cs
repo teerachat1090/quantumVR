@@ -33,7 +33,7 @@ public class CircuitManager : MonoBehaviour
     private XRGrabInteractable[] sourceGates;
 
     // Folder and file name
-    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "quantum_sequence.py";
+    private string pythonScriptFolder = "New code",pythonScriptName = "quantum_circuit.py", pythonAnimateName = "quantum_sequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     

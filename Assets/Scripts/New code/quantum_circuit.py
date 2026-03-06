@@ -4,6 +4,7 @@ import datetime
 import sys
 import traceback
 import json
+from itertools import zip_longest
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Statevector
 
@@ -42,20 +43,29 @@ def load_circuit_from_json(json_path: str):
 #use only single input gate
 def create_bloch_sphere_circuit(circuit_data):
     """sample text"""
-    qubit = 1
+    qubit = circuit_data.get("qubitAmount", None)
     qubits = circuit_data.get("qubits", None)
+    
+    if qubit is None:
+        print("Json file error: no field name (qubit - int)!")
+        sys.exit(1)
+
     if qubits is None:
         print("Json file error: no field name (qubits - array)!")
         sys.exit(1)
 
     gates = qubits[0].get("gateList", None)
+    qubit_list = [q.get("gateList", None) for q in qubits]
+
 
     if gates is None:
         print("Json file error: no field name (gateList - array)!")
         sys.exit(1)
 
     qc = QuantumCircuit(qubit)
-    print(type(gates))
+    
+    
+
     for gate in gates:
         gate_type = str(gate.get("gateName", None)).strip().upper()
         if gate_type is None:
@@ -123,4 +133,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
