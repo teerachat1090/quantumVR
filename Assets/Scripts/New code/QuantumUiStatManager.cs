@@ -1,14 +1,12 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using System.Linq;
+using QubitStat = FileManager.QubitStat;
 
 public class QuantumUiStatManager : MonoBehaviour
 {
@@ -28,6 +26,8 @@ public class QuantumUiStatManager : MonoBehaviour
     [SerializeField]    private TMP_Text ket1_real_Text = null;
     [SerializeField]    private TMP_Text ket1_imag_Text = null;
 
+    private FileManager fileManager = new FileManager();
+
     //[Header("Background Image")]
 
     //more variable for Q-sphere
@@ -44,27 +44,6 @@ public class QuantumUiStatManager : MonoBehaviour
         bool flag = (ket0_real_Text is not null) && (ket0_imag_Text is not null) && 
                     (ket1_real_Text is not null) && (ket1_imag_Text is not null);
         return flag;
-    }
-
-    private JArray getStatFromJson(string jsonOutputPath)
-    {
-        try
-        {
-            string jsonString = File.ReadAllText(jsonOutputPath);
-            JObject jsondata = JObject.Parse(jsonString);
-            JArray stats = (JArray)jsondata["state"];
-            return stats;
-        }
-        catch (FileNotFoundException)
-        {
-            Debug.LogWarning($"Error: The file '{jsonOutputPath}' was not found.");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"Error occurred: {ex.Message}");
-        }
-
-        return null;
     }
 
     private List<QubitStat> GetJsonBlochData(JArray stats)
@@ -96,7 +75,7 @@ public class QuantumUiStatManager : MonoBehaviour
         return null;
     }
 
-    // 1 space for real, 2 spaces for imag
+    // ui: 1 space for real, 2 spaces for imag
     private void AssignBlochValueToTextMesh(List<QubitStat> blochStat)
     {
         if(blochStat is null)
@@ -124,12 +103,11 @@ public class QuantumUiStatManager : MonoBehaviour
         ket1_imag_Text.SetText(ket1_imag_str);
     } 
 
-    public void ShowBlochResult(string jsonOutputPath)
+    public void ShowBlochResult(bool blochSphereFlag)
     {
-        if (isBlochSphere)
+        if (blochSphereFlag)
         {
-            JArray JsonStats = getStatFromJson(jsonOutputPath);
-            List<QubitStat> stat = GetJsonBlochData(JsonStats);
+            List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag);
             if(stat is null || stat.Count == 0)
             {
                 Debug.LogWarning("Error: Cannot get data from json file!");
@@ -152,32 +130,10 @@ public class QuantumUiStatManager : MonoBehaviour
         return;
     }
 
-    private JArray GetStatFromJsonByIndex(string jsonSequenceOutputPath, int index)
+    public void ShowBlochResultByIndex(bool blochSphereFlag, int index)
     {
-        try
-        {
-            string jsonString = File.ReadAllText(jsonSequenceOutputPath);
-            JObject jsondata = JObject.Parse(jsonString);
-            JArray statsList = (JArray)jsondata["resultList"];
-            var statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == index);
-            return statSequence["state"] as JArray;
-        }
-        catch (FileNotFoundException)
-        {
-            Debug.LogWarning($"Error: The file '{jsonSequenceOutputPath}' was not found.");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"Error occurred: {ex.Message}");
-        }
+        List<QubitStat> stat = fileManager.GetStatFromJsonByIndex(blochSphereFlag, index);
 
-        return null;
-    }
-
-    public void ShowBlochResultByIndex(string jsonSequenceOutputPath, int index)
-    {
-        JArray jsonStat = GetStatFromJsonByIndex(jsonSequenceOutputPath, index);
-        List<QubitStat> stat = GetJsonBlochData(jsonStat);
         if(stat is null || stat.Count == 0)
         {
             Debug.LogWarning("Error: Cannot get data from json file!");
@@ -212,18 +168,6 @@ public class QuantumUiStatManager : MonoBehaviour
             Debug.LogWarning($"Error occurred: {ex.Message}");
         }
         return 0;
-    }
-
-    public class QubitStat
-    {
-        public int val;
-        public double realPart, imagPart;
-        public double prob;
-
-        public QubitStat(int Val, double Real, double Imag, double Prob)
-        {
-            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;
-        }
     }
 
     // 0 1

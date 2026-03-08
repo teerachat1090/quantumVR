@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using QubitStat = QuantumUiStatManager.QubitStat;
+using QubitStat = FileManager.QubitStat;
 
 public class ProbHistogram : MonoBehaviour
 {

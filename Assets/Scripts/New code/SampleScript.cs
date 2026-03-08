@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class SampleScript : MonoBehaviour
 {
-
-    private Material mat = null;
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

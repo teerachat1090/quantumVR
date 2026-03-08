@@ -49,7 +49,7 @@ def single_qubit_sequence(circuit_data: dict):
     qc = QuantumCircuit(qubit)
 
     index=0
-    qubit_result_list = quantum_circuit.build_result_json(True, qc)
+    qubit_result_list = quantum_circuit.build_result_json(qc)
     qubit_result = { "sequenceIndex": index}
     qubit_result = {**qubit_result, **qubit_result_list} # merge dictionary
     result_list.append(qubit_result)
@@ -62,7 +62,7 @@ def single_qubit_sequence(circuit_data: dict):
 
         if gate_type in single_input_gate:
             single_input_gate[gate_type](qc,qubit-1)
-            qubit_result_list = quantum_circuit.build_result_json(True, qc)
+            qubit_result_list = quantum_circuit.build_result_json(qc)
 
             qubit_result = { "sequenceIndex": index}
             qubit_result = {**qubit_result, **qubit_result_list}

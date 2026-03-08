@@ -39,7 +39,7 @@ public class CircuitManager : MonoBehaviour
     
     // can check each one if enable
     private List<QubitCircuit> qubitCircuits;
-    public bool isBlochSphere;
+    private bool isBlochSphere;
     private BlochSphere blochSphere = null;
     private QSphere qSphere = null;
     //private QSphere qSphere = null;
@@ -127,7 +127,7 @@ public class CircuitManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        if(uiManager is not null)   uiManager.ShowBlochResult(outputPath);
+        if(uiManager is not null)   uiManager.ShowBlochResult(blochSphereFlag: true);
         else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
     }
 
@@ -140,7 +140,7 @@ public class CircuitManager : MonoBehaviour
         // calculate value
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
 
-        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath, out _);
 
         _ = calculateAndUpdateUi(inputPath, outputPath);
     }
@@ -161,9 +161,9 @@ public class CircuitManager : MonoBehaviour
 
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
 
-        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out _, out string sequenceOutputPath);
                      
-        _ = sqManager.prepareSequence(pythonScriptPath, inputPath, outputPath);
+        _ = sqManager.prepareSequence(pythonScriptPath, inputPath, sequenceOutputPath);
     }
 
     // assigned to button

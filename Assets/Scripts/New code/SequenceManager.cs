@@ -38,6 +38,7 @@ public class SequenceManager : MonoBehaviour
     private Vector3 currVector = Vector3.up;
     private List<string> gateList = new List<string>();
     private GameObject marker = null;
+    private FileManager fileManager = new FileManager();
 
     private void componentCheck()
     {
@@ -112,7 +113,7 @@ public class SequenceManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
         
         sequencefile = outputPath;
-        uiManager.ShowBlochResultByIndex(outputPath, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         seqAmount = uiManager.getSequenceAmount(outputPath);
         blochSphere.AnimateToStateDirectly(currVector);
 
@@ -133,7 +134,7 @@ public class SequenceManager : MonoBehaviour
     public void backtoNormal()
     {
         toggleAnimateButton(false);
-        uiManager.ShowBlochResultByIndex(sequencefile, seqAmount-1);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqAmount-1);
         marker.SetActive(false);
         Debug.Log("Reset to Normal mode");
     }
@@ -169,7 +170,7 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == 0) return;
         seqIndex--;
-        uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         updateVector(true);
         blochSphere.AnimateToStateDirectly(currVector);
         UpdateMarker();
@@ -179,7 +180,7 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == seqAmount - 1) return;
         seqIndex++;
-        uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         updateVector(false);
         blochSphere.AnimateToStateDirectly(currVector);
         UpdateMarker();

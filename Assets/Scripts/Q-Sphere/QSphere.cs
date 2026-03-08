@@ -1,9 +1,10 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO.Hashing;
 using UnityEngine;
-using Unity.Mathematics;
+using Newtonsoft.Json.Linq;
+using QubitStat = FileManager.QubitStat;
 
 public class QSphere : MonoBehaviour
 {
@@ -134,5 +135,15 @@ public class QSphere : MonoBehaviour
         }
 
         vectorList.Sort((a,b) => a.GetStateVal().CompareTo(b.GetStateVal()));
+    }
+
+
+    public void UpdateFromJson()
+    {
+        var fileManager = new FileManager();
+
+        List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag: false);
+
+        // take data from each list and update each vector
     }
 }
