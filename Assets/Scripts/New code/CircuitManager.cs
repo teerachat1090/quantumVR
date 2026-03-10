@@ -97,12 +97,12 @@ public class CircuitManager : MonoBehaviour
 
         qubitCircuits = socketsManager.InitSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
 
-        if(isBlochSphere is true)   socketsManager.updateCircuitByJson(null, -1, -1, true);
-
         if(isBlochSphere is false && qSphere is not null)
         {
             qSphere.ChangeQubitAmount(qubitAmount);
         }
+
+        socketsManager.updateCircuitByJson(null, -1, -1, true);
     }
 
     private void updateBlochVectorInstant()
@@ -129,20 +129,23 @@ public class CircuitManager : MonoBehaviour
         // show value
         if(uiManager is not null)   uiManager.ShowBlochResult(blochSphereFlag: true);
         else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
+
+        if(!isBlochSphere) qSphere.UpdateFromJson();
     }
 
     // recalculate everytinm the circuit change
     public void updateOverallCircuit(string circuitJson)
     {
         fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);
-        updateBlochVectorInstant();
+
+        if (isBlochSphere)  updateBlochVectorInstant();
         
         // calculate value
+        Debug.Log("Start calculate and update circuit...");
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
-
         fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath, out _);
-
         _ = calculateAndUpdateUi(inputPath, outputPath);
+        Debug.Log("Calculate and update finished");
     }
 
     // assigned to button

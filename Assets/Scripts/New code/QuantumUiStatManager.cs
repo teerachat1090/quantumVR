@@ -46,35 +46,6 @@ public class QuantumUiStatManager : MonoBehaviour
         return flag;
     }
 
-    private List<QubitStat> GetJsonBlochData(JArray stats)
-    {
-        Debug.Log($"Input type: {stats.Type}");
-        try
-        {
-            List<QubitStat> statList = new List<QubitStat>();
-
-            foreach (JObject item in stats)
-            {
-                QubitStat qStat = new QubitStat(
-                    (int)item["value"],
-                    (double)item["real_part"],
-                    (double)item["imag_part"],
-                    (double)item["prob"]
-                );
-
-                statList.Add(qStat);
-            }
-
-            return statList;
-        }
-        catch (Exception ex)
-        {
-            Debug.LogWarning($"Error occurred: {ex.Message}");
-        }
-
-        return null;
-    }
-
     // ui: 1 space for real, 2 spaces for imag
     private void AssignBlochValueToTextMesh(List<QubitStat> blochStat)
     {

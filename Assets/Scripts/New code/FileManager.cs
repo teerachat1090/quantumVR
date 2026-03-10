@@ -136,7 +136,8 @@ public class FileManager
                     (int)item["value"],
                     (double)item["real_part"],
                     (double)item["imag_part"],
-                    (double)item["prob"]
+                    (double)item["prob"],
+                    (double)item["phase"]
                 );
 
                 statList.Add(qStat);
@@ -194,10 +195,11 @@ public class FileManager
         public int val;
         public double realPart, imagPart;
         public double prob;
+        public double phase;
 
-        public QubitStat(int Val, double Real, double Imag, double Prob)
+        public QubitStat(int Val, double Real, double Imag, double Prob, double Phase)
         {
-            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;
+            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;  phase = Phase;
         }
     }
 }

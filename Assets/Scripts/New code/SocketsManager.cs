@@ -47,7 +47,7 @@ public class SocketsManager : MonoBehaviour
             if(!qubit.enabled) continue;
 
             exportIndex.Add(qubit.circuitIndex);
-            Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}"); 
+            //Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}"); 
         }
     }
 
@@ -145,6 +145,7 @@ public class SocketsManager : MonoBehaviour
 
     public string circuitToExportInit(bool isBlochSphere)
     {
+        Debug.Log("Creating json circuit...");
         if(!isBlochSphere) getAvailibleQubit(); //update availible qubits for Q-sphere, no need for bloch sphere
         var circuitToExport = new CircuitToExecute
         {
@@ -152,7 +153,7 @@ public class SocketsManager : MonoBehaviour
             qubitAmount = exportIndex.Count,
             qubits = new List<Qubit>()
         };
-        Debug.Log($"create structure, qubit amount: {circuitToExport.qubitAmount}");
+        //Debug.Log($"create structure, qubit amount: {circuitToExport.qubitAmount}");
 
         //to each avilible qubit (check by exportIndex)
         for(int i=0; i<exportIndex.Count; i++)
@@ -162,7 +163,7 @@ public class SocketsManager : MonoBehaviour
               qubitIndex = i,
               gateList = new List<Gate>()  
             };
-            Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
+            //Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
 
             List<QuantumGate> gates = GetGateListByQubitIndex(exportIndex[i]);
 
@@ -185,6 +186,8 @@ public class SocketsManager : MonoBehaviour
         }
 
         string json = JsonUtility.ToJson(circuitToExport, true);
+
+        Debug.Log("Creating json finished");
         return json;
     }
 

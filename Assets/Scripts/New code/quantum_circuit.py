@@ -92,12 +92,14 @@ def build_result_json(qc : QuantumCircuit):
 
     states = Statevector.from_instruction(qc)
     probs = states.probabilities()
-    phase = np.angle(states.data, deg=True)
+    phase = [p+360 if p < 0 else p for p in np.angle(states.data, deg=True)]
+
 
     for i, state in enumerate(states):
         entry = {
             "value":i, "real_part":state.real, "imag_part":state.imag, 
-            "phase":phase[i], "prob":probs[i]
+            "phase":phase[i], 
+            "prob":probs[i]
         }
         data["state"].append(entry)
 

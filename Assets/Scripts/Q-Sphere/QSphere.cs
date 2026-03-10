@@ -113,13 +113,13 @@ public class QSphere : MonoBehaviour
             GameObject spawned = Instantiate(stateVectorPrefab, stateParent.transform);
             spawned.name = $"Statevector {num}";
             StateVector vector = spawned.GetComponent<StateVector>();
-            vector.SetStateValue(i, qubitAmount);
+            vector.SetStateValue(num, qubitAmount);
 
             // lower node (opposited)
             GameObject spawnedCounter = Instantiate(stateVectorPrefab, stateParent.transform);
-            spawnedCounter.name = $"Statevector {flipNum}";
+            spawnedCounter.name = $"Statevector <flip> {flipNum}";
             StateVector vectorCounter = spawnedCounter.GetComponent<StateVector>();
-            vectorCounter.SetStateValue(i^bitFlip, qubitAmount);
+            vectorCounter.SetStateValue(flipNum, qubitAmount);
 
             float y = (float) - (float) (trackFromEnd ? endAmount[ones] : startAmount[ones]) / maxAmount[ones] * 360.0f;
             float z = (float) ones/qubitAmount*180.0f;
@@ -135,15 +135,31 @@ public class QSphere : MonoBehaviour
         }
 
         vectorList.Sort((a,b) => a.GetStateVal().CompareTo(b.GetStateVal()));
+
+        Debug.Log("Setting finished.");
     }
 
 
     public void UpdateFromJson()
     {
+        Debug.Log("QSphere updating...");
         var fileManager = new FileManager();
 
         List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag: false);
 
         // take data from each list and update each vector
+        foreach(QubitStat q in stat)
+        {
+            float newProb = (float) q.prob;
+            float newPhase = (float) q.phase;
+            if(q.val < 0 || q.val > Math.Pow(2, qubitAmount))
+            {
+                Debug.LogWarning($"Warning: QubitState value error: {q.val}");
+                continue;
+            }
+            vectorList[q.val].UpdateStateVector(newProb, newPhase);
+        }
+
+        Debug.Log("QSphere update finished.");
     }
 }
