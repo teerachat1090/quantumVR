@@ -36,9 +36,9 @@ public class StateVector : MonoBehaviour
         CheckInput();
     }
 
-    void Update()
+    public void adjustText(Quaternion direction)
     {
-        
+        canvas.transform.rotation = direction;
     }
 
     private void SetStateDisplay(string state)
@@ -89,12 +89,13 @@ public class StateVector : MonoBehaviour
         float newHue = (lowerBound + offset)/360f;
         if (newHue > 1) newHue-=1f;
 
-        Debug.Log(@$"phase: {phase}, angleOffset: {angleOffSet}, boundindex: {boundindex}, 
-                    boundOffset: {boundOffset}, lowerBound: {lowerBound}, newHue: {newHue}");
         return newHue;
     }
 
-    //change node size (0-0.2) and color
+    private float textSlide = 0.1f;
+    private bool slided = false;
+
+    //change node size and color
     public void UpdateStateVector(float prob, float phase)
     {
         if(prob < 0.00001f)
@@ -108,6 +109,16 @@ public class StateVector : MonoBehaviour
         // scale 0.025 - 0.225
         float ratio = 0.025f + prob * 0.2f;
         nodeTransform.localScale = new Vector3(ratio, ratio, ratio);
+
+        if (prob > 0.5f && !slided)
+        {
+            canvas.transform.Translate(Vector3.up * textSlide);
+            slided = true;
+        } else if (prob < 0.5f && slided)
+        {
+            canvas.transform.Translate(Vector3.down * textSlide);
+            slided = false;
+        }
 
         float hue = PhaseToColor(phase);
         Color newColor = Color.HSVToRGB(hue, 1.0f, 1.0f);

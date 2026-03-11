@@ -125,7 +125,10 @@ public class QSphere : MonoBehaviour
             float z = (float) ones/qubitAmount*180.0f;
 
             spawned.transform.eulerAngles = new Vector3(0.0f, y, z);
+            vector.adjustText(gameObject.transform.rotation);
+            
             spawnedCounter.transform.eulerAngles = new Vector3(0.0f, y + 180.0f, 180.0f - z);
+            vectorCounter.adjustText(gameObject.transform.rotation);
 
             vectorList.Add(vector);
             vectorList.Add(vectorCounter);
