@@ -18,7 +18,9 @@ public class SocketsManager : MonoBehaviour
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private List<int> exportIndex = new List<int>();
-    private int totalQubits = 0;
+    private List<List<GameObject>> multiGateList = new List<List<GameObject>>();
+    private List<List<int>> socketMap = new List<List<int>>();
+    private int totalQubits = -1;
 
     void Awake()
     {
@@ -71,9 +73,9 @@ public class SocketsManager : MonoBehaviour
 
     // position 0.5 to -0.5, offset 0.1, space 0.2
     // Limit to 5 qubits for now
-    public List<QubitCircuit> InitSocketPrefabSpawn(int qubitAmount)
+    public void InitSocketPrefabSpawn(int qubitAmount)
     {
-        if(!IsPrefabValid()) return null;
+        if(!IsPrefabValid()) return;
 
         if(qubitAmount > 5)
         {
@@ -81,7 +83,7 @@ public class SocketsManager : MonoBehaviour
             qubitAmount = 5;
         } else if(qubitAmount < 1)
         {
-            Debug.LogWarning("Warning number of qubit is exceeding the limit (5). \nSet to 1 qubits.");
+            Debug.LogWarning("Warning number of qubit is exceeding the limit (1 qubits). \nSet to 1 qubits.");
             qubitAmount = 1;
         }
 
@@ -101,10 +103,10 @@ public class SocketsManager : MonoBehaviour
         }
         qubitCircuits.Sort((a,b) => a.circuitIndex.CompareTo(b.circuitIndex));
 
-        totalQubits = qubitCircuits.Count;
+        totalQubits = qubitAmount;
         getAvailibleQubit();
-
-        return qubitCircuits;
+        
+        //create socket map
     }
 
     public List<QubitCircuit> GetOverallCircuit()
@@ -133,6 +135,24 @@ public class SocketsManager : MonoBehaviour
         }
 
         return gateList;
+    }
+
+    public GameObject SearchForAvailibleSocketByIndex(int baseQubit, int columnToFind, out int qubitIndex)
+    {
+        foreach(QubitCircuit circuit in qubitCircuits)
+        {
+            if(circuit.circuitIndex == baseQubit) continue;
+
+            GameObject target = circuit.CheckIfSocketEmpty(columnToFind);
+
+            if(target is null) continue;
+            
+            qubitIndex = circuit.circuitIndex;
+            return target;
+        }
+
+        qubitIndex = -1;
+        return null;
     }
 
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)

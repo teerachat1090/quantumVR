@@ -7,9 +7,13 @@ using Unity.VisualScripting;
 public class GateSocket : MonoBehaviour
 {
     public int socketIndex = 0; //0 by default
+    public int qubitIndex = -1;
     public QuantumGate currentGate = null;
+    public QuantumGate.inputType inputType = QuantumGate.inputType.Default;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
+
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -23,28 +27,51 @@ public class GateSocket : MonoBehaviour
         }
     }
 
+    private bool CheckPlaceAvailible(int numInput)
+    {
+        GameObject target = null;
+        SocketsManager socketsManager = parentCircuit.GetSocketsManager();
+        if(target is null)
+        {
+            Destroy(currentGate.gameObject);
+            return false;
+        }
+        else
+        {
+            //create target + line + set target value
+
+        }
+        return false;
+    }
+
     void OnGatePlaced(SelectEnterEventArgs args)
     {
-        Debug.Log("📊 Qubit placed!");
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();
 
-        if(gate != null) currentGate = gate;
-        
-        //update circuit table
-
-        if(gate.getGateType() != QuantumGate.inputType.Single)
-        {
-            //remove additional gates if not single input
-            socketInteractor.interactionManager.SelectExit(socketInteractor, args.interactableObject);
-            return;
+        if(gate != null) {
+            currentGate = gate;
+            inputType = currentGate.getGateType();
         }
+
+        int numInput = gate.GetNumInput();
+        if(numInput > 1) 
+        {
+            if(CheckPlaceAvailible(numInput) is false) return;
+            gate.socketsManager = parentCircuit.GetSocketsManager();
+        }
+
         updateCircuit(true);
     }
 
     void OnGateRemoved(SelectExitEventArgs args)
-    {
+    {   
         currentGate = null;
-        updateCircuit(false);
+
+        if(inputType == QuantumGate.inputType.Single)
+        {
+            updateCircuit(false);
+        }
+        
         //update circuit table
     }
 

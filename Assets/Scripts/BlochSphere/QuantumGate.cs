@@ -1,52 +1,71 @@
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class QuantumGate : MonoBehaviour
 {
     [Header("Gate Info")]
     [SerializeField] private string gateName; // H, X, Y, Z, CNOT, etc.
-    public enum inputType{Single, Double, Triple}; 
+    public enum inputType{Default, Single, Double, Triple, target}; 
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     
+    public SocketsManager socketsManager = null;
     private CircuitSocket currentSocket;
+    private List<TargetGate> targets = new List<TargetGate>();
     
     void Start()
     {
-        // use gameObject name as default name
         if (string.IsNullOrEmpty(gateName)) gateName = gameObject.name;
-        
-        // use its name as default description
         if (string.IsNullOrEmpty(gateDescription)) gateDescription = $"{gateName} Gate";
     }
-    
-    public void SetCurrentSocket(CircuitSocket socket)
+
+    void OnDestroy()
     {
-        currentSocket = socket;
-    }
-    
-    public CircuitSocket GetCurrentSocket()
-    {
-        return currentSocket;
+        if(gatetype == inputType.Single) return;
+
+        // Multiple input gate case:
+        // Reject new gate case
+        if(socketsManager is null) return;
+
+        // check if directly destroy case
+
+        //Delete existed group case
+        //access socketManager to delete related gate
     }
 
-    public int getTarget()
+    public void SetCurrentSocket(CircuitSocket socket)  {currentSocket = socket;}
+    
+    public CircuitSocket GetCurrentSocket() {return currentSocket;}
+
+    public int getTarget()  {return 0;}
+
+    public string getGateName() {return gateName;}
+
+    public string getGateDescription()  {return gateDescription;}
+
+    public inputType getGateType()  {return gatetype; }
+
+    public int GetNumInput()
     {
+        if(gatetype == inputType.Single) return 3;
+
+        if(gatetype == inputType.Double) return 2;
+
+        if(gatetype == inputType.Triple) return 3;
+
         return 0;
     }
 
-    public string getGateName()
+    public void AddTarget(int qubitIndex, Position targetPosition)
     {
-        return gateName;
+        
     }
 
-    public string getGateDescription()
+    public class TargetGate
     {
-        return gateDescription;
-    }
-
-    public inputType getGateType()
-    {
-        return gatetype; 
+        GameObject target;
+        int qubitIndex;
     }
 }

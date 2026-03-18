@@ -38,13 +38,11 @@ public class CircuitManager : MonoBehaviour
     private string pythonScriptPath;
     
     // can check each one if enable
-    private List<QubitCircuit> qubitCircuits;
     private bool isBlochSphere;
     private BlochSphere blochSphere = null;
     private QSphere qSphere = null;
     //private QSphere qSphere = null;
     private SequenceManager sqManager = null;
-
     private CircuitExecutor executor = new CircuitExecutor();
     private FileManager fileManager = new FileManager();
 
@@ -69,7 +67,6 @@ public class CircuitManager : MonoBehaviour
         if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
         else                    Debug.Log("UI stat checking sucessful.");
         
-
         sqManager = GetComponent<SequenceManager>();
         if(sqManager is null) Debug.LogWarning("Warning: Sequence manager component is missing!");
 
@@ -95,13 +92,11 @@ public class CircuitManager : MonoBehaviour
     {
         if(socketsManager is null) Debug.LogError("socketsManager is missing");
 
-        qubitCircuits = socketsManager.InitSocketPrefabSpawn(isBlochSphere ? 1: qubitAmount);
-
         if(isBlochSphere is false && qSphere is not null)
         {
             qSphere.ChangeQubitAmount(qubitAmount);
         }
-
+        socketsManager.InitSocketPrefabSpawn(qubitAmount);
         socketsManager.updateCircuitByJson(null, -1, -1, true);
     }
 
@@ -182,6 +177,7 @@ public class CircuitManager : MonoBehaviour
 
     public Vector3 GetNthGatePosInQubit(int qubit, int rank)
     {
+        List<QubitCircuit> qubitCircuits = socketsManager.GetOverallCircuit();
         if (isBlochSphere)  return qubitCircuits[qubit].GetNthGatePos(rank);
         
         return Vector3.zero;

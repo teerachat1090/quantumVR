@@ -24894,20 +24894,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: CNOT_Gate
       objectReference: {fileID: 0}
-    - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
+    - target: {fileID: 5653101019308021594, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
-      propertyPath: gateName
-      value: U
-      objectReference: {fileID: 0}
-    - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
-        type: 3}
-      propertyPath: gatetype
+      propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
-      propertyPath: m_Enabled
-      value: 0
+      propertyPath: gateName
+      value: U
       objectReference: {fileID: 0}
     - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
@@ -24980,11 +24975,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7174970961716740934, guid: 974e8d93b26ff284b81366bfc70ec691,
         type: 3}
-    - target: {fileID: 6591746103745945851, guid: 208d995876aa8284897ae807e0ade42f,
-        type: 3}
-      propertyPath: scaleMultiplier
-      value: 0.25
-      objectReference: {fileID: 0}
     - target: {fileID: 7638002351267108556, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
       propertyPath: m_text
@@ -27499,11 +27489,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: CNOT_control
-      objectReference: {fileID: 0}
-    - target: {fileID: 7174970961716740934, guid: 974e8d93b26ff284b81366bfc70ec691,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

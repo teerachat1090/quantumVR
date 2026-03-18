@@ -24901,16 +24901,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
-      propertyPath: gatetype
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
-        type: 3}
       propertyPath: gateMaterial
       value: 
       objectReference: {fileID: 2100000, guid: abeef51af7185c44997292978846191e, type: 2}
@@ -24980,11 +24970,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7174970961716740934, guid: 974e8d93b26ff284b81366bfc70ec691,
         type: 3}
-    - target: {fileID: 6591746103745945851, guid: 208d995876aa8284897ae807e0ade42f,
-        type: 3}
-      propertyPath: scaleMultiplier
-      value: 0.25
-      objectReference: {fileID: 0}
     - target: {fileID: 7638002351267108556, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
       propertyPath: m_text
