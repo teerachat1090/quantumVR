@@ -129,7 +129,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3308397211609674090
 Transform:
   m_ObjectHideFlags: 0
@@ -178,7 +178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QubitCircuit
   circuitIndex: 0
-  socketAmount: 11
+  socketAmount: -1
   defaultInteractionLayer:
     m_Bits: 1073741824
   socketPrefab: {fileID: 6530603518612538485, guid: c90f05d8e96b3e849bbd4145341765d0,

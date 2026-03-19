@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -20,9 +19,9 @@ public class SocketsManager : MonoBehaviour
     private List<int> exportIndex = new List<int>();
     private List<List<GameObject>> multiGateList = new List<List<GameObject>>();
     private List<List<int>> socketMap = new List<List<int>>();
-    private int totalQubits = -1;
+    public int totalQubits = -1;
 
-    void Awake()
+    private void CheckComponent()
     {
         if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
@@ -33,6 +32,11 @@ public class SocketsManager : MonoBehaviour
             headManager = GetComponentInParent<CircuitManager>();
             if(headManager is null) Debug.LogWarning("Warning: Unable to get component CircuitManager!");
         }
+    }
+
+    void Awake()
+    {
+        CheckComponent();
     }
 
     private void getAvailibleQubit()
@@ -73,8 +77,9 @@ public class SocketsManager : MonoBehaviour
 
     // position 0.5 to -0.5, offset 0.1, space 0.2
     // Limit to 5 qubits for now
-    public void InitSocketPrefabSpawn(int qubitAmount)
+    public void InitSocketPrefabSpawn(int qubitAmount, int totalSocket)
     {
+        totalQubits = qubitAmount;
         if(!IsPrefabValid()) return;
 
         if(qubitAmount > 5)
@@ -96,7 +101,9 @@ public class SocketsManager : MonoBehaviour
             spawned.name = qubitSocketPrefab.name + i;
 
             var qubitCircuit = spawned.GetComponent<QubitCircuit>();
+            qubitCircuit.socketAmount = totalSocket;
             qubitCircuit.circuitIndex = i;
+            spawned.SetActive(true);
             qubitCircuits.Add(qubitCircuit);
             
             xPos-=0.2f;
@@ -135,24 +142,6 @@ public class SocketsManager : MonoBehaviour
         }
 
         return gateList;
-    }
-
-    public GameObject SearchForAvailibleSocketByIndex(int baseQubit, int columnToFind, out int qubitIndex)
-    {
-        foreach(QubitCircuit circuit in qubitCircuits)
-        {
-            if(circuit.circuitIndex == baseQubit) continue;
-
-            GameObject target = circuit.CheckIfSocketEmpty(columnToFind);
-
-            if(target is null) continue;
-            
-            qubitIndex = circuit.circuitIndex;
-            return target;
-        }
-
-        qubitIndex = -1;
-        return null;
     }
 
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)

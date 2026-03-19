@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -10,7 +9,7 @@ public class QubitCircuit : MonoBehaviour
 {
     private bool isEnabled = true;
     public int circuitIndex = 0; //0 by default
-    public int socketAmount = 0;
+    public int socketAmount = -1;
     [SerializeField] private InteractionLayerMask defaultInteractionLayer;
     [SerializeField] private GameObject socketPrefab = null;
     [SerializeField] private float space = 0.25f;
@@ -18,7 +17,7 @@ public class QubitCircuit : MonoBehaviour
     private SocketsManager socketsManager;
     private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
     
-    private void SocketPrefabInit(int amount)
+    private void SetSocketPrefab(int amount)
     {
         if(amount < 1)
         {
@@ -35,7 +34,6 @@ public class QubitCircuit : MonoBehaviour
         if(amount == 1) startZ = 0f;
         else            startZ = (amount/2 + (amount%2==0? - 0.5f: 0f)) * space;
 
-        Quaternion rotation = Quaternion.Euler(90f, 90f, 0f);
         Vector3 position = new Vector3(0f, 0f, startZ);
         
         for(int i=0; i<amount; i++)
@@ -44,15 +42,18 @@ public class QubitCircuit : MonoBehaviour
             spawn.transform.localPosition = position;
             spawn.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
             spawn.name = $"SC{i}";
+
+            var socket = spawn.GetComponent<GateSocket>();
+            if(socket is null) Debug.LogWarning("Warning: This missing GateSocket Component!");
+            else socket.qubitIndex = circuitIndex;
+
             position.z -= space;
         }
     }
 
-    void Awake()
+    private void InitSockets()
     {
-        SocketPrefabInit(socketAmount);
-
-        socketsManager = GetComponentInParent<SocketsManager>();
+        SetSocketPrefab(socketAmount);
         gateSockets = GetComponentsInChildren<GateSocket>();
         if(gateSockets is null || gateSockets.Length == 0)
         {
@@ -62,12 +63,14 @@ public class QubitCircuit : MonoBehaviour
         Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
     }
 
+    void Awake()
+    {
+        socketsManager = GetComponentInParent<SocketsManager>();
+    }
+
     void Start()
     {
-        foreach(GateSocket socket in gateSockets)
-        {
-            socket.qubitIndex = circuitIndex;
-        }
+        InitSockets();
     }
 
     public SocketsManager GetSocketsManager()
@@ -79,15 +82,6 @@ public class QubitCircuit : MonoBehaviour
     {
         if(gateSockets[index].getCurrentGate() is null) return gateSockets[index].gameObject;
         else return null;
-    }
-
-    // find empty socket in other qubit in the same column
-    public GameObject FindEmptySocketInColumn(int wantIndex, out int qubitIndex)
-    {
-        GameObject target = socketsManager.SearchForAvailibleSocketByIndex(circuitIndex, wantIndex, out int qubit_index);
-        qubitIndex = qubit_index;
-        return target;
-        
     }
 
     public void updateStatus(string gateName, int socketIndex, bool isPlaced)

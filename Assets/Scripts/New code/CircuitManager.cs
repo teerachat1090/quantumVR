@@ -20,7 +20,10 @@ public class CircuitManager : MonoBehaviour
     [Header("Sphere setting")]
     [SerializeField] private SphereType sphereType = SphereType.BlochSphere;
     [SerializeField] private GameObject sphere = null; //check later: bloch / Q - sphere
-    [SerializeField] private int qubitAmount = 1;
+
+    [Header("Qubit Setting")]
+    [SerializeField] private int qubitAmount = 3;
+    [SerializeField] private int socketAmount = 11;
 
     [Header("Display setting")]
     [SerializeField] private QuantumUiStatManager uiManager = null; //showing result
@@ -51,7 +54,7 @@ public class CircuitManager : MonoBehaviour
         return isBlochSphere;
     }
 
-    private void ComponentCheck()
+    private void CheckComponent()
     {
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
         if(isBlochSphere)   
@@ -72,7 +75,8 @@ public class CircuitManager : MonoBehaviour
 
         if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
 
-        if(socketsManager is null) Debug.LogWarning("Warning: Socket manager is missing!");
+        if(socketsManager is null)  Debug.LogWarning("Warning: Socket manager is missing!");
+        
 
         if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
@@ -84,7 +88,7 @@ public class CircuitManager : MonoBehaviour
 
     void Awake()
     {
-        ComponentCheck();
+        CheckComponent();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -96,7 +100,7 @@ public class CircuitManager : MonoBehaviour
         {
             qSphere.ChangeQubitAmount(qubitAmount);
         }
-        socketsManager.InitSocketPrefabSpawn(qubitAmount);
+        socketsManager.InitSocketPrefabSpawn(qubitAmount, socketAmount);
         socketsManager.updateCircuitByJson(null, -1, -1, true);
     }
 

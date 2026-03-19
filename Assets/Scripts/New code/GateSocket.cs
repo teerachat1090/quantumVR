@@ -1,8 +1,6 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
-using Unity.VisualScripting;
 
 public class GateSocket : MonoBehaviour
 {
@@ -15,7 +13,7 @@ public class GateSocket : MonoBehaviour
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void CheckComponent()
     {
         parentCircuit = GetComponentInParent<QubitCircuit>();
 
@@ -25,6 +23,11 @@ public class GateSocket : MonoBehaviour
             socketInteractor.selectEntered.AddListener(OnGatePlaced);
             socketInteractor.selectExited.AddListener(OnGateRemoved);
         }
+    }
+
+    void Awake()
+    {
+        CheckComponent();
     }
 
     private bool CheckPlaceAvailible(int numInput)
