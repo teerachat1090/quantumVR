@@ -1,38 +1,40 @@
+using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using System.Collections;
 
 /// <summary>
-/// แนบกับ CX_Spawn_Prefab root
-/// ชื่อ children ต้องตรงเป๊ะ: "Control", "Target"
-/// "Cylinder" ถ้าไม่มีใน Prefab จะสร้างอัตโนมัติ
+/// CX_Spawn_Prefab (Root) — Root > Control + Target + Cylinder
+///
+/// Flow:
+///   1. CXCubeOnShelf วางบน Socket (rotation 90,90,0) → Init(socket)
+///   2. Control snap ที่ socket ตั้งตรง, Target ลอยเหนือรอผู้เล่นจับ
+///   3. ระหว่างลาก Target → Dashed Line ยืดตาม
+///   4. Target วางลง Socket → Dashed Line หาย, Cylinder solid ปรากฏ
 /// </summary>
 public class CXSpawnedGate : MonoBehaviour
 {
-    [Header("Child Visuals (auto-found by name)")]
+    [Header("Child References (auto-found by name if left empty)")]
     [SerializeField] private Transform controlVisual;
     [SerializeField] private Transform targetVisual;
     [SerializeField] private Transform cylinder;
 
-    [Header("Cylinder Settings")]
-    [SerializeField] private float cylinderHalfHeight = 1f;
-    [SerializeField] private float cylinderDiameter   = 0.06f;
+    [Header("Target Float")]
+    [SerializeField] private Vector3 targetFloatOffset = new Vector3(0f, 0.18f, 0f);
 
-    [Header("Dashed Preview Line")]
+    [Header("Cylinder (solid)")]
+    [SerializeField] private float    cylinderRadius = 0.03f;
+    [SerializeField] private Material solidMaterial;
+
+    [Header("Dashed Line Preview")]
     [SerializeField] private Material dashedLineMaterial;
-    [SerializeField] private float  dashedLineWidth    = 0.015f;
-    [SerializeField] private Color  dashedLineColor    = new Color(0.2f, 0.8f, 1f, 0.7f);
-    [SerializeField] private int    dashedLineSegments = 30;
-    [SerializeField] private float  dashTiling         = 6f;
+    [SerializeField] private float    dashedLineWidth    = 0.015f;
+    [SerializeField] private Color    dashedLineColor    = new Color(0.2f, 0.8f, 1f, 0.7f);
+    [SerializeField] private int      dashedLineSegments = 30;
+    [SerializeField] private float    dashTiling         = 6f;
 
-    [Header("Target Float Offset")]
-    [SerializeField] private Vector3 targetFloatOffset = new Vector3(0f, 0.15f, 0f);
-
-    // ─── State ─────────────────────────────────────────────────────────────
-    // Chap3
-    public CircuitSocket_Chap3 ControlSocket      { get; private set; }
-    public CircuitSocket_Chap3 TargetSocket       { get; private set; }
-    // Legacy (BlochSphere)
+    // State
+    public CircuitSocket_Chap3 ControlSocket       { get; private set; }
+    public CircuitSocket_Chap3 TargetSocket        { get; private set; }
     public CircuitSocket       ControlSocketLegacy { get; private set; }
     public CircuitSocket       TargetSocketLegacy  { get; private set; }
 
@@ -40,49 +42,44 @@ public class CXSpawnedGate : MonoBehaviour
         (ControlSocket != null || ControlSocketLegacy != null) &&
         (TargetSocket  != null || TargetSocketLegacy  != null);
 
-    private CXTargetVisual targetVisualComponent;
+    private CXTargetVisual  targetVisualComponent;
+    private CXControlVisual controlVisualComponent;
+    private Renderer       cylinderRenderer;
     private LineRenderer   dashedLine;
-    private Rigidbody      rb;
 
-    // ─── Unity lifecycle ───────────────────────────────────────────────────
-    void Start() { }
-
+    // ── Awake ──────────────────────────────────────────────────────────────
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-            rb.useGravity  = false;
-        }
-
         if (controlVisual == null) controlVisual = transform.Find("Control");
         if (targetVisual  == null) targetVisual  = transform.Find("Target");
         if (cylinder      == null) cylinder      = transform.Find("Cylinder");
 
         if (controlVisual == null) Debug.LogError("[CXSpawnedGate] Missing child 'Control'");
         if (targetVisual  == null) Debug.LogError("[CXSpawnedGate] Missing child 'Target'");
+        if (cylinder      == null) Debug.LogError("[CXSpawnedGate] Missing child 'Cylinder'");
 
-        // ✅ สร้าง Cylinder ใน code ถ้าไม่มี child (ไม่ต้องพึ่งชื่อใน Prefab)
-        if (cylinder == null)
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null) { rb.isKinematic = true; rb.useGravity = false; rb.constraints = RigidbodyConstraints.FreezeAll; }
+
+        if (controlVisual != null)
+            controlVisualComponent = controlVisual.GetComponent<CXControlVisual>();
+
+        if (cylinder != null)
         {
-            GameObject cyl = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            cyl.name = "Cylinder";
-            cyl.transform.SetParent(transform);
-            cyl.transform.localPosition = Vector3.zero;
-            cyl.transform.localRotation = Quaternion.identity;
-            Destroy(cyl.GetComponent<Collider>());
-            cylinder = cyl.transform;
-            Debug.Log("[CXSpawnedGate] Cylinder created at runtime.");
+            cylinderRenderer = cylinder.GetComponent<Renderer>();
+            cylinder.gameObject.SetActive(false);
         }
 
-        targetVisualComponent = targetVisual?.GetComponent<CXTargetVisual>();
-        cylinder.gameObject.SetActive(false);
+        if (targetVisual != null)
+        {
+            targetVisualComponent = targetVisual.GetComponent<CXTargetVisual>();
+            FreezeRigidbody(targetVisual);
+            targetVisual.gameObject.SetActive(false);
+        }
 
         SetupDashedLine();
     }
 
-    // ─── Dashed Line ───────────────────────────────────────────────────────
     private void SetupDashedLine()
     {
         dashedLine = gameObject.AddComponent<LineRenderer>();
@@ -105,91 +102,88 @@ public class CXSpawnedGate : MonoBehaviour
         dashedLine.enabled = false;
     }
 
-    // ─── Init ──────────────────────────────────────────────────────────────
-
-    // ✅ Chap3
+    // ── Init ───────────────────────────────────────────────────────────────
     public void Init(CircuitSocket_Chap3 controlSocket)
     {
         ControlSocket = controlSocket;
         controlSocket.SetOccupiedByCX(this, isControl: true, isTarget: false);
-        InitCommon(controlSocket.transform, controlSocket.socketName);
+        SetupAfterInit(controlSocket.attachTransform ?? controlSocket.transform);
+        Debug.Log($"[CXSpawnedGate] Init OK Control={controlSocket.socketName}");
     }
 
-    // ✅ Legacy (BlochSphere)
     public void Init(CircuitSocket controlSocket)
     {
         ControlSocketLegacy = controlSocket;
         controlSocket.SetOccupiedByCX(this, isControl: true, isTarget: false);
-        InitCommon(controlSocket.transform, controlSocket.socketName);
+        SetupAfterInit(controlSocket.transform);
+        Debug.Log($"[CXSpawnedGate] Init OK Control(Legacy)={controlSocket.socketName}");
     }
 
-    private void InitCommon(Transform socketTransform, string socketName)
+    private void SetupAfterInit(Transform socketTransform)
     {
-        // ✅ snap root ให้ตรง socket ทั้ง position และ rotation (เอียงตามโต๊ะ)
-        transform.SetPositionAndRotation(socketTransform.position, socketTransform.rotation);
+        // ── Position ───────────────────────────────────────────────────
+        transform.position = socketTransform.position;
 
-        if (rb != null)
-        {
-            rb.isKinematic     = true;
-            rb.useGravity      = false;
-            rb.linearVelocity  = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.constraints     = RigidbodyConstraints.FreezeAll;
-        }
+        // ── Rotation ───────────────────────────────────────────────────
+        // Attach child มี rotation (90,90,0):
+        //   attachTransform.up    → ชี้ขึ้นในโลก (World Up) พอดี ✅
+        //   attachTransform.right → วิ่งตามแนวนอนของโต๊ะ
+        //
+        // ดังนั้น: gate ตั้งตรงโดยใช้ attachTransform.up เป็น World Up
+        // และ project right ลงบน horizontal plane เป็น forward
+        Vector3 worldUp = Vector3.up;
+        Vector3 fwd = Vector3.ProjectOnPlane(socketTransform.right, worldUp);
+        if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
+        transform.rotation = Quaternion.LookRotation(fwd.normalized, worldUp);
 
+        // ── Control ────────────────────────────────────────────────────
         if (controlVisual != null)
         {
             controlVisual.localPosition = Vector3.zero;
-            controlVisual.localRotation = Quaternion.identity; // ✅ FIX: reset rotation ให้ขนานโต๊ะ
+            controlVisual.localRotation = Quaternion.identity;
+            FreezeRigidbody(controlVisual);
+
+            if (controlVisualComponent != null)
+                controlVisualComponent.Init(this);
+
             XRGrabInteractable grab = controlVisual.GetComponent<XRGrabInteractable>();
-            if (grab != null) grab.trackRotation = false;
+            if (grab != null)
+            {
+                grab.trackRotation = false;
+                grab.selectEntered.AddListener(OnControlGrabbed);
+                grab.selectExited.AddListener(OnControlDropped);
+            }
         }
 
+        // ── Target ────────────────────────────────────────────────────
         if (targetVisual != null)
         {
-            Rigidbody trb = targetVisual.GetComponent<Rigidbody>();
-            if (trb != null)
-            {
-                trb.isKinematic     = true;
-                trb.useGravity      = false;
-                trb.linearVelocity  = Vector3.zero;
-                trb.angularVelocity = Vector3.zero;
-                trb.constraints     = RigidbodyConstraints.FreezeAll;
-            }
             targetVisual.localPosition = targetFloatOffset;
-            targetVisual.localRotation = Quaternion.identity; // ✅ FIX: reset rotation ให้ขนานโต๊ะ
+            targetVisual.localRotation = Quaternion.identity;
+            targetVisual.gameObject.SetActive(true);
+
             XRGrabInteractable grab = targetVisual.GetComponent<XRGrabInteractable>();
             if (grab != null) grab.trackRotation = false;
-            targetVisual.gameObject.SetActive(true);
+
             if (targetVisualComponent != null)
-                targetVisualComponent.SetParentGate(this);
+                targetVisualComponent.Init(this);
         }
-
-        cylinder.gameObject.SetActive(false);
-
-        StartCoroutine(SubscribeControlGrabNextFrame());
-        Debug.Log($"[CXSpawnedGate] ✅ Init FINAL. Control={socketName}");
     }
 
-    private IEnumerator SubscribeControlGrabNextFrame()
-    {
-        yield return null;
-        XRGrabInteractable controlGrab = controlVisual?.GetComponent<XRGrabInteractable>();
-        if (controlGrab != null)
-            controlGrab.selectEntered.AddListener(_ => DetachFromSocket());
-    }
-
-    // ─── Dashed preview ────────────────────────────────────────────────────
+    // ── Dashed Line ────────────────────────────────────────────────────────
     public void ShowDashedPreview(Vector3 targetWorldPos)
     {
         if (dashedLine == null || controlVisual == null) return;
+
         dashedLine.enabled = true;
         Vector3 from = controlVisual.position;
+
         for (int i = 0; i < dashedLineSegments; i++)
         {
             float t = (float)i / (dashedLineSegments - 1);
             dashedLine.SetPosition(i, Vector3.Lerp(from, targetWorldPos, t));
         }
+
         float length = Vector3.Distance(from, targetWorldPos);
         dashedLine.material.SetTextureScale("_MainTex", new Vector2(dashTiling * length, 1f));
     }
@@ -199,52 +193,58 @@ public class CXSpawnedGate : MonoBehaviour
         if (dashedLine != null) dashedLine.enabled = false;
     }
 
-    // ─── Cylinder ──────────────────────────────────────────────────────────
-    public void UpdateCylinder()
+    // ── Cylinder ───────────────────────────────────────────────────────────
+    public void FinalizeCylinder()
     {
-        if (controlVisual == null || cylinder == null) return;
+        if (cylinder == null || controlVisual == null) return;
 
         Vector3 from = controlVisual.position;
-        Vector3 to;
-        if (TargetSocket != null)
-            to = TargetSocket.transform.position;
-        else if (TargetSocketLegacy != null)
-            to = TargetSocketLegacy.transform.position;
-        else
-            to = targetVisual.position;
+        Vector3 to   = TargetSocket       != null ? TargetSocket.transform.position
+                     : TargetSocketLegacy != null ? TargetSocketLegacy.transform.position
+                     : targetVisual.position;
 
         float dist = Vector3.Distance(from, to);
         if (dist < 0.001f) return;
 
+        // ── Position & Rotation ────────────────────────────────────────
+        cylinder.position = (from + to) * 0.5f;
+        cylinder.rotation = Quaternion.FromToRotation(Vector3.up, (to - from).normalized);
+
+        // ── Scale ──────────────────────────────────────────────────────
+        // Unity default Cylinder: height = 2 units เมื่อ localScale.y = 1
+        // ดังนั้น localScale.y = dist / 2 เพื่อให้ความยาวตรงกับ dist จริง
+        // (เหมือนความยาว Dashed Line พอดี)
+        float diameter = cylinderRadius * 2f;
+        cylinder.localScale = new Vector3(diameter, dist / 2f, diameter);
+
         cylinder.gameObject.SetActive(true);
-        cylinder.position   = (from + to) * 0.5f;
-        cylinder.rotation   = Quaternion.FromToRotation(Vector3.up, (to - from).normalized);
-        cylinder.localScale = new Vector3(cylinderDiameter, dist / (cylinderHalfHeight * 2f), cylinderDiameter);
+
+        if (cylinderRenderer != null && solidMaterial != null)
+            cylinderRenderer.material = solidMaterial;
     }
 
-    // ─── Callbacks from CXTargetVisual ─────────────────────────────────────
-
-    // ✅ Chap3
-    public void OnTargetPlaced(CircuitSocket_Chap3 targetSocket)
+    public void HideCylinder()
     {
-        TargetSocket = targetSocket;
-        OnTargetPlacedCommon();
-        Debug.Log($"[CXSpawnedGate] 🎉 Complete! Control row={ControlRow}, Target row={TargetRow}");
+        if (cylinder != null) cylinder.gameObject.SetActive(false);
     }
 
-    // ✅ Legacy
-    public void OnTargetPlaced(CircuitSocket targetSocket)
+    // ── Callbacks ──────────────────────────────────────────────────────────
+    public void OnTargetPlaced(CircuitSocket_Chap3 socket)
     {
-        TargetSocketLegacy = targetSocket;
-        OnTargetPlacedCommon();
-        Debug.Log($"[CXSpawnedGate] 🎉 Complete! Control row={ControlRow}, Target row={TargetRow}");
-    }
-
-    private void OnTargetPlacedCommon()
-    {
-        HideDashedPreview(); // ✅ FIX: เรียกตรงๆ ไม่ต้อง check null ซ้ำ (method จัดการเองอยู่แล้ว)
-        UpdateCylinder();    // ✅ FIX: เรียกตรงๆ cylinder guaranteed ไม่ null แล้ว
+        TargetSocket = socket;
+        HideDashedPreview();
+        FinalizeCylinder();
         TeleportationCircuitManager.Instance?.RegisterCXGate(this);
+        Debug.Log($"[CXSpawnedGate] Complete! Control={ControlRow} Target={TargetRow}");
+    }
+
+    public void OnTargetPlaced(CircuitSocket socket)
+    {
+        TargetSocketLegacy = socket;
+        HideDashedPreview();
+        FinalizeCylinder();
+        TeleportationCircuitManager.Instance?.RegisterCXGate(this);
+        Debug.Log($"[CXSpawnedGate] Complete! Control={ControlRow} Target={TargetRow}");
     }
 
     public void OnTargetRemoved()
@@ -252,35 +252,97 @@ public class CXSpawnedGate : MonoBehaviour
         TeleportationCircuitManager.Instance?.UnregisterCXGate(this);
         TargetSocket       = null;
         TargetSocketLegacy = null;
-        if (cylinder != null) cylinder.gameObject.SetActive(false);
+        HideCylinder();
         Debug.Log("[CXSpawnedGate] Target removed.");
     }
 
-    public void DetachFromSocket()
+    private void OnControlGrabbed(SelectEnterEventArgs args)
     {
-        if (ControlSocket != null)       ControlSocket.ClearCXState();
-        if (ControlSocketLegacy != null) ControlSocketLegacy.ClearCXState();
+        // ตอน grab: แค่ unfreeze root ให้เคลื่อนได้, ยังไม่ detach socket
+        // (รอดูก่อนว่า drop ลง socket ใหม่หรือกลางอากาศ)
+        if (targetVisualComponent != null && targetVisualComponent.IsPlaced)
+            targetVisualComponent.ForceRemove();
 
+        ControlSocket?.ClearCXState();
+        ControlSocketLegacy?.ClearCXState();
         ControlSocket       = null;
         ControlSocketLegacy = null;
 
-        if (rb != null)
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null) { rb.constraints = RigidbodyConstraints.None; rb.isKinematic = true; rb.useGravity = false; }
+
+        HideDashedPreview();
+        HideCylinder();
+        Debug.Log("[CXSpawnedGate] Control grabbed.");
+    }
+
+    private void OnControlDropped(SelectExitEventArgs args)
+    {
+        // ตรวจว่า drop ลง XRSocket หรือเปล่า
+        // ถ้า drop กลางอากาศ → ให้ gravity ดึง root ลง
+        bool droppedOnSocket = ControlSocket != null || ControlSocketLegacy != null;
+
+        if (!droppedOnSocket)
         {
-            rb.constraints = RigidbodyConstraints.None;
-            rb.isKinematic = false;
-            rb.useGravity  = true;
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null) { rb.constraints = RigidbodyConstraints.None; rb.isKinematic = false; rb.useGravity = true; }
+            Debug.Log("[CXSpawnedGate] Control dropped in air, falling.");
+        }
+        else
+        {
+            Debug.Log("[CXSpawnedGate] Control dropped on socket, snapped.");
         }
     }
 
-    // ─── Public accessors ───────────────────────────────────────────────────
-    public string GateName => "CX";
+    /// <summary>เรียกจาก CXTargetVisual หลังจาก Detach ตัวเองออกจาก Root และ Snap ไปที่ socket แล้ว</summary>
+    public void OnTargetPlacedOnSocket(CircuitSocket_Chap3 newSocket)
+    {
+        // NOTE: CXTargetVisual.OnPlacedOnSocket() จัดการ SetParent + position แล้ว
+        //       ที่นี่แค่อัพเดต state และวาด Cylinder
+        OnTargetPlaced(newSocket);
+        Debug.Log($"[CXSpawnedGate] Target confirmed at {newSocket.socketName}");
+    }
 
-    public int ControlRow =>
-        ControlSocket?.rowIndex ?? ControlSocketLegacy?.rowIndex ?? -1;
+    /// <summary>เรียกจาก CXControlVisual เมื่อ Control วางลง socket ใหม่</summary>
+    public void OnControlPlacedOnSocket(CircuitSocket_Chap3 newSocket)
+    {
+        ControlSocket = newSocket;
+        newSocket.SetOccupiedByCX(this, isControl: true, isTarget: false);
 
-    public int TargetRow =>
-        TargetSocket?.rowIndex ?? TargetSocketLegacy?.rowIndex ?? -1;
+        // ถ้า Target วางอยู่แล้ว → ไม่ขยับ Root เพราะจะพา Target ไปด้วย
+        if (targetVisualComponent != null && targetVisualComponent.IsPlaced)
+        {
+            Debug.Log($"[CXSpawnedGate] Control→{newSocket.socketName} Root NOT moved (Target already placed)");
+            return;
+        }
 
-    public int ColumnIndex =>
-        ControlSocket?.socketIndex ?? ControlSocketLegacy?.socketIndex ?? -1;
+        // ย้าย Root ไปที่ Socket ใหม่ เฉพาะตอน Target ยังไม่ได้วาง
+        Transform t = newSocket.attachTransform ?? newSocket.transform;
+        transform.position = t.position;
+        transform.rotation = t.rotation;
+
+        if (controlVisual != null)
+        {
+            controlVisual.localPosition = Vector3.zero;
+            controlVisual.localRotation = Quaternion.identity;
+        }
+
+        Debug.Log($"[CXSpawnedGate] Root moved to {newSocket.socketName}");
+    }
+    // ── Helpers ────────────────────────────────────────────────────────────
+    private static void FreezeRigidbody(Transform t)
+    {
+        Rigidbody rb = t.GetComponent<Rigidbody>();
+        if (rb == null) return;
+        rb.isKinematic = true; rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+        rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero;
+    }
+
+    // ── Public accessors ───────────────────────────────────────────────────
+    public Vector3 TargetFloatOffset => targetFloatOffset;
+    public string  GateName          => "CX";
+    public int     ControlRow        => ControlSocket?.rowIndex    ?? ControlSocketLegacy?.rowIndex    ?? -1;
+    public int     TargetRow         => TargetSocket?.rowIndex     ?? TargetSocketLegacy?.rowIndex     ?? -1;
+    public int     ColumnIndex       => ControlSocket?.socketIndex ?? ControlSocketLegacy?.socketIndex ?? -1;
 }

@@ -108,6 +108,7 @@ public class CircuitSocket : MonoBehaviour
                 circuitTable.UpdateCircuit();
         }
     }
+    
 
     // ── Gate Removed ───────────────────────────────────────────────────────
     private void OnGateRemoved(SelectExitEventArgs args)

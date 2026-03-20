@@ -16,21 +16,23 @@ public class CircuitSocket_Chap3 : MonoBehaviour
     [Header("XR Socket")]
     public XRSocketInteractor socketInteractor;
 
+    [Header("Attach Point")]
+    [Tooltip("ลาก child 'Attach' ใส่ตรงนี้ — ใช้เป็น reference transform สำหรับ CX gate spawn")]
+    public Transform attachTransform;
+
     [Header("Current Gate")]
-    public QuantumGate_Chap3 currentGate; // ✅ Chap3
+    public QuantumGate_Chap3 currentGate;
 
     // CX gate state
     public CXSpawnedGate occupyingCXGate { get; private set; }
     public bool isControlSocket { get; private set; }
     public bool isTargetSocket  { get; private set; }
 
-    // alias ที่ CXSpawnedGate เรียกใช้
     public CXSpawnedGate OccupyingCXGate => occupyingCXGate;
     public bool IsOccupiedByCX => occupyingCXGate != null;
 
     private CircuitTable circuitTable;
 
-    // ── Unity lifecycle ────────────────────────────────────────────────────
     void Start()
     {
         circuitTable = GetComponentInParent<CircuitTable>();
@@ -40,6 +42,10 @@ public class CircuitSocket_Chap3 : MonoBehaviour
 
         if (socketInteractor == null)
             socketInteractor = GetComponent<XRSocketInteractor>();
+
+        // Auto-find Attach child ถ้าไม่ได้ assign ใน Inspector
+        if (attachTransform == null)
+            attachTransform = transform.Find("Attach") ?? transform;
 
         if (socketInteractor != null)
         {
@@ -57,12 +63,10 @@ public class CircuitSocket_Chap3 : MonoBehaviour
         }
     }
 
-    // ── Gate Placed ────────────────────────────────────────────────────────
     private void OnGatePlaced(SelectEnterEventArgs args)
     {
         GameObject placed = args.interactableObject.transform.gameObject;
 
-        // Case 1: CX Cube จาก shelf
         CXCubeOnShelf cxCube = placed.GetComponent<CXCubeOnShelf>();
         if (cxCube != null)
         {
@@ -70,69 +74,89 @@ public class CircuitSocket_Chap3 : MonoBehaviour
             return;
         }
 
-        // Case 2: CX Target visual
+        // Case: CX Control visual วางลง socket ใหม่หลังถูก grab
+        CXControlVisual controlVisual = placed.GetComponent<CXControlVisual>();
+        if (controlVisual != null)
+        {
+            if (IsOccupied())
+            {
+                Debug.LogWarning($"[CircuitSocket_Chap3] Socket {socketName} already occupied!");
+                StartCoroutine(RejectNextFrame());
+                return;
+            }
+            controlVisual.OnPlacedOnSocket(this);
+            return;
+        }
+
         CXTargetVisual targetVisual = placed.GetComponent<CXTargetVisual>();
         if (targetVisual != null)
         {
-            // Reject ถ้า row เดียวกับ Control
             if (targetVisual.ParentGate != null &&
                 targetVisual.ParentGate.ControlSocket != null &&
                 targetVisual.ParentGate.ControlSocket.rowIndex == rowIndex)
             {
-                Debug.LogWarning($"[CircuitSocket_Chap3] ❌ Target row = Control row! Rejecting.");
+                Debug.LogWarning($"[CircuitSocket_Chap3] Target row = Control row! Rejecting.");
                 StartCoroutine(RejectNextFrame());
                 return;
             }
 
-            // Reject ถ้า socket นี้มีอะไรอยู่แล้ว
             if (IsOccupied())
             {
-                Debug.LogWarning($"[CircuitSocket_Chap3] ❌ Socket {socketName} already occupied!");
+                Debug.LogWarning($"[CircuitSocket_Chap3] Socket {socketName} already occupied!");
                 StartCoroutine(RejectNextFrame());
                 return;
             }
 
+            // ✅ ปิด socket ก่อน เพื่อให้ XR หยุด snap/scale object ทันที
+            if (socketInteractor != null)
+            {
+                socketInteractor.socketActive = false;
+                socketInteractor.showInteractableHoverMeshes = false;
+            }
             SetOccupiedByCX(targetVisual.ParentGate, isControl: false, isTarget: true);
             targetVisual.OnPlacedOnSocket(this);
             return;
         }
 
-        // Case 3: Single-qubit gate (QuantumGate_Chap3) ✅
         QuantumGate_Chap3 gate = placed.GetComponent<QuantumGate_Chap3>();
         if (gate != null)
         {
             currentGate = gate;
             gate.SetCurrentSocket(this);
-            Debug.Log($"✅ Gate '{gate.getGateName()}' placed in {socketName}");
+            Debug.Log($"Gate '{gate.getGateName()}' placed in {socketName}");
             circuitTable?.UpdateCircuit();
         }
     }
 
-    // ── Gate Removed ───────────────────────────────────────────────────────
     private void OnGateRemoved(SelectExitEventArgs args)
     {
         GameObject removed = args.interactableObject.transform.gameObject;
 
-        // CX Target ถูกดึงออก
         CXTargetVisual tv = removed.GetComponent<CXTargetVisual>();
         if (tv != null)
         {
+            // ถ้า Target กำลัง snap เข้า socket นี้อยู่ (isSnappingToSocket=true)
+            // XR จะ fire selectExited จาก CancelInteractableSelection ใน coroutine
+            // ต้อง ignore ไม่งั้น ClearCXState จะ reset PlacedSocket → ReturnToFloat
+            if (tv.IsSnappingToSocket)
+            {
+                Debug.Log($"[CircuitSocket_Chap3] Ignoring selectExited — Target is snapping to {socketName}");
+                return;
+            }
             tv.OnRemovedFromSocket();
             ClearCXState();
             return;
         }
 
-        // Single-qubit gate ถูกดึงออก
         if (currentGate != null)
         {
-            Debug.Log($"❌ Gate '{currentGate.getGateName()}' removed from {socketName}");
+            Debug.Log($"Gate '{currentGate.getGateName()}' removed from {socketName}");
             currentGate.SetCurrentSocket(null);
             currentGate = null;
             circuitTable?.UpdateCircuit();
         }
     }
 
-    // ── CX State Management ────────────────────────────────────────────────
     public void SetOccupiedByCX(CXSpawnedGate gate, bool isControl, bool isTarget)
     {
         occupyingCXGate = gate;
@@ -142,7 +166,6 @@ public class CircuitSocket_Chap3 : MonoBehaviour
         if (socketInteractor != null)
         {
             socketInteractor.socketActive = false;
-            // ✅ ปิด hover mesh ไม่ให้ซ้อนกับ gate
             socketInteractor.showInteractableHoverMeshes = false;
         }
 
@@ -158,14 +181,12 @@ public class CircuitSocket_Chap3 : MonoBehaviour
         if (socketInteractor != null)
         {
             socketInteractor.socketActive = true;
-            // ✅ เปิด hover mesh กลับ
             socketInteractor.showInteractableHoverMeshes = true;
         }
 
         Debug.Log($"[CircuitSocket_Chap3] {socketName} CX state cleared");
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────
     public bool HasGate()    => currentGate != null;
     public bool IsOccupied() => currentGate != null || occupyingCXGate != null;
 
