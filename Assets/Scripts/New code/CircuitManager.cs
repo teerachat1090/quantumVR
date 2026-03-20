@@ -51,7 +51,7 @@ public class CircuitManager : MonoBehaviour
 
     public bool isItBlochSphere()
     {
-        return isBlochSphere;
+        return (sphereType == SphereType.BlochSphere) ? true : false;;
     }
 
     private void CheckComponent()
@@ -78,7 +78,7 @@ public class CircuitManager : MonoBehaviour
         if(socketsManager is null)  Debug.LogWarning("Warning: Socket manager is missing!");
         
 
-        if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
+        if(storage == null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
         {
             sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
@@ -89,19 +89,18 @@ public class CircuitManager : MonoBehaviour
     void Awake()
     {
         CheckComponent();
+        
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if(socketsManager is null) Debug.LogError("socketsManager is missing");
-
         if(isBlochSphere is false && qSphere is not null)
         {
             qSphere.ChangeQubitAmount(qubitAmount);
         }
         socketsManager.InitSocketPrefabSpawn(qubitAmount, socketAmount);
-        socketsManager.updateCircuitByJson(null, -1, -1, true);
+        //socketsManager.updateCircuitByJson(null, -1, -1, true);
     }
 
     private void updateBlochVectorInstant()

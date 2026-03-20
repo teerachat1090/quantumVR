@@ -13,7 +13,7 @@ public class QuantumGate : MonoBehaviour
     
     public SocketsManager socketsManager = null;
     private CircuitSocket currentSocket;
-    private List<TargetGate> targets = new List<TargetGate>();
+    public bool friendExist = false; //for multi-input gate
     
     void Start()
     {

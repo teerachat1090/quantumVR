@@ -30,11 +30,12 @@ public class GateSocket : MonoBehaviour
         CheckComponent();
     }
 
+    // check if space is enough given socket's position
     private bool CheckPlaceAvailible(int numInput)
     {
         GameObject target = null;
         SocketsManager socketsManager = parentCircuit.GetSocketsManager();
-        if(target is null)
+        if(target == null)
         {
             Destroy(currentGate.gameObject);
             return false;

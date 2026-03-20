@@ -18,12 +18,12 @@ public class SocketsManager : MonoBehaviour
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private List<int> exportIndex = new List<int>();
     private List<List<GameObject>> multiGateList = new List<List<GameObject>>();
-    private List<List<int>> socketMap = new List<List<int>>();
+    private List<List<bool>> socketMap = new List<List<bool>>();
     public int totalQubits = -1;
 
     private void CheckComponent()
     {
-        if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
+        if(storage == null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
         {
             sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
@@ -59,7 +59,7 @@ public class SocketsManager : MonoBehaviour
 
     private bool IsPrefabValid()
     {
-        if(qubitSocketPrefab is null) 
+        if(qubitSocketPrefab == null) 
         {
             Debug.LogError("Error: unable to spawn prefab - null element.");
             return false;
@@ -73,6 +73,16 @@ public class SocketsManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void CreateSocketMap(int qubitAmount, int totalSocket)
+    {
+        for(int i=0; i<qubitAmount; i++)
+        {
+            List<bool> row = new List<bool>();
+            for(int j=0; j<totalSocket; j++)    row.Add(false);
+            socketMap.Add(row);
+        }
     }
 
     // position 0.5 to -0.5, offset 0.1, space 0.2
@@ -112,8 +122,9 @@ public class SocketsManager : MonoBehaviour
 
         totalQubits = qubitAmount;
         getAvailibleQubit();
+        updateCircuitByJson(null, -1, -1, true);
         
-        //create socket map
+        CreateSocketMap(qubitAmount, totalSocket);
     }
 
     public List<QubitCircuit> GetOverallCircuit()
@@ -127,7 +138,12 @@ public class SocketsManager : MonoBehaviour
         if(targetIndex == -1) return null;
 
         QubitCircuit targetQubit = qubitCircuits[targetIndex];
-        return targetQubit.getListOfGate();
+        List<QuantumGate> gateList = targetQubit.getListOfGate();
+        if(gateList is null)
+        {
+            Debug.LogWarning("Warning: list is empty");
+        }
+        return gateList;
     }
     
     public List<string> GetGateAsStringList(int index)
@@ -147,6 +163,8 @@ public class SocketsManager : MonoBehaviour
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+
+        socketMap[qubitIndex][socketIndex] ^= true;
 
         string circuitJson = circuitToExportInit(headManager.isItBlochSphere());
         headManager.updateOverallCircuit(circuitJson);

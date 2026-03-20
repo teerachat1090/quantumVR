@@ -24,7 +24,7 @@ public class QubitCircuit : MonoBehaviour
             Debug.LogWarning("Warning: integer error. Value less than 1.");
             return;
         }
-        if(socketPrefab is null)
+        if(socketPrefab == null)
         {
             Debug.LogWarning("Warning: No socket prefab to use.");
             return;
@@ -66,11 +66,12 @@ public class QubitCircuit : MonoBehaviour
     void Awake()
     {
         socketsManager = GetComponentInParent<SocketsManager>();
+        InitSockets();
     }
 
     void Start()
     {
-        InitSockets();
+        
     }
 
     public SocketsManager GetSocketsManager()
@@ -104,6 +105,12 @@ public class QubitCircuit : MonoBehaviour
     public List<QuantumGate> getListOfGate()
     {
         List<QuantumGate> gateList = new List<QuantumGate>();
+        if(gateSockets is null)
+        {
+            Debug.LogWarning("Warning: gateSockets is empty!");
+            return null;
+        }
+
         foreach(GateSocket gateSocket in gateSockets)
         {
             gateList.Add(gateSocket.getCurrentGate());
