@@ -1,22 +1,36 @@
-using Unity.VisualScripting;
 using UnityEngine;
+
+// ════════════════════════════════════════════════════════════════
+//  QuantumGate_Chap3.cs
+//  แก้จาก QuantumGate.cs เดิม
+//  เปลี่ยน CircuitSocket → CircuitSocket_Chap3
+//  ไม่แตะ QuantumGate.cs เดิมเพราะเพื่อนใช้อยู่
+// ════════════════════════════════════════════════════════════════
 
 public class QuantumGate_Chap3 : MonoBehaviour
 {
     [Header("Gate Info")]
-    [SerializeField] public string gateName;
-    public enum inputType { Single, Double, Triple };
-    [SerializeField] private inputType gatetype;
+    [SerializeField] private string gateName;
     [SerializeField] private string gateDescription;
+
+    public enum InputType { Single, Double, Triple }
+    [SerializeField] private InputType gateType;
 
     private CircuitSocket_Chap3 currentSocket;
 
+    // ─────────────────────────────────────────
     void Start()
     {
-        if (string.IsNullOrEmpty(gateName)) gateName = gameObject.name;
-        if (string.IsNullOrEmpty(gateDescription)) gateDescription = $"{gateName} Gate";
+        if (string.IsNullOrEmpty(gateName))
+            gateName = gameObject.name;
+
+        if (string.IsNullOrEmpty(gateDescription))
+            gateDescription = $"{gateName} Gate";
     }
 
+    // ─────────────────────────────────────────
+    //  Socket
+    // ─────────────────────────────────────────
     public void SetCurrentSocket(CircuitSocket_Chap3 socket)
     {
         currentSocket = socket;
@@ -27,23 +41,11 @@ public class QuantumGate_Chap3 : MonoBehaviour
         return currentSocket;
     }
 
-    public int getTarget()
-    {
-        return 0;
-    }
-
-    public string getGateName()
-    {
-        return gateName;
-    }
-
-    public string getGateDescription()
-    {
-        return gateDescription;
-    }
-
-    public inputType getGateType()
-    {
-        return gatetype;
-    }
+    // ─────────────────────────────────────────
+    //  Getters
+    // ─────────────────────────────────────────
+    public string    getGateName()        => gateName;
+    public string    getGateDescription() => gateDescription;
+    public InputType getGateType()        => gateType;
+    public int       getTarget()          => 0;
 }

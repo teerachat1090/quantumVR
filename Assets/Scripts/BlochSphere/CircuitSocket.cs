@@ -60,11 +60,12 @@ public class CircuitSocket : MonoBehaviour
         GameObject placed = args.interactableObject.transform.gameObject;
 
         // ── Case 1: CX Cube จาก shelf ─────────────────────────────────────
+        // แก้เป็น
         CXCubeOnShelf cxCube = placed.GetComponent<CXCubeOnShelf>();
         if (cxCube != null)
         {
-            cxCube.OnPlacedOnSocket(this);
-            // (Cube จะ Destroy ตัวเองและ Spawn prefab — ไม่ต้อง UpdateCircuit)
+            // CXCubeOnShelf จัดการ spawn เอง ผ่าน OnGrabbed()
+            // ไม่ต้องทำอะไรที่นี่
             return;
         }
 
@@ -91,7 +92,6 @@ public class CircuitSocket : MonoBehaviour
             }
 
             SetOccupiedByCX(targetVisual.ParentGate, isControl: false, isTarget: true);
-            targetVisual.OnPlacedOnSocket(this);
             return;
         }
 

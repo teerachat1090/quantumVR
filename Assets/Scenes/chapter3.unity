@@ -354,6 +354,39 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4561795}
   m_CullTransparentMesh: 1
+--- !u!1 &6399005
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6399006}
+  m_Layer: 0
+  m_Name: RowContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6399006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6399005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 811491104}
+  - {fileID: 1093665274}
+  m_Father: {fileID: 1361795159}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8110073
 GameObject:
   m_ObjectHideFlags: 0
@@ -5521,8 +5554,8 @@ GameObject:
   - component: {fileID: 120407840}
   - component: {fileID: 120407839}
   - component: {fileID: 120407838}
-  - component: {fileID: 120407837}
   - component: {fileID: 120407836}
+  - component: {fileID: 120407841}
   m_Layer: 0
   m_Name: P_Gate
   m_TagString: Untagged
@@ -5558,21 +5591,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &120407837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 120407834}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: P
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &120407838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5748,6 +5766,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &120407841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 120407834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: P
+  gateDescription: 
+  gateType: 0
 --- !u!1 &121059539
 GameObject:
   m_ObjectHideFlags: 0
@@ -6486,7 +6519,7 @@ GameObject:
   - component: {fileID: 135069435}
   - component: {fileID: 135069437}
   m_Layer: 0
-  m_Name: SC4
+  m_Name: Socket_C3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6589,9 +6622,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 4
-  socketName: SC4
+  socketIndex: 3
+  socketName: Socket_C3
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 135069435}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -7617,7 +7651,7 @@ GameObject:
   - component: {fileID: 168547028}
   - component: {fileID: 168547027}
   - component: {fileID: 168547026}
-  - component: {fileID: 168547025}
+  - component: {fileID: 168547030}
   m_Layer: 0
   m_Name: H_Gate
   m_TagString: Untagged
@@ -7642,21 +7676,6 @@ Transform:
   - {fileID: 357836757}
   m_Father: {fileID: 1807005334}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &168547025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 168547023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: H
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &168547026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7844,6 +7863,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &168547030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 168547023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: H
+  gateDescription: 
+  gateType: 0
 --- !u!1001 &171884773
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8597,10 +8631,9 @@ GameObject:
   - component: {fileID: 188125720}
   - component: {fileID: 188125725}
   - component: {fileID: 188125724}
-  - component: {fileID: 188125723}
-  - component: {fileID: 188125722}
   - component: {fileID: 188125721}
   - component: {fileID: 188125726}
+  - component: {fileID: 188125727}
   m_Layer: 0
   m_Name: CX_Gate
   m_TagString: Untagged
@@ -8636,40 +8669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &188125722
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 188125719}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: I
-  gatetype: 0
-  gateDescription: 
---- !u!114 &188125723
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 188125719}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ebc5418e212a8142ad247ede6e30fce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpawnableGrabCube
-  usePrefab: 0
-  spawnPrefab: {fileID: 0}
-  scaleMultiplier: 0.5
-  spawnDistance: 0.3
-  destroyOnFloorHit: 1
-  despawnHeight: 0.1
-  spawnCooldown: 0.5
 --- !u!114 &188125724
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8838,9 +8837,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7e16e24bcf719d489149bccfb8c7f21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  cxPrefab: {fileID: 7921855860478007013, guid: c3216be477bbc4441aee9d98b14be5e0,
+  cxGatePrefab: {fileID: 7921855860478007013, guid: c3216be477bbc4441aee9d98b14be5e0,
     type: 3}
-  spawnOffset: {x: 0, y: 0, z: 0}
+  targetOffsetY: -0.15
+--- !u!114 &188125727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188125719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: CX
+  gateDescription: 
+  gateType: 0
 --- !u!1 &188225791
 GameObject:
   m_ObjectHideFlags: 0
@@ -13739,7 +13753,7 @@ GameObject:
   - component: {fileID: 336717078}
   - component: {fileID: 336717077}
   m_Layer: 0
-  m_Name: SC6
+  m_Name: Socket_C5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13773,9 +13787,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 6
-  socketName: SC6
+  socketIndex: 5
+  socketName: Socket_C5
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 336717078}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -14680,8 +14695,8 @@ GameObject:
   - component: {fileID: 361745033}
   - component: {fileID: 361745032}
   - component: {fileID: 361745031}
-  - component: {fileID: 361745030}
   - component: {fileID: 361745029}
+  - component: {fileID: 361745034}
   m_Layer: 0
   m_Name: CXX_Gate
   m_TagString: Untagged
@@ -14717,21 +14732,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &361745030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 361745027}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: I
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &361745031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14907,6 +14907,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &361745034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 361745027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: CXX
+  gateDescription: 
+  gateType: 0
 --- !u!1 &361831996
 GameObject:
   m_ObjectHideFlags: 0
@@ -16585,7 +16600,7 @@ GameObject:
   - component: {fileID: 409984611}
   - component: {fileID: 409984610}
   m_Layer: 0
-  m_Name: SC4
+  m_Name: Socket_C3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16619,9 +16634,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 4
-  socketName: SC4
+  socketIndex: 3
+  socketName: Socket_C3
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 409984611}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -18394,8 +18410,8 @@ GameObject:
   - component: {fileID: 453971366}
   - component: {fileID: 453971365}
   - component: {fileID: 453971364}
-  - component: {fileID: 453971363}
   - component: {fileID: 453971362}
+  - component: {fileID: 453971367}
   m_Layer: 0
   m_Name: sqrtXt_Gate
   m_TagString: Untagged
@@ -18431,21 +18447,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &453971363
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 453971360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: sqrtXt
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &453971364
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18621,6 +18622,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &453971367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 453971360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: SXdg
+  gateDescription: 
+  gateType: 0
 --- !u!1 &457130380
 GameObject:
   m_ObjectHideFlags: 0
@@ -20918,7 +20934,7 @@ GameObject:
   - component: {fileID: 512673237}
   - component: {fileID: 512673239}
   m_Layer: 0
-  m_Name: SC1
+  m_Name: 'Socket_C0 '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21021,9 +21037,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 1
-  socketName: SC1
+  socketIndex: 0
+  socketName: Socket_C0
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 512673237}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -22006,7 +22023,7 @@ GameObject:
   - component: {fileID: 533774214}
   - component: {fileID: 533774213}
   m_Layer: 0
-  m_Name: SC8
+  m_Name: Socket_C7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22040,9 +22057,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 8
-  socketName: SC8
+  socketIndex: 7
+  socketName: Socket_C7
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 533774214}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -24142,8 +24160,8 @@ GameObject:
   - component: {fileID: 614909391}
   - component: {fileID: 614909390}
   - component: {fileID: 614909389}
-  - component: {fileID: 614909388}
   - component: {fileID: 614909387}
+  - component: {fileID: 614909392}
   m_Layer: 0
   m_Name: I_Gate
   m_TagString: Untagged
@@ -24179,21 +24197,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &614909388
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 614909385}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: I
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &614909389
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24369,6 +24372,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &614909392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 614909385}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: I
+  gateDescription: 
+  gateType: 0
 --- !u!1 &615130573
 GameObject:
   m_ObjectHideFlags: 0
@@ -24644,8 +24662,8 @@ GameObject:
   - component: {fileID: 625417698}
   - component: {fileID: 625417697}
   - component: {fileID: 625417696}
-  - component: {fileID: 625417695}
   - component: {fileID: 625417694}
+  - component: {fileID: 625417699}
   m_Layer: 0
   m_Name: RZ_Gate
   m_TagString: Untagged
@@ -24681,21 +24699,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &625417695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 625417692}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: Rz
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &625417696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24871,6 +24874,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &625417699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625417692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: RZ
+  gateDescription: 
+  gateType: 0
 --- !u!1001 &627088639
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27005,7 +27023,7 @@ GameObject:
   - component: {fileID: 698080997}
   - component: {fileID: 698080999}
   m_Layer: 0
-  m_Name: SC9
+  m_Name: Socket_C8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27108,9 +27126,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 9
-  socketName: SC9
+  socketIndex: 8
+  socketName: Socket_C8
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 698080997}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -28271,7 +28290,7 @@ GameObject:
   - component: {fileID: 730655733}
   - component: {fileID: 730655732}
   m_Layer: 0
-  m_Name: SC1
+  m_Name: Socket_C0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28305,9 +28324,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 1
-  socketName: SC1
+  socketIndex: 0
+  socketName: Socket_C0
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 730655733}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -30948,7 +30968,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 811491103}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.25, y: 0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -30965,7 +30985,7 @@ Transform:
   - {fileID: 1473700084}
   - {fileID: 1597720265}
   - {fileID: 115292811}
-  m_Father: {fileID: 1361795159}
+  m_Father: {fileID: 6399006}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &811491105
 MonoBehaviour:
@@ -30976,16 +30996,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 811491103}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4439420b125d6d45befa7006dc2cef8, type: 3}
+  m_Script: {fileID: 11500000, guid: dc03d3cb885b9c646b5d319174a3dae5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitTable
-  displayText: {fileID: 0}
-  delayBetweenGates: 0.5
-  blochSphere: {fileID: 0}
-  gateAnimationDelay: 1.2
-  circuitData: []
-  enableSmartUndo: 1
-  animateUndo: 1
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitRow
+  rowIndex: 0
+  sockets: []
 --- !u!1 &812036763
 GameObject:
   m_ObjectHideFlags: 0
@@ -31198,7 +31213,7 @@ GameObject:
   - component: {fileID: 816532534}
   - component: {fileID: 816532536}
   m_Layer: 0
-  m_Name: SC7
+  m_Name: Socket_C6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31301,9 +31316,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 7
-  socketName: SC7
+  socketIndex: 6
+  socketName: Socket_C6
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 816532534}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -34029,8 +34045,8 @@ GameObject:
   - component: {fileID: 893720035}
   - component: {fileID: 893720034}
   - component: {fileID: 893720033}
-  - component: {fileID: 893720032}
   - component: {fileID: 893720031}
+  - component: {fileID: 893720036}
   m_Layer: 0
   m_Name: sqrtX_Gate
   m_TagString: Untagged
@@ -34066,21 +34082,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &893720032
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 893720029}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: sqrtX
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &893720033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34256,6 +34257,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &893720036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893720029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: SX
+  gateDescription: 
+  gateType: 0
 --- !u!1 &894243593
 GameObject:
   m_ObjectHideFlags: 0
@@ -34935,7 +34951,7 @@ GameObject:
   - component: {fileID: 908112826}
   - component: {fileID: 908112825}
   m_Layer: 0
-  m_Name: SC5
+  m_Name: Socket_C4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34969,9 +34985,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 5
-  socketName: SC5
+  socketIndex: 4
+  socketName: Socket_C4
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 908112826}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -35346,8 +35363,8 @@ GameObject:
   - component: {fileID: 909128738}
   - component: {fileID: 909128737}
   - component: {fileID: 909128736}
-  - component: {fileID: 909128735}
   - component: {fileID: 909128734}
+  - component: {fileID: 909128739}
   m_Layer: 0
   m_Name: X_Gate
   m_TagString: Untagged
@@ -35383,21 +35400,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &909128735
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 909128732}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: X
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &909128736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35573,6 +35575,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &909128739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 909128732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: X
+  gateDescription: 
+  gateType: 0
 --- !u!1 &915237114
 GameObject:
   m_ObjectHideFlags: 0
@@ -38834,7 +38851,7 @@ GameObject:
   - component: {fileID: 1016863431}
   - component: {fileID: 1016863430}
   m_Layer: 0
-  m_Name: SC11
+  m_Name: Socket_C10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38868,9 +38885,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 11
-  socketName: SC11
+  socketIndex: 10
+  socketName: Socket_C10
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1016863431}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -40530,6 +40548,7 @@ MonoBehaviour:
   - Alice
   - EPR
   - Bob
+  waveActive: 0
 --- !u!4 &1053980549
 Transform:
   m_ObjectHideFlags: 0
@@ -42127,7 +42146,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093665273}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -42144,7 +42163,7 @@ Transform:
   - {fileID: 1230496889}
   - {fileID: 1016863429}
   - {fileID: 1442204770}
-  m_Father: {fileID: 1361795159}
+  m_Father: {fileID: 6399006}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1093665275
 MonoBehaviour:
@@ -42155,16 +42174,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1093665273}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4439420b125d6d45befa7006dc2cef8, type: 3}
+  m_Script: {fileID: 11500000, guid: dc03d3cb885b9c646b5d319174a3dae5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitTable
-  displayText: {fileID: 0}
-  delayBetweenGates: 0.5
-  blochSphere: {fileID: 0}
-  gateAnimationDelay: 1.2
-  circuitData: []
-  enableSmartUndo: 1
-  animateUndo: 1
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitRow
+  rowIndex: 0
+  sockets: []
 --- !u!1 &1095329423
 GameObject:
   m_ObjectHideFlags: 0
@@ -46563,7 +46577,7 @@ GameObject:
   - component: {fileID: 1230496891}
   - component: {fileID: 1230496890}
   m_Layer: 0
-  m_Name: SC10
+  m_Name: Socket_C9
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46597,9 +46611,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 10
-  socketName: SC10
+  socketIndex: 9
+  socketName: Socket_C9
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1230496891}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -47594,8 +47609,8 @@ GameObject:
   - component: {fileID: 1260758967}
   - component: {fileID: 1260758966}
   - component: {fileID: 1260758965}
-  - component: {fileID: 1260758964}
   - component: {fileID: 1260758963}
+  - component: {fileID: 1260758968}
   m_Layer: 0
   m_Name: S_Gate
   m_TagString: Untagged
@@ -47631,21 +47646,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &1260758964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260758961}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: S
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &1260758965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47821,6 +47821,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1260758968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260758961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: S
+  gateDescription: 
+  gateType: 0
 --- !u!1 &1262053559
 GameObject:
   m_ObjectHideFlags: 0
@@ -48541,7 +48556,7 @@ GameObject:
   - component: {fileID: 1276477008}
   - component: {fileID: 1276477010}
   m_Layer: 0
-  m_Name: SC2
+  m_Name: Socket_C1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48644,9 +48659,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 2
-  socketName: SC2
+  socketIndex: 1
+  socketName: Socket_C1
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1276477008}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -51387,6 +51403,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1361795159}
+  - component: {fileID: 1361795160}
+  - component: {fileID: 1361795161}
   m_Layer: 0
   m_Name: CircuitTable
   m_TagString: Untagged
@@ -51407,12 +51425,43 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 811491104}
-  - {fileID: 1093665274}
+  - {fileID: 6399006}
   - {fileID: 1906343569}
   - {fileID: 1845867729}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1361795160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361795158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b6c9660b569df04fbc4567ae16a272b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircuitTableChap3
+  rowPrefab: {fileID: 0}
+  rowContainer: {fileID: 0}
+  rowSpacing: 0.15
+  initialRowCount: 2
+  displayText: {fileID: 0}
+  gateAnimationDelay: 1
+--- !u!114 &1361795161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361795158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85a372bbde1e39d479d733bd6f100792, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SocketGridTester
+  circuitTable: {fileID: 0}
+  runTestOnStart: 0
 --- !u!1 &1362175519
 GameObject:
   m_ObjectHideFlags: 0
@@ -55316,13 +55365,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1470315867}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0.5, y: 0.5, z: -0.5, w: 0.5}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1680703764}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 90, z: 0}
 --- !u!1 &1473700083
 GameObject:
   m_ObjectHideFlags: 0
@@ -55336,7 +55385,7 @@ GameObject:
   - component: {fileID: 1473700086}
   - component: {fileID: 1473700088}
   m_Layer: 0
-  m_Name: SC10
+  m_Name: Socket_C9
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55439,9 +55488,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 10
-  socketName: SC10
+  socketIndex: 9
+  socketName: Socket_C9
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1473700086}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -59399,8 +59449,8 @@ GameObject:
   - component: {fileID: 1569258901}
   - component: {fileID: 1569258900}
   - component: {fileID: 1569258899}
-  - component: {fileID: 1569258898}
   - component: {fileID: 1569258897}
+  - component: {fileID: 1569258902}
   m_Layer: 0
   m_Name: Tt_Gate
   m_TagString: Untagged
@@ -59436,21 +59486,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &1569258898
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1569258895}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: Tt
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &1569258899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59626,6 +59661,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1569258902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1569258895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: Tdg
+  gateDescription: 
+  gateType: 0
 --- !u!1 &1569449893
 GameObject:
   m_ObjectHideFlags: 0
@@ -59784,7 +59834,7 @@ GameObject:
   - component: {fileID: 1571713036}
   - component: {fileID: 1571713038}
   m_Layer: 0
-  m_Name: SC6
+  m_Name: Socket_C5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -59887,9 +59937,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 6
-  socketName: SC6
+  socketIndex: 5
+  socketName: Socket_C5
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1571713036}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -60581,7 +60632,7 @@ GameObject:
   - component: {fileID: 1597720267}
   - component: {fileID: 1597720269}
   m_Layer: 0
-  m_Name: SC11
+  m_Name: Socket_C10
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -60685,8 +60736,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
   socketIndex: 11
-  socketName: SC11
+  socketName: Socket_C10
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1597720267}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -62227,8 +62279,8 @@ GameObject:
   - component: {fileID: 1636821406}
   - component: {fileID: 1636821405}
   - component: {fileID: 1636821404}
-  - component: {fileID: 1636821403}
   - component: {fileID: 1636821402}
+  - component: {fileID: 1636821407}
   m_Layer: 0
   m_Name: Z_Gate
   m_TagString: Untagged
@@ -62264,21 +62316,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &1636821403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1636821400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: Z
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &1636821404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62454,6 +62491,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1636821407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636821400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: Z
+  gateDescription: 
+  gateType: 0
 --- !u!1 &1637056653
 GameObject:
   m_ObjectHideFlags: 0
@@ -63317,7 +63369,7 @@ GameObject:
   - component: {fileID: 1647112989}
   - component: {fileID: 1647112991}
   m_Layer: 0
-  m_Name: SC3
+  m_Name: Socket_C2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63420,9 +63472,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 3
-  socketName: SC3
+  socketIndex: 2
+  socketName: Socket_C2
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1647112989}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -64132,7 +64185,7 @@ GameObject:
   - component: {fileID: 1680703766}
   - component: {fileID: 1680703765}
   m_Layer: 0
-  m_Name: SC3
+  m_Name: Socket_C2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -64166,9 +64219,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 3
-  socketName: SC3
+  socketIndex: 2
+  socketName: Socket_C2
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1680703766}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -65280,8 +65334,8 @@ GameObject:
   - component: {fileID: 1717600258}
   - component: {fileID: 1717600257}
   - component: {fileID: 1717600256}
-  - component: {fileID: 1717600255}
   - component: {fileID: 1717600254}
+  - component: {fileID: 1717600259}
   m_Layer: 0
   m_Name: T_Gate
   m_TagString: Untagged
@@ -65317,21 +65371,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &1717600255
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1717600252}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: T
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &1717600256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -65507,6 +65546,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1717600259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1717600252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: T
+  gateDescription: 
+  gateType: 0
 --- !u!1 &1718159000
 GameObject:
   m_ObjectHideFlags: 0
@@ -70259,8 +70313,8 @@ GameObject:
   - component: {fileID: 1836069773}
   - component: {fileID: 1836069772}
   - component: {fileID: 1836069771}
-  - component: {fileID: 1836069770}
   - component: {fileID: 1836069769}
+  - component: {fileID: 1836069774}
   m_Layer: 0
   m_Name: St_Gate
   m_TagString: Untagged
@@ -70296,21 +70350,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
---- !u!114 &1836069770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1836069767}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 418c3b8718fd5cc46ad7e54e46380027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
-  gateName: St
-  gatetype: 0
-  gateDescription: 
 --- !u!114 &1836069771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70486,6 +70525,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1836069774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836069767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da3e22f53a5bf44ba9a2a91d230c32d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuantumGate_Chap3
+  gateName: Sdg
+  gateDescription: 
+  gateType: 0
 --- !u!1 &1839624838
 GameObject:
   m_ObjectHideFlags: 0
@@ -70499,7 +70553,7 @@ GameObject:
   - component: {fileID: 1839624841}
   - component: {fileID: 1839624840}
   m_Layer: 0
-  m_Name: SC2
+  m_Name: Socket_C1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -70533,9 +70587,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 2
-  socketName: SC2
+  socketIndex: 1
+  socketName: Socket_C1
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1839624841}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -71470,7 +71525,7 @@ GameObject:
   - component: {fileID: 1861498589}
   - component: {fileID: 1861498588}
   m_Layer: 0
-  m_Name: SC9
+  m_Name: Socket_C8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -71504,9 +71559,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 9
-  socketName: SC9
+  socketIndex: 8
+  socketName: Socket_C8
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1861498589}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -72771,7 +72827,7 @@ GameObject:
   - component: {fileID: 1880948434}
   - component: {fileID: 1880948433}
   m_Layer: 0
-  m_Name: SC7
+  m_Name: Socket_C6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -72805,9 +72861,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 7
-  socketName: SC7
+  socketIndex: 6
+  socketName: Socket_C6
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1880948434}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -76048,7 +76105,7 @@ GameObject:
   - component: {fileID: 1972686424}
   - component: {fileID: 1972686426}
   m_Layer: 0
-  m_Name: SC8
+  m_Name: Socket_C7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76151,9 +76208,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 8
-  socketName: SC8
+  socketIndex: 7
+  socketName: Socket_C7
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 1972686424}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
@@ -77171,7 +77229,7 @@ GameObject:
   - component: {fileID: 2009718708}
   - component: {fileID: 2009718710}
   m_Layer: 0
-  m_Name: SC5
+  m_Name: Socket_C4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77274,9 +77332,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da2d3135b2dfc64db244abc7eae1d2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircuitSocket_Chap3
-  socketIndex: 5
-  socketName: SC5
+  socketIndex: 4
+  socketName: Socket_C4
   rowIndex: 0
+  columnIndex: 0
   socketInteractor: {fileID: 2009718708}
   attachTransform: {fileID: 0}
   currentGate: {fileID: 0}
