@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 3683597704502481555}
   - component: {fileID: 4331497197408302794}
   - component: {fileID: 8286642875482956684}
+  - component: {fileID: 6083398492378596884}
   m_Layer: 0
   m_Name: CNOT_control
   m_TagString: Untagged
@@ -238,9 +239,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
   gateName: CNOT
-  gatetype: 1
+  gatetype: 2
   gateDescription: control of CNOT gate
   socketsManager: {fileID: 0}
+  friendExist: 0
+--- !u!114 &6083398492378596884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7174970961716740934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
 --- !u!1 &7416668126580264530
 GameObject:
   m_ObjectHideFlags: 0

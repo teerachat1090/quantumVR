@@ -13,7 +13,7 @@ public class QubitCircuit : MonoBehaviour
     [SerializeField] private InteractionLayerMask defaultInteractionLayer;
     [SerializeField] private GameObject socketPrefab = null;
     [SerializeField] private float space = 0.25f;
-    private GateSocket[] gateSockets; 
+    public GateSocket[] gateSockets; 
     private SocketsManager socketsManager;
     private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
     
@@ -46,6 +46,7 @@ public class QubitCircuit : MonoBehaviour
             var socket = spawn.GetComponent<GateSocket>();
             if(socket is null) Debug.LogWarning("Warning: This missing GateSocket Component!");
             else socket.qubitIndex = circuitIndex;
+            socket.socketIndex = i;
 
             position.z -= space;
         }

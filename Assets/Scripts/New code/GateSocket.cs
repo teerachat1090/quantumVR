@@ -1,15 +1,20 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
+using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 public class GateSocket : MonoBehaviour
 {
+    [SerializeField] InteractionLayerMask lockOnSocket;
+    [SerializeField] InteractionLayerMask gateLayer;
     public int socketIndex = 0; //0 by default
     public int qubitIndex = -1;
     public QuantumGate currentGate = null;
     public QuantumGate.inputType inputType = QuantumGate.inputType.Default;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
+    public bool beLazy = false; //
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -30,24 +35,6 @@ public class GateSocket : MonoBehaviour
         CheckComponent();
     }
 
-    // check if space is enough given socket's position
-    private bool CheckPlaceAvailible(int numInput)
-    {
-        GameObject target = null;
-        SocketsManager socketsManager = parentCircuit.GetSocketsManager();
-        if(target == null)
-        {
-            Destroy(currentGate.gameObject);
-            return false;
-        }
-        else
-        {
-            //create target + line + set target value
-
-        }
-        return false;
-    }
-
     void OnGatePlaced(SelectEnterEventArgs args)
     {
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();
@@ -57,11 +44,23 @@ public class GateSocket : MonoBehaviour
             inputType = currentGate.getGateType();
         }
 
+        if(beLazy)
+        { 
+            beLazy = false;
+            return;
+        }
+
         int numInput = gate.GetNumInput();
         if(numInput > 1) 
         {
-            if(CheckPlaceAvailible(numInput) is false) return;
-            gate.socketsManager = parentCircuit.GetSocketsManager();
+            var socketsManager = parentCircuit.GetSocketsManager();
+            bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
+            if (!spaceAvailible)
+            {
+                Debug.Log("Space Not Availible.");
+                Destroy(gate.gameObject);
+                return;
+            }
         }
 
         updateCircuit(true);
