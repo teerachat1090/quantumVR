@@ -3,19 +3,42 @@ using UnityEngine;
 
 public class MultiInputGateConnect : MonoBehaviour
 {
-    private List<QuantumGate> targetGate = new List<QuantumGate>();
+    public SocketsManager socketsManager = null;
+    private List<QuantumGate> gateMember = new List<QuantumGate>();
     private List<LineConnecting> targetConnect = new List<LineConnecting>();
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        gameObject.GetComponentsInChildren(targetGate);
+    private bool memberSet = false;
+    public int column = -1;
 
+    public void getHighLow(out int high, out int low)
+    {
+        // iterate through member and get most high-low index
+        high = 0; low = 0;
+    }
+
+    public void AddMember(QuantumGate memberGate)
+    {
+        gateMember.Add(memberGate);
+    }
+
+    public void RunLineConnect()
+    {
+        foreach(QuantumGate gate in gateMember)
+        {
+            gate.connect = this;
+            Debug.Log($"member name: {gate.gameObject.name}");
+        }
+        ConnectLine();
+        memberSet = true;
+    }
+
+    void ConnectLine()
+    {
         // pair each child to create line
-        int count = targetGate.Count;
+        int count = gateMember.Count;
         for(int i=0; i<count-1; i++)
         {
-            GameObject target0 = targetGate[i].gameObject;
-            GameObject target1 = targetGate[i+1].gameObject;
+            GameObject target0 = gateMember[i].gameObject;
+            GameObject target1 = gateMember[i+1].gameObject;
 
             var connect = new LineConnecting(target0, target1, gameObject);
             targetConnect.Add(connect);   
@@ -25,29 +48,27 @@ public class MultiInputGateConnect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!memberSet) return;
+
         foreach(LineConnecting line in targetConnect)
         {
             line.UpdateLine();
         }
     }
 
-    public void deleteItself(QuantumGate starter)
+    public void deleteItself()
     {
-        
-        Destroy(gameObject);
-        
-    }
+        foreach(QuantumGate gate in gateMember)
+        {
+            gate.beingDestroyed = true;
+            Destroy(gate.gameObject);
+            Debug.Log($"delete member name: {gate.gameObject.name}");
+        }
+        socketsManager.RemoveFromMultiGateList(this);
 
-    void OnDestroy()
-    {
-        Debug.Log($"Parent is about to be destroyed. Setting children ({targetGate.Count}).");
-        targetGate.RemoveAll(g => g == null);
-        // foreach(QuantumGate gate in targetGate)
-        // {
-        //     gate.parentAct = true;
-        //     Destroy(gate.gameObject);
-        // }
-        // targetGate = null;
+        //tell socket manager to free lock socket!
+
+        Destroy(gameObject);
     }
 
     public class LineConnecting

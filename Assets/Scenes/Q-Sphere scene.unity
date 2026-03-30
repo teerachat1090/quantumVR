@@ -10709,7 +10709,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
   m_InteractionLayers:
-    m_Bits: 3758096384
+    m_Bits: 4026531840
   m_Handedness: 2
   m_AttachTransform: {fileID: 0}
   m_KeepSelectedTargetValid: 1
@@ -12433,6 +12433,10 @@ MonoBehaviour:
     type: 3}
   targetPrefab: {fileID: 1847712688296683343, guid: b557aa5efdfcff7468517890a57a6eba,
     type: 3}
+  lockOnSocket:
+    m_Bits: 268435456
+  gateLayer:
+    m_Bits: 1073741824
   totalQubits: -1
   totalSocketEach: -1
 --- !u!1001 &1481141339
@@ -15252,7 +15256,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
   m_InteractionLayers:
-    m_Bits: 3758096384
+    m_Bits: 4026531840
   m_Handedness: 1
   m_AttachTransform: {fileID: 1780321040}
   m_KeepSelectedTargetValid: 1

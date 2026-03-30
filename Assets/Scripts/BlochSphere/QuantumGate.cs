@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class QuantumGate : MonoBehaviour
 {
@@ -11,11 +13,12 @@ public class QuantumGate : MonoBehaviour
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     
-    public SocketsManager socketsManager = null;
+    public SocketsManager _socketsManager = null;
     private CircuitSocket currentSocket;
     public bool friendExist = false; //for multi-input gate
-    public bool parentAct = false;
-    
+    public bool beingDestroyed = false;
+    public MultiInputGateConnect connect = null;
+
     void Start()
     {
         if (string.IsNullOrEmpty(gateName)) gateName = gameObject.name;
@@ -24,7 +27,11 @@ public class QuantumGate : MonoBehaviour
 
     public void doDestroy()
     {
-        if(!Application.isPlaying) return;
+        if(connect != null)
+        {
+            connect.deleteItself();
+            return;
+        }
 
         if(gatetype == inputType.Single) {
             Debug.Log("Delete single input");
@@ -32,26 +39,13 @@ public class QuantumGate : MonoBehaviour
             return;
         }
 
-        if(parentAct) {
-            Debug.Log("Delete by parent");
-            Destroy(gameObject);
-            return;
-        }
-
-        Debug.Log($"child name: {gameObject.name}, parent: {(transform.parent == null ? "none" : transform.parent.gameObject.name)}");
-
-        if(gameObject.transform.parent != null) {
-            Debug.Log("Destroying parent");
-            Destroy(gameObject.transform.parent.gameObject);
-        } else
-        {
-            Debug.Log("Destroying itself instead?");
-        }
+        Destroy(gameObject);
     }
 
+    //-------------- Not used ---------------------------
     public void SetCurrentSocket(CircuitSocket socket)  {currentSocket = socket;}
-    
     public CircuitSocket GetCurrentSocket() {return currentSocket;}
+    //-------------- Not used ---------------------------
 
     public int getTarget()  {return 0;}
 

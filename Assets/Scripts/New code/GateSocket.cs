@@ -3,18 +3,18 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class GateSocket : MonoBehaviour
 {
-    [SerializeField] InteractionLayerMask lockOnSocket;
-    [SerializeField] InteractionLayerMask gateLayer;
     public int socketIndex = 0; //0 by default
     public int qubitIndex = -1;
     public QuantumGate currentGate = null;
     public QuantumGate.inputType inputType = QuantumGate.inputType.Default;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
-    public bool beLazy = false; //
+    public bool beLazy = false; 
+    private MultiInputGateConnect connect = null;
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -53,14 +53,23 @@ public class GateSocket : MonoBehaviour
         int numInput = gate.GetNumInput();
         if(numInput > 1) 
         {
-            var socketsManager = parentCircuit.GetSocketsManager();
-            bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
-            if (!spaceAvailible)
+            if (gate.friendExist) //unlock layer given connector
             {
-                Debug.Log("Space Not Availible.");
-                Destroy(gate.gameObject);
+                var socketsManager = parentCircuit.GetSocketsManager();
+                //unlocking
                 return;
             }
+            else //introduce new gate to socket manager
+            {
+                var socketsManager = parentCircuit.GetSocketsManager();
+                bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
+                if (!spaceAvailible)
+                {
+                    Debug.Log("Space Not Availible.");
+                    Destroy(gate.gameObject);
+                }
+            }
+            return;
         }
 
         updateCircuit(true);
@@ -68,14 +77,33 @@ public class GateSocket : MonoBehaviour
 
     void OnGateRemoved(SelectExitEventArgs args)
     {   
+        QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();        
         currentGate = null;
 
-        if(inputType == QuantumGate.inputType.Single)
+        int numInput = gate.GetNumInput();
+        if(numInput == 1)
         {
             updateCircuit(false);
+            return;
+        } 
+
+        if(gate.friendExist && !gate.beingDestroyed)
+        {
+            var socketsManager = parentCircuit.GetSocketsManager();
+            socketsManager.LockMultiGate(gate.connect);
         }
+        //num input > 1
+
         
+        // updating multi input gate => socketsManager's task
+            // => make gate tell connecter instead
+            //change 'gate' layer to 'lock'
+            //change space in column layer to 'lock'
+            //lock socket for column
+        
+
         //update circuit table
+        
     }
 
     void OnDestroy()

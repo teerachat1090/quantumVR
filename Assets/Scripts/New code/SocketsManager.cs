@@ -17,6 +17,8 @@ public class SocketsManager : MonoBehaviour
     [Header("CNOT Gate Setting")]
     [SerializeField] private GameObject controlPrefab = null;
     [SerializeField] private GameObject targetPrefab = null;
+    [SerializeField] InteractionLayerMask lockOnSocket;
+    [SerializeField] InteractionLayerMask gateLayer;
 
     private XRGrabInteractable[] sourceGates;
     private CircuitManager headManager;
@@ -137,6 +139,72 @@ public class SocketsManager : MonoBehaviour
         updateCircuitByJson(null, -1, -1, true);
     }
 
+    // change xr layer to "lock"
+    public void LockMultiGate(MultiInputGateConnect wantedObj)
+    {
+        //get high-low of multigate
+        //expand range
+        //set socket and gate layer to 'lock'
+    }
+
+    public void RemoveFromMultiGateList(MultiInputGateConnect wantedObj)
+    {
+        multiGateList.Remove(wantedObj.gameObject);
+        updateCircuitByJson("multi_input_gate", wantedObj.column, -1, false);
+    }
+
+    private void AssignMutiInputGate(GameObject baseObject, int row, int col, int controlNum = 1, int targetNum = 1)
+    {
+        //check if availible: down then up
+        int total = controlNum + targetNum;
+        if(totalQubits < total) return;
+        
+        int offset = -1, change = -1;
+
+        //assign base and other prefab
+        var groupParent = new GameObject();
+        groupParent.name = "holder";
+        var connect = groupParent.AddComponent<MultiInputGateConnect>();
+        connect.socketsManager = this;
+        connect.column = col;
+        
+        var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
+        baseObject_quantumGate.friendExist = true;
+        connect.AddMember(baseObject_quantumGate);
+
+        controlNum--;   total--;
+        while(total > 0)
+        {
+            int watch = row+offset;
+            if(watch > 0 && watch < totalQubits && socketMap[watch][col].getCurrentGate() == null)  
+           { 
+                var targetSocket = socketMap[watch][col];
+                targetSocket.beLazy = true;
+                Transform socketTransform = targetSocket.transform;
+                
+                var spawned = Instantiate(controlNum > 0 ? controlPrefab: targetPrefab, 
+                                        socketTransform.position, quaternion.identity);
+                
+                spawned.transform.localScale *= .25f;
+                var spawned_quantumGate = spawned.GetComponent<QuantumGate>();
+                spawned_quantumGate.friendExist = true;
+                connect.AddMember(spawned_quantumGate);
+                
+                if(controlNum > 0)  controlNum--;
+                else                targetNum--;
+                
+                offset+=change;     total--;
+            } 
+            else if(change < 0) { offset = 1; change = 1;}
+        }
+
+        connect.RunLineConnect();
+        multiGateList.Add(groupParent);
+
+        // ===> do update circuit in here instead
+        updateCircuitByJson(baseObject_quantumGate.getGateName(), col, row, true);
+    }
+
     // only target = NOT gate
     public bool LookSocketMap(GameObject baseObject, int row, int col, int controlNum = 1, int targetNum = 1)
     {
@@ -167,61 +235,9 @@ public class SocketsManager : MonoBehaviour
             else                return false;               //can't go up either
         }
 
-        //assign base and other prefab
-        var groupParent = new GameObject();
-        groupParent.name = "holder";
-        Transform parentTransform = groupParent.transform;
-
-        baseObject.transform.SetParent(parentTransform, true);
-        var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
-        baseObject_quantumGate.friendExist = true;
-
-        controlNum--;   total--;    offset = -1;    change = -1;
-        while(total > 0)
-        {
-            int watch = row+offset;
-            if(watch > 0 && watch < totalQubits && socketMap[watch][col].getCurrentGate() == null)  
-           { 
-                var targetSocket = socketMap[watch][col];
-                targetSocket.beLazy = true;
-                Transform socketTransform = targetSocket.transform;
-                
-                var spawn = Instantiate(controlNum > 0 ? controlPrefab: targetPrefab, socketTransform.position, 
-                                        quaternion.identity, groupParent.transform);
-
-                if (spawn.transform.parent != null)   Debug.Log("Spawned object is child" + $"parent: {spawn.transform.parent.name}");
-                else                                             Debug.Log("Spawned object is not child");
-                
-                spawn.transform.localScale *= .25f;
-                var spawn_quantumGate = spawn.GetComponent<QuantumGate>();
-                spawn_quantumGate.friendExist = true;
-                
-                if(controlNum > 0)  controlNum--;
-                else                targetNum--;
-                
-                offset+=change;     total--;
-            } 
-            else if(change < 0) { offset = 1; change = 1;}
-        }
-
-        Debug.Log($"Baseobject parent: {baseObject.transform.parent != null}");
-        checking(groupParent);
-
-        groupParent.AddComponent<MultiInputGateConnect>();
-        multiGateList.Add(groupParent);
+        AssignMutiInputGate(baseObject, row, col, controlNum, targetNum);
 
         return true;
-    }
-
-    void checking(GameObject obj)
-    {
-        List<GameObject> objList = new List<GameObject>();
-        foreach(Transform child in obj.transform)
-        {
-            objList.Add(child.gameObject);
-            Debug.Log($"Child name: {child.gameObject.name}\n Parent: {child.parent.gameObject.name}");
-        }
-        Debug.Log($"Group parent count: {objList.Count}");
     }
 
     public List<QubitCircuit> GetOverallCircuit()
