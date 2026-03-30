@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8286910590636184677}
   - component: {fileID: 7789120243090066293}
   - component: {fileID: 2035232263311911177}
+  - component: {fileID: 7026187120242740801}
   m_Layer: 0
   m_Name: CNOT_target
   m_TagString: Untagged
@@ -185,7 +186,7 @@ MonoBehaviour:
   m_ThrowVelocityScale: 1.5
   m_ThrowAngularVelocityScale: 1
   m_ForceGravityOnDetach: 0
-  m_RetainTransformParent: 1
+  m_RetainTransformParent: 0
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
@@ -211,6 +212,19 @@ MonoBehaviour:
   gateDescription: target of CNOT gate
   socketsManager: {fileID: 0}
   friendExist: 1
+  parentAct: 0
+--- !u!114 &7026187120242740801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847712688296683343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 296214013025fbc4f936d5b9935cf2ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeleteWhenDrop
 --- !u!1 &1892634689697472131
 GameObject:
   m_ObjectHideFlags: 0

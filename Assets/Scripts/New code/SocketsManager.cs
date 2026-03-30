@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AdaptivePerformance;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -22,7 +23,7 @@ public class SocketsManager : MonoBehaviour
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private List<int> exportIndex = new List<int>();
-    private List<List<GameObject>> multiGateList = new List<List<GameObject>>();
+    private List<GameObject> multiGateList = new List<GameObject>();
     private List<List<GateSocket>> socketMap = new List<List<GateSocket>>();
     
     [Header("Information")]
@@ -185,8 +186,11 @@ public class SocketsManager : MonoBehaviour
                 targetSocket.beLazy = true;
                 Transform socketTransform = targetSocket.transform;
                 
-                var spawn = Instantiate(controlNum > 0 ? controlPrefab: targetPrefab, 
-                                        socketTransform.position, socketTransform.rotation, groupParent.transform);
+                var spawn = Instantiate(controlNum > 0 ? controlPrefab: targetPrefab, socketTransform.position, 
+                                        quaternion.identity, groupParent.transform);
+
+                if (spawn.transform.parent != null)   Debug.Log("Spawned object is child" + $"parent: {spawn.transform.parent.name}");
+                else                                             Debug.Log("Spawned object is not child");
                 
                 spawn.transform.localScale *= .25f;
                 var spawn_quantumGate = spawn.GetComponent<QuantumGate>();
@@ -200,7 +204,24 @@ public class SocketsManager : MonoBehaviour
             else if(change < 0) { offset = 1; change = 1;}
         }
 
+        Debug.Log($"Baseobject parent: {baseObject.transform.parent != null}");
+        checking(groupParent);
+
+        groupParent.AddComponent<MultiInputGateConnect>();
+        multiGateList.Add(groupParent);
+
         return true;
+    }
+
+    void checking(GameObject obj)
+    {
+        List<GameObject> objList = new List<GameObject>();
+        foreach(Transform child in obj.transform)
+        {
+            objList.Add(child.gameObject);
+            Debug.Log($"Child name: {child.gameObject.name}\n Parent: {child.parent.gameObject.name}");
+        }
+        Debug.Log($"Group parent count: {objList.Count}");
     }
 
     public List<QubitCircuit> GetOverallCircuit()

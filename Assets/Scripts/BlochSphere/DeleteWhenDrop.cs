@@ -12,7 +12,16 @@ public class DeleteWhenDrop : MonoBehaviour
     void Update()
     {
         if(transform.position.y < 0.5){
-            Destroy(gameObject);
+            QuantumGate gate = gameObject.GetComponent<QuantumGate>();
+            if(gate != null)
+            {
+                gate.doDestroy();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+            
         }
     }
 }

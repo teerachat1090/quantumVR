@@ -14,6 +14,7 @@ public class QuantumGate : MonoBehaviour
     public SocketsManager socketsManager = null;
     private CircuitSocket currentSocket;
     public bool friendExist = false; //for multi-input gate
+    public bool parentAct = false;
     
     void Start()
     {
@@ -21,18 +22,31 @@ public class QuantumGate : MonoBehaviour
         if (string.IsNullOrEmpty(gateDescription)) gateDescription = $"{gateName} Gate";
     }
 
-    void OnDestroy()
+    public void doDestroy()
     {
-        if(gatetype == inputType.Single) return;
+        if(!Application.isPlaying) return;
 
-        // Multiple input gate case:
-        // Reject new gate case
-        if(socketsManager is null) return;
+        if(gatetype == inputType.Single) {
+            Debug.Log("Delete single input");
+            Destroy(gameObject);
+            return;
+        }
 
-        // check if directly destroy case
+        if(parentAct) {
+            Debug.Log("Delete by parent");
+            Destroy(gameObject);
+            return;
+        }
 
-        //Delete existed group case
-        //access socketManager to delete related gate
+        Debug.Log($"child name: {gameObject.name}, parent: {(transform.parent == null ? "none" : transform.parent.gameObject.name)}");
+
+        if(gameObject.transform.parent != null) {
+            Debug.Log("Destroying parent");
+            Destroy(gameObject.transform.parent.gameObject);
+        } else
+        {
+            Debug.Log("Destroying itself instead?");
+        }
     }
 
     public void SetCurrentSocket(CircuitSocket socket)  {currentSocket = socket;}
