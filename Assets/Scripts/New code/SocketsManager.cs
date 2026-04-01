@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AdaptivePerformance;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class SocketsManager : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class SocketsManager : MonoBehaviour
     [Header("CNOT Gate Setting")]
     [SerializeField] private GameObject controlPrefab = null;
     [SerializeField] private GameObject targetPrefab = null;
-    [SerializeField] InteractionLayerMask lockOnSocket;
+    [SerializeField] InteractionLayerMask lockLayer;
     [SerializeField] InteractionLayerMask gateLayer;
 
     private XRGrabInteractable[] sourceGates;
@@ -31,6 +32,9 @@ public class SocketsManager : MonoBehaviour
     [Header("Information")]
     public int totalQubits = -1;
     public int totalSocketEach = -1;
+
+    public InteractionLayerMask GetLockLayer() {return lockLayer;}
+    public InteractionLayerMask GetQuantumGateLayer() {return gateLayer;}
 
     private void CheckComponent()
     {
@@ -139,12 +143,45 @@ public class SocketsManager : MonoBehaviour
         updateCircuitByJson(null, -1, -1, true);
     }
 
-    // change xr layer to "lock"
-    public void LockMultiGate(MultiInputGateConnect wantedObj)
+    private void ToggleEmptySocket(int row, int col, bool isLock)
     {
-        //get high-low of multigate
+        if(socketMap[row][col].getCurrentGate() != null) return;
+
+        var socketInteractor = socketMap[row][col].GetComponent<XRSocketInteractor>();
+
+        if(isLock) socketInteractor.interactionLayers |= GetLockLayer();    //add layer
+        else       socketInteractor.interactionLayers &= ~GetLockLayer();   //remove layer
+    }
+
+    // change xr layer to "lock"
+    public void ToggleMultiGateColumn(MultiInputGateConnect wantedConnect, bool doLock = true)
+    {
+        int highQubit, lowQubit, column;
+        wantedConnect.getHighLow(out highQubit, out lowQubit, out column);
+
+        if(highQubit < 0 || lowQubit < 0 || column < 0)
+        {
+            Debug.LogError("Error: invalid range of multi gate.");
+            return;
+        }
+
+        for(int i = lowQubit; i<=highQubit; i++)
+        {
+            if(socketMap[i][column].getCurrentGate() != null) continue; //found same group
+            ToggleEmptySocket(i, column, doLock);
+        }
+
         //expand range
-        //set socket and gate layer to 'lock'
+        for(int i = lowQubit-1; i>=0; i--)
+        {
+            if(socketMap[i][column].getCurrentGate() != null) break; //reach wall
+            ToggleEmptySocket(i, column, doLock);
+        }
+        for(int i = highQubit+1; i<totalQubits; i++)
+        {
+            if(socketMap[i][column].getCurrentGate() != null) break; //reach wall
+            ToggleEmptySocket(i, column, doLock);
+        }
     }
 
     public void RemoveFromMultiGateList(MultiInputGateConnect wantedObj)
@@ -329,6 +366,7 @@ public class SocketsManager : MonoBehaviour
         return json;
     }
 
+    // prevent player from grabbing quantum gates both on circuit and storage
     public void FreezeGateBlock(bool doDisable)
     {
         foreach(QubitCircuit circuit in qubitCircuits)

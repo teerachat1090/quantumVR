@@ -71,7 +71,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor
   m_InteractionManager: {fileID: 0}
   m_InteractionLayers:
-    m_Bits: 1073741824
+    m_Bits: 1073741825
   m_Handedness: 0
   m_AttachTransform: {fileID: 7455577308727650195}
   m_KeepSelectedTargetValid: 1
@@ -134,15 +134,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a692203292a67b44cb55a2c993d8516d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GateSocket
-  lockOnSocket:
-    m_Bits: 268435456
-  defaultLayer:
-    m_Bits: 1073741824
   socketIndex: 0
   qubitIndex: -1
   currentGate: {fileID: 0}
   inputType: 0
-  enable: 1
+  beLazy: 0
 --- !u!1 &9060848014483614306
 GameObject:
   m_ObjectHideFlags: 0

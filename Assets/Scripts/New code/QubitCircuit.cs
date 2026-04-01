@@ -137,6 +137,7 @@ public class QubitCircuit : MonoBehaviour
         return Vector3.zero;
     }
 
+    // prevent player from grabbing placed gates
     public void FreezeGateBlock(bool flag)
     {
         toggleCircuit();

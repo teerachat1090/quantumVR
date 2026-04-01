@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class MultiInputGateConnect : MonoBehaviour
 {
@@ -9,10 +13,37 @@ public class MultiInputGateConnect : MonoBehaviour
     private bool memberSet = false;
     public int column = -1;
 
-    public void getHighLow(out int high, out int low)
+    public void getHighLow(out int highQ, out int lowQ, out int col)
     {
         // iterate through member and get most high-low index
-        high = 0; low = 0;
+        highQ = -1; lowQ = -1; col = column;
+
+        foreach(QuantumGate gate in gateMember)
+        {
+            var grabInteractable = gate.gameObject.GetComponent<XRGrabInteractable>();
+
+            if(grabInteractable == null)
+            {
+                Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");
+                return;
+            }
+
+            IXRSelectInteractor selectingInteractor = grabInteractable.interactorsSelecting.FirstOrDefault();
+            if (selectingInteractor != null && selectingInteractor is XRSocketInteractor socket)
+            {
+                var gateSocket = socket.GetComponent<GateSocket>();
+                if(gateSocket == null)
+                {
+                    Debug.LogWarning("Warning: socket's component is missing (GateSocket).");
+                    return;
+                }
+
+                int val = gateSocket.qubitIndex;
+                if(highQ < 0)        highQ = lowQ = val;
+                else if(val > highQ) highQ = val;
+                else if(val < lowQ)  lowQ = val;
+            }
+        }
     }
 
     public void AddMember(QuantumGate memberGate)

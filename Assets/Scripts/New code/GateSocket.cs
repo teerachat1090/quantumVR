@@ -35,6 +35,17 @@ public class GateSocket : MonoBehaviour
         CheckComponent();
     }
 
+    private XRGrabInteractable GetGrabInteractable(QuantumGate gate)
+    {
+        var grabInteractable = gate.GetComponent<XRGrabInteractable>();
+        if(grabInteractable == null){
+            Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");   
+            return null;
+        }
+
+        return grabInteractable;
+    }
+
     void OnGatePlaced(SelectEnterEventArgs args)
     {
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();
@@ -53,11 +64,16 @@ public class GateSocket : MonoBehaviour
         int numInput = gate.GetNumInput();
         if(numInput > 1) 
         {
-            if (gate.friendExist) //unlock layer given connector
+            if (gate.friendExist) //unlock layer of placed gate
             {
                 var socketsManager = parentCircuit.GetSocketsManager();
-                //unlocking
-                return;
+
+                var grabInteractable = GetGrabInteractable(gate);
+                if(grabInteractable == null) return;
+                grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
+
+                socketsManager.ToggleMultiGateColumn(gate.connect, doLock: false);
+                //unlock other socket
             }
             else //introduce new gate to socket manager
             {
@@ -87,10 +103,22 @@ public class GateSocket : MonoBehaviour
             return;
         } 
 
+        // Remove assigned multi-input gate
         if(gate.friendExist && !gate.beingDestroyed)
         {
             var socketsManager = parentCircuit.GetSocketsManager();
-            socketsManager.LockMultiGate(gate.connect);
+
+            if(gate.connect == null)
+            {
+                Debug.LogWarning("Warning: Can't find connector between multi-input gates.");
+                return;
+            }
+
+            var grabInteractable = GetGrabInteractable(gate);
+            if(grabInteractable == null) return;
+            grabInteractable.interactionLayers = socketsManager.GetLockLayer();
+
+            socketsManager.ToggleMultiGateColumn(gate.connect);
         }
         //num input > 1
 
