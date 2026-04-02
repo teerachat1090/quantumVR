@@ -11,6 +11,11 @@ public class TopologyBuilder : MonoBehaviour
     public Transform nodeParent;
     public Transform linkParent;
 
+    [Header("Graph Transform")]
+    public Vector3 graphPosition = new Vector3(0, 1.5f, 5f);
+    public Vector3 graphRotation = new Vector3(0, 0, 0);
+    public Vector3 linearRotation = new Vector3(0, 0, 0);
+
     [Header("Materials")]
     public Material matEnd;
     public Material matHub;
@@ -41,6 +46,12 @@ public class TopologyBuilder : MonoBehaviour
     // ─── Build ───────────────────────────────────────────
     public void Build(string topo, int n, float spacing)
     {
+        // Linear ใช้ linearRotation, topology อื่นใช้ graphRotation
+        Vector3 rot = (topo == "linear") ? linearRotation : graphRotation;
+
+        nodeParent.position = graphPosition;
+        nodeParent.rotation = Quaternion.Euler(rot);
+
         Clear();
         switch (topo)
         {
@@ -76,7 +87,7 @@ public class TopologyBuilder : MonoBehaviour
                 index = i,
                 type  = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
                 label = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "R" + i,
-                position = new Vector3(startX + i * spacing, 0, 0)
+                position = new Vector3(0, 0, startX + i * spacing)
             });
         }
         for (int i = 0; i < n - 1; i++) links.Add((i, i + 1));
@@ -84,7 +95,6 @@ public class TopologyBuilder : MonoBehaviour
 
     void BuildStar(int n, float spacing)
     {
-        // Hub ตรงกลาง
         nodeDataList.Add(new NodeData
         {
             index = 0, type = NodeType.Hub,
@@ -126,12 +136,11 @@ public class TopologyBuilder : MonoBehaviour
             });
         }
 
-        // เชื่อมแนวนอน + แนวตั้ง
         for (int i = 0; i < n; i++)
         {
             int c = i % cols, r = i / cols;
-            if (c + 1 < cols && i + 1 < n)       links.Add((i, i + 1));
-            if (r + 1 < rows && i + cols < n)     links.Add((i, i + cols));
+            if (c + 1 < cols && i + 1 < n)   links.Add((i, i + 1));
+            if (r + 1 < rows && i + cols < n) links.Add((i, i + cols));
         }
     }
 
@@ -157,7 +166,7 @@ public class TopologyBuilder : MonoBehaviour
                     depth * spacing)
             });
 
-            if (i > 0) links.Add(((i - 1) / 2, i)); // parent → child
+            if (i > 0) links.Add(((i - 1) / 2, i));
         }
     }
 
@@ -185,43 +194,39 @@ public class TopologyBuilder : MonoBehaviour
 
     void SpawnObjects()
     {
-        // Nodes
+        // Nodes — ใช้ localPosition เทียบกับ nodeParent
         foreach (var data in nodeDataList)
         {
-            var pos = data.position + Vector3.up * 1.5f; // ยกขึ้น 1.5 หน่วย
-            var go = Instantiate(nodePrefab, pos, Quaternion.identity, nodeParent);
+            var go = Instantiate(nodePrefab, nodeParent);
+            go.transform.localPosition = data.position;
             go.name = data.label;
 
-            // ตั้งขนาดตาม type
             float scale = data.type == NodeType.Hub ? 1.4f
                         : data.type == NodeType.End  ? 1.1f : 0.85f;
             go.transform.localScale = Vector3.one * scale;
 
-            // ตั้ง Material
             var mat = data.type == NodeType.Hub ? matHub
                     : data.type == NodeType.End  ? matEnd : matRep;
             go.GetComponent<Renderer>().material = mat;
-
-            // เก็บ index ไว้ใน NodeClickHandler (Step 4)
-           // var handler = go.GetComponent<NodeClickHandler>();
-           // if (handler) handler.nodeIndex = data.index;
-
+            var handler = go.GetComponent<NodeClickHandler>();
+            if (handler) handler.nodeIndex = data.index;
             nodes.Add(go);
         }
 
-        // Links
+        // Links — ใช้ local space เทียบกับ linkParent
         foreach (var (a, b) in links)
         {
-            var go = Instantiate(linkPrefab, Vector3.zero, Quaternion.identity, linkParent);
+            var go = Instantiate(linkPrefab, linkParent);
             var lr = go.GetComponent<LineRenderer>();
-            lr.SetPosition(0, nodeDataList[a].position + Vector3.up * 1.5f);
-            lr.SetPosition(1, nodeDataList[b].position + Vector3.up * 1.5f);
+            lr.useWorldSpace = false;
+            lr.SetPosition(0, nodeDataList[a].position);
+            lr.SetPosition(1, nodeDataList[b].position);
             lr.material = matLink;
             linkRenderers.Add(lr);
         }
     }
 
-    // ─── Update Link Colors (ถูกเรียกจาก GraphManager) ──
+    // ─── Update Link Colors ───────────────────────────────
     public void RefreshLinkColors(int failNode, int selNode,
                                    bool simFail, bool simJam, bool simHeavy)
     {
