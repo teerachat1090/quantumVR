@@ -12,6 +12,53 @@ public class MultiInputGateConnect : MonoBehaviour
     private List<LineConnecting> targetConnect = new List<LineConnecting>();
     private bool memberSet = false;
     public int column = -1;
+    public string gateName = "";
+
+    private GateSocket GetCurrentGatesocket(QuantumGate gate)
+    {
+        XRGrabInteractable grabInteractable = gate.GetComponent<XRGrabInteractable>();
+        if(grabInteractable == null) {
+            Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");
+            return null;
+        }
+
+        IXRSelectInteractor selectingInteractor = grabInteractable.interactorsSelecting.FirstOrDefault();
+        if (selectingInteractor != null && selectingInteractor is XRSocketInteractor socket)
+        {
+            GateSocket gateSocket = socket.GetComponent<GateSocket>();
+            if(gateSocket == null)
+            {
+                Debug.LogWarning("Warning: socket's component is missing (GateSocket).");
+                return null;
+            }
+
+            return gateSocket;
+        }
+
+        return null;
+    }
+
+    public void GetGateListByType(out List<int> controlsRow, out List<int> targetsRow)
+    {
+        var control_temp = new List<int>();
+        var target_temp = new List<int>();
+
+        foreach(QuantumGate gate in gateMember)
+        {
+            GateSocket gateSocket = gate.socket;
+            if(gateSocket == null) {
+                Debug.LogWarning("no socket attach to this gate");
+                continue;
+            }
+
+            int row = gateSocket.qubitIndex;
+            if (gate.isController)  control_temp.Add(row);
+            else target_temp.Add(row);
+        }
+
+        controlsRow = control_temp;
+        targetsRow = target_temp;
+    }
 
     public void getHighLow(out int highQ, out int lowQ, out int col)
     {
@@ -25,25 +72,36 @@ public class MultiInputGateConnect : MonoBehaviour
             if(grabInteractable == null)
             {
                 Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");
-                return;
+                continue;
             }
 
-            IXRSelectInteractor selectingInteractor = grabInteractable.interactorsSelecting.FirstOrDefault();
-            if (selectingInteractor != null && selectingInteractor is XRSocketInteractor socket)
-            {
-                var gateSocket = socket.GetComponent<GateSocket>();
-                if(gateSocket == null)
-                {
-                    Debug.LogWarning("Warning: socket's component is missing (GateSocket).");
-                    return;
-                }
+            GateSocket gateSocket = gate.socket;
+            if(gateSocket == null) continue;
 
-                int val = gateSocket.qubitIndex;
-                if(highQ < 0)        highQ = lowQ = val;
-                else if(val > highQ) highQ = val;
-                else if(val < lowQ)  lowQ = val;
-            }
+            int val = gateSocket.qubitIndex;
+            if(highQ < 0)        highQ = lowQ = val;
+            else if(val > highQ) highQ = val;
+            else if(val < lowQ)  lowQ = val;
         }
+    }
+
+    public void ToggleCurrentColumn(bool doLock = true)
+    {
+        int highQubit, lowQubit, column;
+        getHighLow(out highQubit, out lowQubit, out column);
+        if(socketsManager == null)
+        {
+            Debug.LogError("Error: socketsManager is null. can't proceed further.");
+            return;
+        }
+
+        if(highQubit < 0 || lowQubit < 0 || column < 0)
+        {
+            Debug.LogError("Error: invalid range of multi gate.");
+            return;
+        }
+
+        socketsManager.ToggleMultiGateColumn(highQubit, lowQubit, column, doLock);
     }
 
     public void AddMember(QuantumGate memberGate)
@@ -89,6 +147,7 @@ public class MultiInputGateConnect : MonoBehaviour
 
     public void deleteItself()
     {
+        ToggleCurrentColumn(doLock: false);
         foreach(QuantumGate gate in gateMember)
         {
             gate.beingDestroyed = true;
@@ -96,8 +155,6 @@ public class MultiInputGateConnect : MonoBehaviour
             Debug.Log($"delete member name: {gate.gameObject.name}");
         }
         socketsManager.RemoveFromMultiGateList(this);
-
-        //tell socket manager to free lock socket!
 
         Destroy(gameObject);
     }

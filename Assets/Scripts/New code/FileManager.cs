@@ -62,7 +62,21 @@ public class FileManager
         sequencePath = tempSequencePath;
     }
 
-    // TODO: add list input for checking any file
+
+    public void updateJsonToFile_temp(string jsonExport, bool isBlochSphere)
+    {
+        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
+        createFolderIfNotExist(dataFolderPath);
+
+        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
+        createFolderIfNotExist(inputFolderPath);
+        
+        string wantedJsonFile = isBlochSphere ? "bloch_input_temp.json" : "q_input_temp.json";
+        string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
+
+        File.WriteAllText(inputPath, jsonExport);
+    }
+
     public void updateJsonInputToFile(string jsonExport, bool isBlochSphere)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);

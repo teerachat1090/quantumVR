@@ -9,14 +9,17 @@ public class QuantumGate : MonoBehaviour
 {
     [Header("Gate Info")]
     [SerializeField] private string gateName; // H, X, Y, Z, CNOT, etc.
-    public enum inputType{Default, Single, Double, Triple, target}; 
+    public enum inputType{Single, Double, Triple, target, Default}; 
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     
     public SocketsManager _socketsManager = null;
     private CircuitSocket currentSocket;
-    public bool friendExist = false; //for multi-input gate
-    public bool beingDestroyed = false;
+
+    [Header("Multi-input Gate Info")]
+    public bool friendExist = false, beingDestroyed = false;
+    public bool isController = false;
+    public GateSocket socket = null;
     public MultiInputGateConnect connect = null;
 
     void Start()
@@ -57,7 +60,7 @@ public class QuantumGate : MonoBehaviour
 
     public int GetNumInput()
     {
-        if(gatetype == inputType.Single) return 3;
+        if(gatetype == inputType.Single) return 1;
 
         if(gatetype == inputType.Double) return 2;
 

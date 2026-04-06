@@ -131,6 +131,13 @@ public class CircuitManager : MonoBehaviour
         if(!isBlochSphere) qSphere.UpdateFromJson();
     }
 
+    //temp function for new file structure
+    public void updateOverallCircuit_temp(string circuitJson)
+    {
+        fileManager.updateJsonToFile_temp(circuitJson, isBlochSphere);
+    }
+
+
     // recalculate everytinm the circuit change
     public void updateOverallCircuit(string circuitJson)
     {

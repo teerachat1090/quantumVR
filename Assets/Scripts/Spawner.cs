@@ -130,7 +130,13 @@ public class Spawner : MonoBehaviour
         spawnedRb.isKinematic = false;
         spawnedRb.useGravity = true;
 
-        if(usePrefab) return;
+        if(usePrefab) {
+            var quantumgate = spawnedObject.GetComponent<QuantumGate>();
+            string name = spawnedObject.name;
+            int sepIndex = name.IndexOf("_");
+            quantumgate.name = name.Remove(sepIndex);
+            return;
+        }
 
         // Edit spawn script (if has one): Prefab must not spawn another
         Spawner spawnedScript = spawnedObject.GetComponent<Spawner>();

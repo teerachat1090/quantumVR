@@ -10,12 +10,9 @@ public class GateSocket : MonoBehaviour
     public int socketIndex = 0; //0 by default
     public int qubitIndex = -1;
     public QuantumGate currentGate = null;
-    public QuantumGate.inputType inputType = QuantumGate.inputType.Default;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
     public bool beLazy = false; 
-    private MultiInputGateConnect connect = null;
-
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void CheckComponent()
@@ -50,10 +47,11 @@ public class GateSocket : MonoBehaviour
     {
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();
 
-        if(gate != null) {
-            currentGate = gate;
-            inputType = currentGate.getGateType();
-        }
+        if(gate == null) return;
+
+        currentGate = gate;
+        gate.socket = this;
+        Debug.Log("asigning socket...");
 
         if(beLazy)
         { 
@@ -62,39 +60,40 @@ public class GateSocket : MonoBehaviour
         }
 
         int numInput = gate.GetNumInput();
-        if(numInput > 1) 
+        if(numInput == 1)
         {
-            if (gate.friendExist) //unlock layer of placed gate
-            {
-                var socketsManager = parentCircuit.GetSocketsManager();
-
-                var grabInteractable = GetGrabInteractable(gate);
-                if(grabInteractable == null) return;
-                grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
-
-                socketsManager.ToggleMultiGateColumn(gate.connect, doLock: false);
-                //unlock other socket
-            }
-            else //introduce new gate to socket manager
-            {
-                var socketsManager = parentCircuit.GetSocketsManager();
-                bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
-                if (!spaceAvailible)
-                {
-                    Debug.Log("Space Not Availible.");
-                    Destroy(gate.gameObject);
-                }
-            }
+            
+            updateCircuit(true);
             return;
         }
+        
+        if (gate.friendExist) //unlock layer of placed gate
+        {
+            var socketsManager = parentCircuit.GetSocketsManager();
 
-        updateCircuit(true);
+            var grabInteractable = GetGrabInteractable(gate);
+            if(grabInteractable == null) return;
+            grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
+
+            gate.connect.ToggleCurrentColumn(doLock: false);
+        }
+        else //introduce new gate to socket manager
+        {
+            var socketsManager = parentCircuit.GetSocketsManager();
+            bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
+            if (!spaceAvailible)
+            {
+                Debug.LogWarning("Space Not Availible.");
+                Destroy(gate.gameObject);
+            }
+        }
     }
 
     void OnGateRemoved(SelectExitEventArgs args)
     {   
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();        
         currentGate = null;
+        gate.socket = null;
 
         int numInput = gate.GetNumInput();
         if(numInput == 1)
@@ -118,20 +117,10 @@ public class GateSocket : MonoBehaviour
             if(grabInteractable == null) return;
             grabInteractable.interactionLayers = socketsManager.GetLockLayer();
 
-            socketsManager.ToggleMultiGateColumn(gate.connect);
+            gate.connect.ToggleCurrentColumn();
         }
-        //num input > 1
-
         
-        // updating multi input gate => socketsManager's task
-            // => make gate tell connecter instead
-            //change 'gate' layer to 'lock'
-            //change space in column layer to 'lock'
-            //lock socket for column
-        
-
-        //update circuit table
-        
+        //case gate.beingDestroyed = true -> gate will manage that
     }
 
     void OnDestroy()

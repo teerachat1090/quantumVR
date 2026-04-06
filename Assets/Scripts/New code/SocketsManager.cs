@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.AdaptivePerformance;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -153,23 +152,25 @@ public class SocketsManager : MonoBehaviour
         else       socketInteractor.interactionLayers &= ~GetLockLayer();   //remove layer
     }
 
-    // change xr layer to "lock"
-    public void ToggleMultiGateColumn(MultiInputGateConnect wantedConnect, bool doLock = true)
+    // change xr layer to "lock" given
+    public void ToggleMultiGateColumn(int highQubit, int lowQubit, int column, bool doLock = true, bool spread = true)
     {
-        int highQubit, lowQubit, column;
-        wantedConnect.getHighLow(out highQubit, out lowQubit, out column);
-
         if(highQubit < 0 || lowQubit < 0 || column < 0)
         {
             Debug.LogError("Error: invalid range of multi gate.");
             return;
         }
 
+        FreezeGateBlock(doLock);
+
+        //inside range
         for(int i = lowQubit; i<=highQubit; i++)
         {
             if(socketMap[i][column].getCurrentGate() != null) continue; //found same group
             ToggleEmptySocket(i, column, doLock);
         }
+
+        if(!spread) return;
 
         //expand range
         for(int i = lowQubit-1; i>=0; i--)
@@ -199,14 +200,15 @@ public class SocketsManager : MonoBehaviour
         int offset = -1, change = -1;
 
         //assign base and other prefab
-        var groupParent = new GameObject();
-        groupParent.name = "holder";
+        var groupParent = new GameObject(){name = "holder"};
         var connect = groupParent.AddComponent<MultiInputGateConnect>();
         connect.socketsManager = this;
         connect.column = col;
         
         var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
         baseObject_quantumGate.friendExist = true;
+        baseObject_quantumGate.socket = socketMap[row][col];
+        connect.gateName = baseObject_quantumGate.getGateName();
         connect.AddMember(baseObject_quantumGate);
 
         controlNum--;   total--;
@@ -219,12 +221,14 @@ public class SocketsManager : MonoBehaviour
                 targetSocket.beLazy = true;
                 Transform socketTransform = targetSocket.transform;
                 
-                var spawned = Instantiate(controlNum > 0 ? controlPrefab: targetPrefab, 
+                bool isController = controlNum > 0;
+                var spawned = Instantiate(isController ? controlPrefab: targetPrefab, 
                                         socketTransform.position, quaternion.identity);
-                
                 spawned.transform.localScale *= .25f;
+
                 var spawned_quantumGate = spawned.GetComponent<QuantumGate>();
                 spawned_quantumGate.friendExist = true;
+                spawned_quantumGate.socket = targetSocket;
                 connect.AddMember(spawned_quantumGate);
                 
                 if(controlNum > 0)  controlNum--;
@@ -239,7 +243,7 @@ public class SocketsManager : MonoBehaviour
         multiGateList.Add(groupParent);
 
         // ===> do update circuit in here instead
-        updateCircuitByJson(baseObject_quantumGate.getGateName(), col, row, true);
+        updateCircuitByJson(connect.gateName, col, row, true);
     }
 
     // only target = NOT gate
@@ -282,6 +286,7 @@ public class SocketsManager : MonoBehaviour
         return qubitCircuits;
     }
 
+    // get list of gate in specific rows
     public List<QuantumGate> GetGateListByQubitIndex(int qubitIndex)
     {
         int targetIndex = qubitCircuits.FindIndex( q => q.circuitIndex == qubitIndex);
@@ -316,6 +321,72 @@ public class SocketsManager : MonoBehaviour
 
         string circuitJson = circuitToExportInit(headManager.isItBlochSphere());
         headManager.updateOverallCircuit(circuitJson);
+
+        string circuitJson_temp = circuitToExportInit_temp();
+        headManager.updateOverallCircuit_temp(circuitJson_temp);
+    }
+
+    public string circuitToExportInit_temp()
+    {
+        Debug.Log("Creating json circuit...");
+        var circuitInfo = new CircuitInfo
+        {
+            qubitAmount = totalQubits,
+            gateList = new List<GateInfo>()
+        };
+
+        int count = 0;
+
+        //single input gate
+        for(int i=0; i<totalQubits; i++)
+        {
+            foreach(GateSocket socket in socketMap[i])
+            {
+                QuantumGate gate = socket.getCurrentGate();
+                if(gate == null) {
+                    continue;
+                } 
+                if(gate.GetNumInput() > 1) {
+                    continue;
+                }
+
+                var gateInfo = new GateInfo
+                {
+                    id = count,
+                    name = gate.getGateName(),
+                    column = socket.socketIndex,
+                    controlRow = new List<int>() {socket.qubitIndex},
+                    targetRow = null
+                };
+                count++;
+                circuitInfo.gateList.Add(gateInfo);
+            }
+        }
+
+        //multi-input gate
+        foreach(GameObject member in multiGateList)
+        {
+            var connect = member.GetComponent<MultiInputGateConnect>();
+            if(connect == null) continue;
+
+            //create info for multi-gate 
+            connect.GetGateListByType(out List<int> controlsow, out List<int> targetsRow);
+            var gateInfo = new GateInfo
+            {
+                id = count,
+                name = connect.gateName,
+                column = connect.column,
+                controlRow = controlsow,
+                targetRow = targetsRow
+            };
+            count++;
+            circuitInfo.gateList.Add(gateInfo);
+        }
+
+        // gather to convert to json string
+        string json = JsonUtility.ToJson(circuitInfo, true);
+        Debug.Log("Creating json finished");
+        return json;
     }
 
     public string circuitToExportInit(bool isBlochSphere)
@@ -325,23 +396,23 @@ public class SocketsManager : MonoBehaviour
         var circuitToExport = new CircuitToExecute
         {
             blochSphere = isBlochSphere,
-            qubitAmount = exportIndex.Count,
-            qubits = new List<Qubit>()
+            qubitAmount = totalQubits,
+            qubits = new List<QubitExport>()
         };
         //Debug.Log($"create structure, qubit amount: {circuitToExport.qubitAmount}");
 
-        //to each avilible qubit (check by exportIndex)
-        for(int i=0; i<exportIndex.Count; i++)
+        //to each avilible qubit (not use exportIndex)
+        for(int i=0; i<totalQubits; i++)
         {
-            Qubit exportQubit = new Qubit()
+            var exportQubit = new QubitExport()
             {
               qubitIndex = i,
-              gateList = new List<Gate>()  
+              gateList = new List<QuantumGateExport>()  
             };
             //Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
 
+            // get all gate in row 'i'
             List<QuantumGate> gates = GetGateListByQubitIndex(exportIndex[i]);
-
             foreach(QuantumGate gate in gates)
             {
                 if (gate == null) {
@@ -349,7 +420,7 @@ public class SocketsManager : MonoBehaviour
                     continue;
                 }
 
-                Gate newGate = new Gate
+                var newGate = new QuantumGateExport
                 {
                     gateName = gate.getGateName(),
                     targetQubit = (gate.getGateType() == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
@@ -392,26 +463,40 @@ public class CircuitToExecute
 {
     public bool blochSphere;
     public int qubitAmount;
-    public List<Qubit> qubits;
+    public List<QubitExport> qubits;
 }
 
-[Serializable]
-public class Qubit
+[Serializable] //row
+public class QubitExport
 {
     public int qubitIndex;
-    public List<Gate> gateList;
+    public List<QuantumGateExport> gateList;
 }
 
-[Serializable]
-public class Gate
+[Serializable] //each column
+public class QuantumGateExport
 {
     public string gateName; //Identity gate if none specified
     public int targetQubit; //-1 if single qubit gate
 }
 
+//-----------------------------------
+
 [Serializable]
-public class SocketStatus
+public class CircuitInfo
 {
-    public GameObject socket;
-    public bool isEmpty;
+    public int qubitAmount;
+    public List<GateInfo> gateList;
+
 }
+
+[Serializable]
+public class GateInfo
+{
+    public int id;
+    public string name;
+    public int column;
+    public List<int> controlRow, targetRow;
+}
+
+//if target is null => single input gate

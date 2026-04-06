@@ -239,11 +239,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuantumGate
   gateName: CNOT
-  gatetype: 2
+  gatetype: 1
   gateDescription: control of CNOT gate
-  socketsManager: {fileID: 0}
+  _socketsManager: {fileID: 0}
   friendExist: 0
-  parentAct: 0
+  beingDestroyed: 0
+  isController: 1
+  socket: {fileID: 0}
+  connect: {fileID: 0}
 --- !u!114 &6083398492378596884
 MonoBehaviour:
   m_ObjectHideFlags: 0
