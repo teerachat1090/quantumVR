@@ -12,6 +12,9 @@ public class GraphManager : MonoBehaviour
     public int nodeCount = 5;
     public float spacing = 2f;
 
+    [Header("Flow")]
+    public FlowManager flowManager;  // ลาก FlowManager ใน Inspector
+
     // Simulation state
     [HideInInspector] public bool simFail, simJam, simHeavy;
     [HideInInspector] public int failNode = -1;
@@ -24,35 +27,37 @@ public class GraphManager : MonoBehaviour
     [HideInInspector] public bool ovFlow  = true;
 
     // Parameters
-    [HideInInspector] public float distKm  = 150f;
-    [HideInInspector] public float fidelity = 90f;
-    [HideInInspector] public int redundancy = 2;
+    [HideInInspector] public float distKm    = 150f;
+    [HideInInspector] public float fidelity  = 90f;
+    [HideInInspector] public int redundancy  = 2;
     [HideInInspector] public int hubCapacity = 4;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+    void Awake() { Instance = this; }
 
-    void Start()
+        System.Collections.IEnumerator Start()
     {
         Rebuild();
+        yield return null;  // รอ 1 frame ให้ LinkFlowEffect.Start() รันก่อน
+        Refresh();          // แล้วค่อย SetFidelity อีกครั้ง
     }
-
-    // ─── เรียกทุกครั้งที่มีการเปลี่ยนแปลง ───────────────
+    // ─── เรียกทุกครั้งที่มีการเปลี่ยนแปลง topology / nodeCount / spacing ───
     public void Rebuild()
     {
         builder.Build(currentTopo, nodeCount, spacing);
         Refresh();
     }
 
-    // Refresh เฉพาะสี ไม่ต้อง rebuild ทั้งหมด
+    // Refresh เฉพาะสี + label — ไม่ต้อง rebuild ทั้งหมด
     public void Refresh()
-    {
-        builder.RefreshNodeColors(failNode, selNode);
-        builder.RefreshLinkColors(failNode, selNode,
-                                   simFail, simJam, simHeavy);
-    }
+{
+    builder.RefreshNodeColors(failNode, selNode);
+    builder.RefreshLinkColors(failNode, selNode, simFail, simJam, simHeavy);
+    builder.RefreshLabels(failNode, selNode);
+    builder.RefreshLinkLabels();
+    flowManager?.SetFidelity(fidelity);
+    flowManager?.SetFlowEnabled(ovFlow);
+    FindFirstObjectByType<MetricsPanel>()?.Refresh();  // ← เพิ่มบรรทัดนี้
+}
 
     // ─── Topology ────────────────────────────────────────
     public void SetTopo(string topo)
@@ -72,16 +77,20 @@ public class GraphManager : MonoBehaviour
         Rebuild();
     }
 
-    public void SetSpacing(float s)
-    {
-        spacing = s;
-        Rebuild();
-    }
+    public void SetSpacing(float s)   { spacing   = s; Rebuild(); }
 
-    public void SetDistKm(float d)  { distKm   = d; Refresh(); }
-    public void SetFidelity(float f){ fidelity  = f; Refresh(); }
-    public void SetRedundancy(int r){ redundancy = r; Refresh(); }
-    public void SetHubCapacity(int h){ hubCapacity = h; Refresh(); }
+    // distKm และ fidelity → Refresh() เพื่ออัปเดต link labels ด้วย
+    public void SetDistKm(float d)    { distKm    = d; Refresh(); }
+    public void SetFidelity(float f)  { fidelity  = f; Refresh(); }
+
+    public void SetRedundancy(int r)  { redundancy   = r; Refresh(); }
+    public void SetHubCapacity(int h) { hubCapacity  = h; Refresh(); }
+
+    // ─── Overlay ─────────────────────────────────────────
+    public void SetOvLabel(bool v) { ovLabel = v; Refresh(); }
+    public void SetOvDist(bool v)  { ovDist  = v; Refresh(); }   // toggle → แสดง/ซ่อน Distance labels
+    public void SetOvFid(bool v)   { ovFid   = v; Refresh(); }   // toggle → แสดง/ซ่อน Fidelity labels
+    public void SetOvFlow(bool v)  { ovFlow  = v; Refresh(); }
 
     // ─── Simulation ──────────────────────────────────────
     public void ToggleFail()
@@ -91,31 +100,16 @@ public class GraphManager : MonoBehaviour
         Refresh();
     }
 
-    public void ToggleJam()
-    {
-        simJam = !simJam;
-        Refresh();
-    }
-
-    public void ToggleHeavy()
-    {
-        simHeavy = !simHeavy;
-        Refresh();
-    }
+    public void ToggleJam()   { simJam   = !simJam;   Refresh(); }
+    public void ToggleHeavy() { simHeavy = !simHeavy; Refresh(); }
 
     // ─── Node Click ──────────────────────────────────────
     public void OnNodeClicked(int index)
     {
         if (simFail)
-        {
-            // fail mode → คลิก Node ทำให้พัง
             failNode = (failNode == index) ? -1 : index;
-        }
         else
-        {
-            // select mode → highlight
-            selNode = (selNode == index) ? -1 : index;
-        }
+            selNode  = (selNode  == index) ? -1 : index;
         Refresh();
     }
 
@@ -144,8 +138,8 @@ public class GraphManager : MonoBehaviour
                 break;
         }
 
-        float fid = fidelity / 100f;
-        int totalFid = Mathf.RoundToInt(Mathf.Pow(fid, hops) * 100);
+        float fid      = fidelity / 100f;
+        int totalFid   = Mathf.RoundToInt(Mathf.Pow(fid, hops) * 100);
 
         if (simFail)  { hops++; totalFid = Mathf.Max(8, totalFid - 22); }
         if (simJam)   totalFid = Mathf.Max(8, totalFid - 18);

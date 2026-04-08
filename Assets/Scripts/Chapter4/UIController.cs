@@ -17,6 +17,12 @@ public class UIController : MonoBehaviour
     public TextMeshProUGUI lblDist;
     public TextMeshProUGUI lblFidelity;
 
+    [Header("Overlay Toggles")]
+    public UISwitcher.UISwitcher togLabel;
+    public UISwitcher.UISwitcher togDist;
+    public UISwitcher.UISwitcher togFid;
+    public UISwitcher.UISwitcher togFlow;
+
     void Start()
     {
         // Topology buttons
@@ -40,7 +46,7 @@ public class UIController : MonoBehaviour
             lblFidelity.text = (int)v + "%";
         });
 
-        // ค่า default
+        // ค่า default sliders
         sliderNodes.minValue = 3;
         sliderNodes.maxValue = 10;
         sliderNodes.value    = 5;
@@ -52,5 +58,27 @@ public class UIController : MonoBehaviour
         sliderFidelity.minValue = 60;
         sliderFidelity.maxValue = 99;
         sliderFidelity.value    = 90;
+
+        // Overlay Toggles
+        if (togLabel != null)
+        {
+            togLabel.isOn = true;
+            togLabel.onValueChanged.AddListener(v => GraphManager.Instance.SetOvLabel(v));
+        }
+        if (togDist != null)
+        {
+            togDist.isOn = false;
+            togDist.onValueChanged.AddListener(v => GraphManager.Instance.SetOvDist(v));
+        }
+        if (togFid != null)
+        {
+            togFid.isOn = false;
+            togFid.onValueChanged.AddListener(v => GraphManager.Instance.SetOvFid(v));
+        }
+        if (togFlow != null)
+        {
+            togFlow.isOn = true;
+            togFlow.onValueChanged.AddListener(v => GraphManager.Instance.SetOvFlow(v));
+        }
     }
 }

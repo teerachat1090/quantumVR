@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class TopologyBuilder : MonoBehaviour
 {
@@ -12,9 +13,16 @@ public class TopologyBuilder : MonoBehaviour
     public Transform linkParent;
 
     [Header("Graph Transform")]
-    public Vector3 graphPosition = new Vector3(0, 1.5f, 5f);
-    public Vector3 graphRotation = new Vector3(0, 0, 0);
-    public Vector3 linearRotation = new Vector3(0, 0, 0);
+    public Vector3 graphPosition   = new Vector3(0, 1.5f, 5f);
+    public Vector3 graphRotation   = new Vector3(0, 0, 0);
+    public Vector3 linearRotation  = new Vector3(0, 0, 0);
+    public Vector3 treePosition    = new Vector3(0, 1.5f, 5f);
+    
+    [Header("Link Label Background")]
+    public Color  linkLabelBGColor  = new Color(1f, 1f, 1f, 0.55f); // ขาวโปร่งแสง
+    public float  linkLabelBGPadX   = 0.18f;
+    public float  linkLabelBGPadY   = 0.10f;
+    public int    linkLabelBGRadius = 12;   // corner radius (pixels บน texture)
 
     [Header("Materials")]
     public Material matEnd;
@@ -27,29 +35,115 @@ public class TopologyBuilder : MonoBehaviour
     public Material matLinkJam;
     public Material matLinkHeavy;
 
+    // สร้าง Material พื้นหลังมุมโค้งครั้งเดียว
+    private Material _bgMat;
+    Material GetBGMaterial()
+    {
+        if (_bgMat != null) return _bgMat;
+
+        int  tw = 128, th = 64, r = linkLabelBGRadius;
+        var  tex = new Texture2D(tw, th, TextureFormat.RGBA32, false);
+        var  px  = new Color32[tw * th];
+
+        for (int y = 0; y < th; y++)
+        for (int x = 0; x < tw; x++)
+        {
+            px[y * tw + x] = InsideRoundRect(x, y, tw, th, r)
+                ? new Color32(255, 255, 255, 255)
+                : new Color32(0,   0,   0,   0);
+        }
+
+        tex.SetPixels32(px);
+        tex.Apply();
+
+        _bgMat = new Material(Shader.Find("Sprites/Default"));
+        _bgMat.mainTexture = tex;
+        _bgMat.color       = linkLabelBGColor;
+        return _bgMat;
+    }
+
+    bool InsideRoundRect(int x, int y, int w, int h, int r)
+    {
+        // corners
+        int x0 = r, x1 = w - r - 1;
+        int y0 = r, y1 = h - r - 1;
+
+        // ถ้าอยู่ในแถบตรงกลาง → ใน
+        if (x >= x0 && x <= x1) return true;
+        if (y >= y0 && y <= y1) return true;
+
+        // มุมทั้ง 4
+        int cx = (x < x0) ? x0 : x1;
+        int cy = (y < y0) ? y0 : y1;
+        float dx = x - cx, dy = y - cy;
+        return dx * dx + dy * dy <= (float)r * r;
+    }
+
+
+    [Header("Label Settings")]
+    public float labelOffsetY   = 0f;
+    public float labelFontSize  = 1.2f;
+    public Color labelColorEnd  = new Color(0.42f, 0.39f, 0.83f);
+    public Color labelColorHub  = new Color(0.83f, 0.65f, 0.13f);
+    public Color labelColorRep  = new Color(0.54f, 0.54f, 0.54f);
+    public Color labelColorFail = new Color(0.88f, 0.44f, 0.31f);
+    public Color labelColorSel  = new Color(0.18f, 0.16f, 0.29f);
+
+    [Header("Link Label Settings")]
+    [Tooltip("ขนาดตัวอักษร Distance (km) กลางเส้น")]
+    public float linkLabelFontSizeDist = 1.4f;   // ← แยกออกจากกัน ปรับได้ใน Inspector
+
+    [Tooltip("ขนาดตัวอักษร Fidelity (%) กลางเส้น")]
+    public float linkLabelFontSizeFid  = 1.4f;   // ← แยกออกจากกัน ปรับได้ใน Inspector
+
+    public float linkLabelOffsetDist =  0.20f;   // Distance label — เหนือเส้น
+    public float linkLabelOffsetFid  = -0.20f;   // Fidelity label — ใต้เส้น
+    public Color linkLabelColorDist  = new Color(0.267f, 0.114f, 0.455f); // #441D74
+    public Color linkLabelColorFid   = new Color(0.267f, 0.114f, 0.455f); // #441D74
+
     // Runtime lists
-    [HideInInspector] public List<GameObject> nodes = new();
-    [HideInInspector] public List<(int a, int b)> links = new();
-    [HideInInspector] public List<LineRenderer> linkRenderers = new();
-    [HideInInspector] public List<NodeData> nodeDataList = new();
+    [HideInInspector] public List<GameObject>     nodes         = new();
+    [HideInInspector] public List<(int a, int b)> links         = new();
+    [HideInInspector] public List<LineRenderer>   linkRenderers = new();
+    [HideInInspector] public List<NodeData>       nodeDataList  = new();
+    [HideInInspector] public List<TextMeshPro>    nodeLabels    = new();
+
+    // Link labels — 1 ต่อ link, 2 แถว (Dist / Fid)
+    [HideInInspector] public List<TextMeshPro> linkLabelsDist = new();
+    [HideInInspector] public List<TextMeshPro> linkLabelsFid  = new();
+
+    private string currentTopo = "linear";
+
+    // แนบ BG quad ให้ label GO
+    void AttachLabelBG(GameObject labelGO, float widthScale, float heightScale)
+    {
+        var bgGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        Destroy(bgGO.GetComponent<MeshCollider>());         // ไม่ต้องการ collider
+        bgGO.name = "BG";
+        bgGO.transform.SetParent(labelGO.transform, false);
+        bgGO.transform.localPosition = new Vector3(0f, 0f, 0.02f); // หลัง TMP
+        bgGO.transform.localRotation = Quaternion.identity;
+        bgGO.transform.localScale    = new Vector3(widthScale, heightScale, 1f);
+
+        bgGO.GetComponent<MeshRenderer>().material = GetBGMaterial();
+}
 
     public enum NodeType { End, Hub, Repeater }
 
     public class NodeData
     {
-        public int index;
+        public int      index;
         public NodeType type;
-        public string label;
-        public Vector3 position;
+        public string   label;
+        public Vector3  position;
     }
 
     // ─── Build ───────────────────────────────────────────
     public void Build(string topo, int n, float spacing)
     {
-        // Linear ใช้ linearRotation, topology อื่นใช้ graphRotation
+        currentTopo = topo;
         Vector3 rot = (topo == "linear") ? linearRotation : graphRotation;
-
-        nodeParent.position = graphPosition;
+        nodeParent.position = (topo == "tree") ? treePosition : graphPosition;
         nodeParent.rotation = Quaternion.Euler(rot);
 
         Clear();
@@ -66,13 +160,21 @@ public class TopologyBuilder : MonoBehaviour
 
     void Clear()
     {
-        foreach (var g in nodes) Destroy(g);
-        foreach (var g in linkRenderers)
-            if (g) Destroy(g.gameObject);
+        foreach (var g   in nodes)          Destroy(g);
+        foreach (var lr  in linkRenderers)  if (lr)  Destroy(lr.gameObject);
+        foreach (var lbl in nodeLabels)     if (lbl) Destroy(lbl.gameObject);
+        foreach (var lbl in linkLabelsDist) if (lbl) Destroy(lbl.gameObject);
+        foreach (var lbl in linkLabelsFid)  if (lbl) Destroy(lbl.gameObject);
+
+        
+        FlowManager.Instance?.Clear();
         nodes.Clear();
         links.Clear();
         linkRenderers.Clear();
         nodeDataList.Clear();
+        nodeLabels.Clear();
+        linkLabelsDist.Clear();
+        linkLabelsFid.Clear();
     }
 
     // ─── Layout Functions ─────────────────────────────────
@@ -84,9 +186,9 @@ public class TopologyBuilder : MonoBehaviour
         {
             nodeDataList.Add(new NodeData
             {
-                index = i,
-                type  = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
-                label = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "R" + i,
+                index    = i,
+                type     = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
+                label    = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "R" + i,
                 position = new Vector3(0, 0, startX + i * spacing)
             });
         }
@@ -108,9 +210,9 @@ public class TopologyBuilder : MonoBehaviour
             float angle = -Mathf.PI / 2 + 2 * Mathf.PI * i / leaves;
             nodeDataList.Add(new NodeData
             {
-                index = i + 1,
-                type  = (i < 2) ? NodeType.End : NodeType.Repeater,
-                label = i == 0 ? "Alice" : i == 1 ? "Bob" : "N" + (i + 1),
+                index    = i + 1,
+                type     = (i < 2) ? NodeType.End : NodeType.Repeater,
+                label    = i == 0 ? "Alice" : i == 1 ? "Bob" : "N" + (i + 1),
                 position = new Vector3(Mathf.Cos(angle) * r, 0, Mathf.Sin(angle) * r)
             });
             links.Add((0, i + 1));
@@ -129,9 +231,9 @@ public class TopologyBuilder : MonoBehaviour
             int c = i % cols, r = i / cols;
             nodeDataList.Add(new NodeData
             {
-                index = i,
-                type  = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
-                label = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "N" + i,
+                index    = i,
+                type     = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
+                label    = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "N" + i,
                 position = new Vector3(ox + c * spacing, 0, oz + r * spacing)
             });
         }
@@ -148,22 +250,19 @@ public class TopologyBuilder : MonoBehaviour
     {
         for (int i = 0; i < n; i++)
         {
-            int depth = Mathf.FloorToInt(Mathf.Log(i + 1, 2));
+            int depth    = Mathf.FloorToInt(Mathf.Log(i + 1, 2));
             int posInRow = i - ((1 << depth) - 1);
             int rowCount = Mathf.Min(1 << depth, n - ((1 << depth) - 1));
             float xOffset = (rowCount - 1) * spacing / 2f;
 
             nodeDataList.Add(new NodeData
             {
-                index = i,
-                type  = (i == 0) ? NodeType.Hub
-                       : (i == n - 1) ? NodeType.End
-                       : NodeType.Repeater,
-                label = i == 0 ? "Root" : i == n - 1 ? "Bob" : "N" + i,
-                position = new Vector3(
-                    posInRow * spacing - xOffset,
-                    0,
-                    depth * spacing)
+                index    = i,
+                type     = (i == 0) ? NodeType.Hub
+                          : (i == n - 1) ? NodeType.End
+                          : NodeType.Repeater,
+                label    = i == 0 ? "Root" : i == n - 1 ? "Bob" : "N" + i,
+                position = new Vector3(posInRow * spacing - xOffset, 0, depth * spacing)
             });
 
             if (i > 0) links.Add(((i - 1) / 2, i));
@@ -181,9 +280,9 @@ public class TopologyBuilder : MonoBehaviour
             int half = Mathf.CeilToInt(n / 2f);
             nodeDataList.Add(new NodeData
             {
-                index = i,
-                type  = (i == 0 || i == half) ? NodeType.End : NodeType.Repeater,
-                label = i == 0 ? "Alice" : i == half ? "Bob" : "R" + i,
+                index    = i,
+                type     = (i == 0 || i == half) ? NodeType.End : NodeType.Repeater,
+                label    = i == 0 ? "Alice" : i == half ? "Bob" : "R" + i,
                 position = new Vector3(Mathf.Cos(angle) * r, 0, Mathf.Sin(angle) * r)
             });
         }
@@ -194,7 +293,15 @@ public class TopologyBuilder : MonoBehaviour
 
     void SpawnObjects()
     {
-        // Nodes — ใช้ localPosition เทียบกับ nodeParent
+        bool showLabel = GraphManager.Instance != null && GraphManager.Instance.ovLabel;
+        bool showDist  = GraphManager.Instance != null && GraphManager.Instance.ovDist;
+        bool showFid   = GraphManager.Instance != null && GraphManager.Instance.ovFid;
+        bool isLinear  = currentTopo == "linear";
+
+        float distKmPerLink = GraphManager.Instance != null ? GraphManager.Instance.distKm   : 150f;
+        float fidelityPct   = GraphManager.Instance != null ? GraphManager.Instance.fidelity : 90f;
+
+        // ── Nodes ─────────────────────────────────────────────────────────────
         foreach (var data in nodeDataList)
         {
             var go = Instantiate(nodePrefab, nodeParent);
@@ -208,27 +315,174 @@ public class TopologyBuilder : MonoBehaviour
             var mat = data.type == NodeType.Hub ? matHub
                     : data.type == NodeType.End  ? matEnd : matRep;
             go.GetComponent<Renderer>().material = mat;
+
             var handler = go.GetComponent<NodeClickHandler>();
             if (handler) handler.nodeIndex = data.index;
+
             nodes.Add(go);
+
+            // Node label
+            var labelGO = new GameObject("Label_" + data.label);
+            labelGO.transform.SetParent(nodeParent, true);
+
+            if (isLinear)
+            {
+                labelGO.transform.localPosition = data.position + new Vector3(-0.75f, labelOffsetY, 0);
+                labelGO.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else
+            {
+                labelGO.transform.localPosition = data.position + new Vector3(0, -1f, -labelOffsetY);
+                labelGO.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+            }
+            labelGO.transform.localScale = Vector3.one;
+
+            var tmp = labelGO.AddComponent<TextMeshPro>();
+            tmp.text      = data.label;
+            tmp.fontSize  = labelFontSize;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color     = data.type == NodeType.Hub ? labelColorHub
+                          : data.type == NodeType.End  ? labelColorEnd : labelColorRep;
+            tmp.gameObject.SetActive(showLabel);
+            nodeLabels.Add(tmp);
         }
 
-        // Links — ใช้ local space เทียบกับ linkParent
-        foreach (var (a, b) in links)
+        // ── Links + Link Labels ────────────────────────────────────────────────
+        for (int i = 0; i < links.Count; i++)
         {
+            var (a, b) = links[i];
+
+            // LineRenderer
             var go = Instantiate(linkPrefab, linkParent);
             var lr = go.GetComponent<LineRenderer>();
             lr.useWorldSpace = false;
             lr.SetPosition(0, nodeDataList[a].position);
             lr.SetPosition(1, nodeDataList[b].position);
-            lr.material = matLink;
+            lr.material = new Material(matLink);
             linkRenderers.Add(lr);
+
+            var flow = go.AddComponent<LinkFlowEffect>();
+            FlowManager.Instance?.Register(flow);
+
+            // กึ่งกลางเส้น (local space ของ nodeParent)
+            Vector3 mid = (nodeDataList[a].position + nodeDataList[b].position) * 0.5f;
+
+            // ── Distance Label ────────────────────────────────────────────────
+            var distGO = new GameObject("LinkDist_" + i);
+            distGO.transform.SetParent(nodeParent, false);
+            distGO.transform.localScale = Vector3.one;
+
+            // ทุก topology ใช้ offset Y เหมือนกัน เพื่อให้ label ลอยเหนือเส้นและมองเห็นได้
+            if (isLinear)
+            {
+                distGO.transform.localPosition = mid + new Vector3(0, linkLabelOffsetDist, 0);
+                distGO.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else
+            {
+                distGO.transform.localPosition = mid + new Vector3(0, -0.25f,-0.15f);
+                distGO.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+            }
+
+            var distTMP       = distGO.AddComponent<TextMeshPro>();
+            distTMP.text      = distKmPerLink + " km";
+            distTMP.fontSize  = linkLabelFontSizeDist;   // ← ใช้ field แยก
+            distTMP.alignment = TextAlignmentOptions.Center;
+            distTMP.color     = linkLabelColorDist;
+            distTMP.fontStyle = FontStyles.Bold;
+            distTMP.gameObject.SetActive(showDist);
+            linkLabelsDist.Add(distTMP);
+
+            AttachLabelBG(distGO, linkLabelFontSizeDist * 0.35f + linkLabelBGPadX,
+                       linkLabelFontSizeDist * 0.1f + linkLabelBGPadY);
+
+            // ── Fidelity Label ────────────────────────────────────────────────
+            var fidGO = new GameObject("LinkFid_" + i);
+            fidGO.transform.SetParent(nodeParent, false);
+            fidGO.transform.localScale = Vector3.one;
+
+            // ทุก topology ใช้ offset Y เหมือนกัน เพื่อให้ label ลอยใต้เส้นและมองเห็นได้
+            if (isLinear)
+            {
+                fidGO.transform.localPosition = mid + new Vector3(0, linkLabelOffsetFid, 0);
+                fidGO.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            }
+            else
+            {
+                fidGO.transform.localPosition = mid + new Vector3(0, -0.25f, 0.15f);
+                fidGO.transform.localRotation = Quaternion.Euler(-90, 0, 0);  
+            }
+
+            var fidTMP       = fidGO.AddComponent<TextMeshPro>();
+            fidTMP.text      = "F: " + fidelityPct.ToString("F0") + "%";
+            fidTMP.fontSize  = linkLabelFontSizeFid;     // ← ใช้ field แยก
+            fidTMP.alignment = TextAlignmentOptions.Center;
+            fidTMP.color     = linkLabelColorFid;
+            fidTMP.fontStyle = FontStyles.Bold;
+            fidTMP.gameObject.SetActive(showFid);
+            linkLabelsFid.Add(fidTMP);
+
+            AttachLabelBG(fidGO, linkLabelFontSizeFid * 0.35f + linkLabelBGPadX, 
+                                 linkLabelFontSizeFid * 0.1f + linkLabelBGPadY);
+        }
+    }
+
+    // ─── Refresh Labels (Node) ────────────────────────────
+    public void RefreshLabels(int failNode, int selNode)
+    {
+        bool show = GraphManager.Instance != null && GraphManager.Instance.ovLabel;
+
+        for (int i = 0; i < nodeLabels.Count; i++)
+        {
+            if (nodeLabels[i] == null) continue;
+            nodeLabels[i].gameObject.SetActive(show);
+            if (!show) continue;
+
+            bool isFail = i == failNode;
+            bool isSel  = i == selNode;
+
+            nodeLabels[i].color = isFail ? labelColorFail
+                                : isSel  ? labelColorSel
+                                : nodeDataList[i].type == NodeType.Hub ? labelColorHub
+                                : nodeDataList[i].type == NodeType.End  ? labelColorEnd
+                                : labelColorRep;
+        }
+    }
+
+    // ─── Refresh Link Labels (Distance + Fidelity) ────────
+    // เรียกจาก GraphManager.Refresh() ทุกครั้งที่ distKm / fidelity / ovDist / ovFid เปลี่ยน
+    // รวมถึงอัปเดต fontSize ด้วย เพื่อรองรับการปรับค่าใน Inspector ขณะ runtime
+    public void RefreshLinkLabels()
+    {
+        if (GraphManager.Instance == null) return;
+
+        bool  showDist      = GraphManager.Instance.ovDist;
+        bool  showFid       = GraphManager.Instance.ovFid;
+        float distKmPerLink = GraphManager.Instance.distKm;
+        float fidelityPct   = GraphManager.Instance.fidelity;
+
+        for (int i = 0; i < linkLabelsDist.Count; i++)
+        {
+            if (linkLabelsDist[i] == null) continue;
+            linkLabelsDist[i].text     = distKmPerLink + " km";
+            linkLabelsDist[i].fontSize = linkLabelFontSizeDist;   // ← sync font size runtime
+            linkLabelsDist[i].color    = linkLabelColorDist;
+            linkLabelsDist[i].gameObject.SetActive(showDist);
+        }
+
+        for (int i = 0; i < linkLabelsFid.Count; i++)
+        {
+            if (linkLabelsFid[i] == null) continue;
+            linkLabelsFid[i].text     = "F: " + fidelityPct.ToString("F0") + "%";
+            linkLabelsFid[i].fontSize = linkLabelFontSizeFid;     // ← sync font size runtime
+            linkLabelsFid[i].color    = linkLabelColorFid;
+            linkLabelsFid[i].gameObject.SetActive(showFid);
         }
     }
 
     // ─── Update Link Colors ───────────────────────────────
     public void RefreshLinkColors(int failNode, int selNode,
-                                   bool simFail, bool simJam, bool simHeavy)
+                                  bool simFail, bool simJam, bool simHeavy)
     {
         for (int i = 0; i < links.Count; i++)
         {
@@ -238,13 +492,12 @@ public class TopologyBuilder : MonoBehaviour
             bool isHeavy = simHeavy && i % 2 == 0;
             bool isSel   = selNode >= 0 && (a == selNode || b == selNode);
 
-            var col = isFail  ? new Color(0.88f, 0.44f, 0.31f)
-                    : isJam   ? new Color(0.83f, 0.65f, 0.13f)
-                    : isHeavy ? new Color(0.23f, 0.62f, 0.40f)
-                    : isSel   ? new Color(0.42f, 0.39f, 0.83f)
-                    :           new Color(0.61f, 0.58f, 0.88f);
+            var mat = isFail  ? matLinkFail
+                    : isJam   ? matLinkJam
+                    : isHeavy ? matLinkHeavy
+                    :           matLink;
 
-            linkRenderers[i].material.color = col;
+            linkRenderers[i].material   = mat;
             linkRenderers[i].startWidth = (isSel || isHeavy) ? 0.12f : 0.06f;
             linkRenderers[i].endWidth   = (isSel || isHeavy) ? 0.12f : 0.06f;
         }
@@ -255,7 +508,7 @@ public class TopologyBuilder : MonoBehaviour
     {
         for (int i = 0; i < nodes.Count; i++)
         {
-            var data = nodeDataList[i];
+            var data    = nodeDataList[i];
             bool isFail = i == failNode;
             bool isSel  = i == selNode;
 
