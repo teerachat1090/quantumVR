@@ -19,6 +19,9 @@ from qiskit.quantum_info import Statevector
 # py ./quantum_circuit.py "C:\Users\lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\bloch_circuit_input.json"
 # "C:\Users\lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\bloch_circuit_output.json"
 
+input_path_temp = r"C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\q_input_temp.json"
+output_path_temp = r"C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\q_output_temp.json"
+
 # single_input_gate[<key>](qc)(qubit_amount)
 # qc = QuantumCircuit(n)
 # qubit_amount -> position of qubit_amount
@@ -42,8 +45,7 @@ def load_circuit_from_json(json_path: str):
     with open(json_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
-#use only single input gate
-def create_bloch_sphere_circuit(circuit_data):
+def create_circuit(circuit_data):
     """sample text"""
     qubit_amount = circuit_data.get("qubitAmount", None)
     qubit_array = circuit_data.get("qubits", None)
@@ -56,11 +58,9 @@ def create_bloch_sphere_circuit(circuit_data):
         print("Json file error: no field name (qubit_array - array)!")
         sys.exit(1)
 
-    gates = qubit_array[0].get("gateList", None)
     qubit_amount_list = [q.get("gateList", None) for q in qubit_array]
 
-
-    if gates is None:
+    if qubit_amount_list is None:
         print("Json file error: no field name (gateList - array)!")
         sys.exit(1)
 
@@ -76,6 +76,40 @@ def create_bloch_sphere_circuit(circuit_data):
             if gate_type in single_input_gate:
                 single_input_gate[gate_type](qc,index)
 
+    return qc
+
+def create_circuit_temp(circuit_data: str):
+    """A method to extract data from new json format"""
+    qubit_amount = circuit_data.get("qubitAmount", None)
+    socket_amount = circuit_data.get("socketAmount", None)
+
+    if qubit_amount is None:
+        print("Json file error: no field name (qubitAmount - int)!")
+        sys.exit(1)
+
+    if socket_amount is None:
+        print("Json file error: no field name (socketAmount - int)!")
+        sys.exit(1)
+
+    qc = QuantumCircuit(qubit_amount)
+
+    gate_list = circuit_data.get("gateList", None)
+    if not gate_list:
+        return qc
+
+    for column in range(socket_amount):
+        col_list = [gate for gate in gate_list if gate["column"] == column]
+        if not col_list:
+            continue
+
+        for gate in col_list:
+            gate_type = str(gate.get("name", None)).strip().upper()
+
+            target_list = gate.get("targetRow", None)
+            if target_list:
+                continue
+            else:
+                single_input_gate[gate_type](qc,column)
     return qc
 
 # New issue: make new case for Q-Sphere
@@ -120,18 +154,21 @@ def main():
     try:
         #json data type
         circuit_data = load_circuit_from_json(json_input_path)
-        is_bloch_sphere = circuit_data.get("blochSphere", None)
 
-        if is_bloch_sphere is None :
-            print("Json file error: no field name (blochSphere - bool)!")
-            sys.exit(1)
-
-        qc = create_bloch_sphere_circuit(circuit_data)
+        qc = create_circuit(circuit_data)
         result_json = build_result_json(qc)
 
         with open(json_output_path, "w", encoding="utf-8") as file:
             json.dump(result_json, file, indent=4)
-   
+
+        #--------------------------------------------------------------
+        circuit_data_temp = load_circuit_from_json(input_path_temp)
+        qc_temp = create_circuit_temp(circuit_data_temp)
+        result_json_temp = build_result_json(qc_temp)
+
+        with open(output_path_temp, "w", encoding="utf-8") as file:
+            json.dump(result_json_temp, file, indent=4)
+
     except FileNotFoundError:
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)

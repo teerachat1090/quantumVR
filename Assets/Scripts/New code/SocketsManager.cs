@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -332,6 +333,8 @@ public class SocketsManager : MonoBehaviour
         var circuitInfo = new CircuitInfo
         {
             qubitAmount = totalQubits,
+            socketAmount = totalSocketEach,
+            columnList = new List<int>(),
             gateList = new List<GateInfo>()
         };
 
@@ -360,6 +363,7 @@ public class SocketsManager : MonoBehaviour
                 };
                 count++;
                 circuitInfo.gateList.Add(gateInfo);
+                circuitInfo.columnList.Add(socket.socketIndex);
             }
         }
 
@@ -381,7 +385,9 @@ public class SocketsManager : MonoBehaviour
             };
             count++;
             circuitInfo.gateList.Add(gateInfo);
+            circuitInfo.columnList.Add(connect.column);
         }
+        circuitInfo.columnList = circuitInfo.columnList.Distinct().ToList();
 
         // gather to convert to json string
         string json = JsonUtility.ToJson(circuitInfo, true);
@@ -485,7 +491,8 @@ public class QuantumGateExport
 [Serializable]
 public class CircuitInfo
 {
-    public int qubitAmount;
+    public int qubitAmount, socketAmount;
+    public List<int> columnList;
     public List<GateInfo> gateList;
 
 }
