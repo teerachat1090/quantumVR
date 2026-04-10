@@ -203,8 +203,9 @@ public class TopologyBuilder : MonoBehaviour
             label = "Hub", position = Vector3.zero
         });
 
-        int leaves = Mathf.Min(n - 1, 8);
-        float r = spacing * 1.2f;
+        int leaves   = Mathf.Min(n - 1, 8);
+        float r      = spacing * 1.2f;
+        int repCount = 0;
         for (int i = 0; i < leaves; i++)
         {
             float angle = -Mathf.PI / 2 + 2 * Mathf.PI * i / leaves;
@@ -212,7 +213,7 @@ public class TopologyBuilder : MonoBehaviour
             {
                 index    = i + 1,
                 type     = (i < 2) ? NodeType.End : NodeType.Repeater,
-                label    = i == 0 ? "Alice" : i == 1 ? "Bob" : "N" + (i + 1),
+                label    = i == 0 ? "Alice" : i == 1 ? "Bob" : "R" + (++repCount),
                 position = new Vector3(Mathf.Cos(angle) * r, 0, Mathf.Sin(angle) * r)
             });
             links.Add((0, i + 1));
@@ -226,6 +227,7 @@ public class TopologyBuilder : MonoBehaviour
         float ox = -(cols - 1) * spacing / 2f;
         float oz = -(rows - 1) * spacing / 2f;
 
+        int repCountM = 0;
         for (int i = 0; i < n; i++)
         {
             int c = i % cols, r = i / cols;
@@ -233,7 +235,7 @@ public class TopologyBuilder : MonoBehaviour
             {
                 index    = i,
                 type     = (i == 0 || i == n - 1) ? NodeType.End : NodeType.Repeater,
-                label    = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "N" + i,
+                label    = i == 0 ? "Alice" : i == n - 1 ? "Bob" : "R" + (++repCountM),
                 position = new Vector3(ox + c * spacing, 0, oz + r * spacing)
             });
         }
@@ -248,6 +250,7 @@ public class TopologyBuilder : MonoBehaviour
 
     void BuildTree(int n, float spacing)
     {
+        int repCount = 0;
         for (int i = 0; i < n; i++)
         {
             int depth    = Mathf.FloorToInt(Mathf.Log(i + 1, 2));
@@ -255,13 +258,18 @@ public class TopologyBuilder : MonoBehaviour
             int rowCount = Mathf.Min(1 << depth, n - ((1 << depth) - 1));
             float xOffset = (rowCount - 1) * spacing / 2f;
 
+            bool isHub = i == 0;
+            bool isEnd = i == 1 || i == n - 1;
+            string lbl = i == 0     ? "Root"
+                       : i == 1     ? "Alice"
+                       : i == n - 1 ? "Bob"
+                       : "R" + (++repCount);
+
             nodeDataList.Add(new NodeData
             {
                 index    = i,
-                type     = (i == 0) ? NodeType.Hub
-                          : (i == n - 1) ? NodeType.End
-                          : NodeType.Repeater,
-                label    = i == 0 ? "Root" : i == n - 1 ? "Bob" : "N" + i,
+                type     = isHub ? NodeType.Hub : isEnd ? NodeType.End : NodeType.Repeater,
+                label    = lbl,
                 position = new Vector3(posInRow * spacing - xOffset, 0, depth * spacing)
             });
 
@@ -362,6 +370,7 @@ public class TopologyBuilder : MonoBehaviour
             linkRenderers.Add(lr);
 
             var flow = go.AddComponent<LinkFlowEffect>();
+            flow.SetReversed(IsLinkReversed(currentTopo, a, b));
             FlowManager.Instance?.Register(flow);
 
             // กึ่งกลางเส้น (local space ของ nodeParent)
@@ -427,6 +436,45 @@ public class TopologyBuilder : MonoBehaviour
         }
     }
 
+    // ─── Flow Direction ──────────────────────────────────
+    bool IsLinkReversed(string topo, int a, int b)
+    {
+        int n = GraphManager.Instance != null ? GraphManager.Instance.nodeCount : 5;
+
+        switch (topo)
+        {
+            case "linear":
+            case "mesh":
+                return false; // Alice(0)→Bob(n-1) index ต่ำ→สูง ถูกแล้ว
+
+            case "star":
+                // link(0,1) = Hub-Alice → ควรวิ่ง Alice→Hub = reverse
+                if (a == 0 && b == 1) return true;
+                return false; // Hub→Bob, Hub→Leaf ปกติ
+
+            case "tree":
+                // link(0,1) = Root-Alice → ควรวิ่ง Alice→Root = reverse
+                if (a == 0 && b == 1) return true;
+                return false; // Root→child ปกติ
+
+            case "ring":
+                // CW path: Alice(0)→R1(1)→R2(2)→Bob(half)
+                //   links: (0,1),(1,2),(2,3),...,(half-1,half)  → a→b = ไม่ reverse
+                // CCW path: Alice(0)→R3(n-1)→R4(n-2)→Bob(half)
+                //   links: (half,half+1),...,(n-1,0)  → ควรวิ่ง 0→n-1→...→half
+                //   link(n-1,0): a=n-1,b=0 ต้องวิ่ง 0→n-1 = b→a = reverse
+                //   link(half,half+1): a=half,b=half+1 ต้องวิ่ง half+1→half = b→a = reverse
+                {
+                    int half = Mathf.CeilToInt(n / 2f);
+                    bool isCCW = (a >= half) || (b == 0 && a > 0);
+                    return isCCW; // CCW reverse ให้วิ่งออกจาก Alice
+                }
+
+            default:
+                return false;
+        }
+    }
+
     // ─── Refresh Labels (Node) ────────────────────────────
     public void RefreshLabels(int failNode, int selNode)
     {
@@ -482,20 +530,26 @@ public class TopologyBuilder : MonoBehaviour
 
     // ─── Update Link Colors ───────────────────────────────
     public void RefreshLinkColors(int failNode, int selNode,
-                                  bool simFail, bool simJam, bool simHeavy)
+                                  bool simFail, bool simJam, bool simHeavy,
+                                  bool simDegrade, System.Collections.Generic.HashSet<int> degradedLinks,
+                                  System.Collections.Generic.HashSet<int> cascadeFailedNodes)
     {
         for (int i = 0; i < links.Count; i++)
         {
             var (a, b) = links[i];
-            bool isFail  = simFail  && (a == failNode || b == failNode);
-            bool isJam   = simJam   && i % 3 == 1;
-            bool isHeavy = simHeavy && i % 2 == 0;
-            bool isSel   = selNode >= 0 && (a == selNode || b == selNode);
+            bool isFail     = simFail    && (a == failNode || b == failNode);
+            bool isCascade  = cascadeFailedNodes != null &&
+                              (cascadeFailedNodes.Contains(a) || cascadeFailedNodes.Contains(b));
+            bool isJam      = simJam     && i % 3 == 1;
+            bool isHeavy    = simHeavy   && i % 2 == 0;
+            bool isDegrade  = simDegrade && degradedLinks != null && degradedLinks.Contains(i);
+            bool isSel      = selNode >= 0 && (a == selNode || b == selNode);
 
-            var mat = isFail  ? matLinkFail
-                    : isJam   ? matLinkJam
-                    : isHeavy ? matLinkHeavy
-                    :           matLink;
+            var mat = (isFail || isCascade) ? matLinkFail
+                    : isJam                 ? matLinkJam
+                    : isHeavy               ? matLinkHeavy
+                    : isDegrade             ? matLinkFail   // ใช้ matLinkFail สีส้มแทน degrade
+                    :                         matLink;
 
             linkRenderers[i].material   = mat;
             linkRenderers[i].startWidth = (isSel || isHeavy) ? 0.12f : 0.06f;
@@ -504,16 +558,18 @@ public class TopologyBuilder : MonoBehaviour
     }
 
     // ─── Update Node Colors ───────────────────────────────
-    public void RefreshNodeColors(int failNode, int selNode)
+    public void RefreshNodeColors(int failNode, int selNode,
+                                  System.Collections.Generic.HashSet<int> cascadeFailedNodes)
     {
         for (int i = 0; i < nodes.Count; i++)
         {
-            var data    = nodeDataList[i];
-            bool isFail = i == failNode;
-            bool isSel  = i == selNode;
+            var data       = nodeDataList[i];
+            bool isFail    = i == failNode;
+            bool isCascade = cascadeFailedNodes != null && cascadeFailedNodes.Contains(i);
+            bool isSel     = i == selNode;
 
-            var mat = isFail ? matFail
-                    : isSel  ? matSelected
+            var mat = (isFail || isCascade) ? matFail
+                    : isSel                 ? matSelected
                     : data.type == NodeType.Hub ? matHub
                     : data.type == NodeType.End  ? matEnd : matRep;
 

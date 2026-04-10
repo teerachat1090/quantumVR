@@ -53,6 +53,8 @@ public class LinkFlowEffect : MonoBehaviour
     private float[]          headOffsets;
     private List<GameObject> dots           = new List<GameObject>();
     private bool             flowEnabled    = true;
+    private bool             reversed        = false; // วิ่งย้อนทิศ
+    private float            speedMultiplier = 1f;   // Heavy Traffic
     private float            currentFidelity = 90f;
     private Color            particleColor;
 
@@ -198,8 +200,9 @@ public class LinkFlowEffect : MonoBehaviour
         lr.startColor = lineCol;
         lr.endColor   = lineCol;
 
-        // Move dots
-        float step = (flowSpeed / totalLength) * Time.deltaTime;
+        // Move dots — reversed = วิ่งย้อนทิศ
+        float step = (flowSpeed * speedMultiplier / totalLength) * Time.deltaTime;
+        if (reversed) step = -step;
         int   dpp  = 1 + tailCount;
 
         for (int p = 0; p < particleCount; p++)
@@ -261,6 +264,24 @@ public class LinkFlowEffect : MonoBehaviour
         lr.endColor   = lc;
     }
 
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = Mathf.Clamp(multiplier, 0.1f, 2f);
+    }
+
+    // กำหนดทิศทาง flow — true = วิ่งจาก position[1] → position[0]
+    public void SetReversed(bool rev)
+    {
+        reversed = rev;
+    }
+
+    public void SetDegraded(bool degraded)
+    {
+        // บังคับสีแดงส้มเมื่อ link degrade
+        if (degraded) ApplyColor(colorLow);
+        else SetFidelity(currentFidelity);
+    }
+
     public void SetFlowEnabled(bool enabled)
     {
         flowEnabled = enabled;
@@ -280,6 +301,26 @@ public class LinkFlowEffect : MonoBehaviour
         RefreshPath();
         SpawnDots();
         SetFidelity(currentFidelity);
+    }
+
+    void ApplyColor(Color col)
+    {
+        particleColor = col;
+        int dpp = 1 + tailCount;
+        for (int p = 0; p < particleCount; p++)
+        {
+            for (int d = 0; d < dpp; d++)
+            {
+                int idx = p * dpp + d;
+                if (idx >= dots.Count || dots[idx] == null) continue;
+                float alphaMul = (d == 0) ? 1.0f : Mathf.Lerp(0.6f, tailEndAlpha, (float)d / dpp);
+                var mat = dots[idx].GetComponent<MeshRenderer>().material;
+                mat.color = new Color(col.r, col.g, col.b, alphaMul);
+            }
+        }
+        Color lc = new Color(col.r, col.g, col.b, glowAlphaMin);
+        lr.startColor = lc;
+        lr.endColor   = lc;
     }
 
     void OnDestroy()
