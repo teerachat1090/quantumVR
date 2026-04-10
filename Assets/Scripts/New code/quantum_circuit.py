@@ -1,10 +1,10 @@
+"""This module will get circuit data from json, calculate, and send result as json"""
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3
 import datetime
 import sys
 import traceback
 import json
-from itertools import zip_longest
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -16,11 +16,7 @@ from qiskit.quantum_info import Statevector
 
 # at esic: py->python, lenovo->esicl
 # cd "Assets/Scripts/New code"
-# py ./quantum_circuit.py "C:\Users\lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\bloch_circuit_input.json"
-# "C:\Users\lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\bloch_circuit_output.json"
-
-input_path_temp = r"C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumInput\q_input_temp.json"
-output_path_temp = r"C:\Users\Lenovo\AppData\LocalLow\DefaultCompany\VR quantum\QuantumData\QuantumOutput\q_output_temp.json"
+# py ./quantum_circuit.py <json input path>
 
 # single_input_gate[<key>](qc)(qubit_amount)
 # qc = QuantumCircuit(n)
@@ -39,46 +35,17 @@ single_input_gate = {
     "SQRTXT":lambda qc, qubit_amount : qc.sxdg(qubit_amount), #square root x - dagger
 }
 
+multi_input_gate = {
+    "CNOT": lambda qc, control, target : qc.cx(*control, *target)
+}
+
 # get json data
 def load_circuit_from_json(json_path: str):
     """ Load string from json file given its data path"""
     with open(json_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
-def create_circuit(circuit_data):
-    """sample text"""
-    qubit_amount = circuit_data.get("qubitAmount", None)
-    qubit_array = circuit_data.get("qubits", None)
-
-    if qubit_amount is None:
-        print("Json file error: no field name (qubit_amount - int)!")
-        sys.exit(1)
-
-    if qubit_array is None:
-        print("Json file error: no field name (qubit_array - array)!")
-        sys.exit(1)
-
-    qubit_amount_list = [q.get("gateList", None) for q in qubit_array]
-
-    if qubit_amount_list is None:
-        print("Json file error: no field name (gateList - array)!")
-        sys.exit(1)
-
-    qc = QuantumCircuit(qubit_amount)
-
-    for each_column in zip_longest(*qubit_amount_list, fillvalue=None):
-        for index, each_row in enumerate(each_column):
-            gate_type = str(each_row.get("gateName", None)).strip().upper()
-
-            if gate_type == "":
-                continue
-
-            if gate_type in single_input_gate:
-                single_input_gate[gate_type](qc,index)
-
-    return qc
-
-def create_circuit_temp(circuit_data: str):
+def create_circuit(circuit_data: str):
     """A method to extract data from new json format"""
     qubit_amount = circuit_data.get("qubitAmount", None)
     socket_amount = circuit_data.get("socketAmount", None)
@@ -93,11 +60,13 @@ def create_circuit_temp(circuit_data: str):
 
     qc = QuantumCircuit(qubit_amount)
 
-    gate_list = circuit_data.get("gateList", None)
-    if not gate_list:
+    column_list = circuit_data.get("columnList", None)
+    if not column_list:
         return qc
 
-    for column in range(socket_amount):
+    gate_list = circuit_data.get("gateList", None)
+
+    for column in column_list:
         col_list = [gate for gate in gate_list if gate["column"] == column]
         if not col_list:
             continue
@@ -106,10 +75,15 @@ def create_circuit_temp(circuit_data: str):
             gate_type = str(gate.get("name", None)).strip().upper()
 
             target_list = gate.get("targetRow", None)
-            if target_list:
+            control_list = gate.get("controlRow", None)
+
+            if not control_list:
                 continue
+
+            if target_list:
+                multi_input_gate[gate_type](qc, control_list, target_list)
             else:
-                single_input_gate[gate_type](qc,column)
+                single_input_gate[gate_type](qc,control_list[0])
     return qc
 
 # New issue: make new case for Q-Sphere
@@ -128,7 +102,6 @@ def build_result_json(qc : QuantumCircuit):
     probs = states.probabilities()
     phase = [p+360 if p < 0 else p for p in np.angle(states.data, deg=True)]
 
-
     for i, state in enumerate(states):
         entry = {
             "value":i, "real_part":state.real, "imag_part":state.imag, 
@@ -136,7 +109,6 @@ def build_result_json(qc : QuantumCircuit):
             "prob":probs[i]
         }
         data["state"].append(entry)
-
 
     return data
 
@@ -160,14 +132,6 @@ def main():
 
         with open(json_output_path, "w", encoding="utf-8") as file:
             json.dump(result_json, file, indent=4)
-
-        #--------------------------------------------------------------
-        circuit_data_temp = load_circuit_from_json(input_path_temp)
-        qc_temp = create_circuit_temp(circuit_data_temp)
-        result_json_temp = build_result_json(qc_temp)
-
-        with open(output_path_temp, "w", encoding="utf-8") as file:
-            json.dump(result_json_temp, file, indent=4)
 
     except FileNotFoundError:
         traceback.print_exc(file=sys.stderr)

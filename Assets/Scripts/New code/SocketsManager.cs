@@ -320,14 +320,11 @@ public class SocketsManager : MonoBehaviour
     {
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
 
-        string circuitJson = circuitToExportInit(headManager.isItBlochSphere());
+        string circuitJson = circuitToExportInit();
         headManager.updateOverallCircuit(circuitJson);
-
-        string circuitJson_temp = circuitToExportInit_temp();
-        headManager.updateOverallCircuit_temp(circuitJson_temp);
     }
 
-    public string circuitToExportInit_temp()
+    public string circuitToExportInit()
     {
         Debug.Log("Creating json circuit...");
         var circuitInfo = new CircuitInfo
@@ -391,54 +388,6 @@ public class SocketsManager : MonoBehaviour
 
         // gather to convert to json string
         string json = JsonUtility.ToJson(circuitInfo, true);
-        Debug.Log("Creating json finished");
-        return json;
-    }
-
-    public string circuitToExportInit(bool isBlochSphere)
-    {
-        Debug.Log("Creating json circuit...");
-        if(!isBlochSphere) getAvailibleQubit(); //update availible qubits for Q-sphere, no need for bloch sphere
-        var circuitToExport = new CircuitToExecute
-        {
-            blochSphere = isBlochSphere,
-            qubitAmount = totalQubits,
-            qubits = new List<QubitExport>()
-        };
-        //Debug.Log($"create structure, qubit amount: {circuitToExport.qubitAmount}");
-
-        //to each avilible qubit (not use exportIndex)
-        for(int i=0; i<totalQubits; i++)
-        {
-            var exportQubit = new QubitExport()
-            {
-              qubitIndex = i,
-              gateList = new List<QuantumGateExport>()  
-            };
-            //Debug.Log($"create qubit no.{i}, access index {exportIndex.IndexOf(i)}");
-
-            // get all gate in row 'i'
-            List<QuantumGate> gates = GetGateListByQubitIndex(exportIndex[i]);
-            foreach(QuantumGate gate in gates)
-            {
-                if (gate == null) {
-                    exportQubit.gateList.Add(null);
-                    continue;
-                }
-
-                var newGate = new QuantumGateExport
-                {
-                    gateName = gate.getGateName(),
-                    targetQubit = (gate.getGateType() == QuantumGate.inputType.Single) ? -1 : exportIndex.IndexOf(gate.getTarget())+1
-                };
-                exportQubit.gateList.Add(newGate);
-            }
-
-            circuitToExport.qubits.Add(exportQubit);
-        }
-
-        string json = JsonUtility.ToJson(circuitToExport, true);
-
         Debug.Log("Creating json finished");
         return json;
     }

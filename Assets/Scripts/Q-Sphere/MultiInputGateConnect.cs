@@ -87,6 +87,8 @@ public class MultiInputGateConnect : MonoBehaviour
 
     public void ToggleCurrentColumn(bool doLock = true)
     {
+        if(!Application.isPlaying) return;
+        
         int highQubit, lowQubit, column;
         getHighLow(out highQubit, out lowQubit, out column);
         if(socketsManager == null)
