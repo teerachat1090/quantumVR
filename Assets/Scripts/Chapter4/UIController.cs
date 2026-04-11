@@ -97,6 +97,10 @@ public class UIController : MonoBehaviour
                 if (v != GraphManager.Instance.simJam)
                     GraphManager.Instance.ToggleJam();
             });
+            // sync toggle เมื่อ GraphManager reset simJam
+            GraphManager.Instance.onSimJamChanged += v => {
+                if (togNoise.isOn != v) togNoise.isOn = v;
+            };
         }
         if (togHeavy != null)
         {

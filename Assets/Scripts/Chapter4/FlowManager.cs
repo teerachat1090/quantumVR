@@ -41,6 +41,8 @@ public class FlowManager : MonoBehaviour
         {
             if (effects[i] == null) continue;
             float f = (i < linkFidelities.Length) ? linkFidelities[i] : 90f;
+            // set fidelity เสมอ แม้ flow disabled — เพื่อให้ currentFidelity อัปเดต
+            // เมื่อ re-enable จะได้ restore สีถูกต้อง
             effects[i].SetFidelity(f);
         }
     }

@@ -211,9 +211,13 @@ public class LinkFlowEffect : MonoBehaviour
         currentFidelity = fidelity;
         float t = Mathf.InverseLerp(fidLow, fidHigh, fidelity);
 
-        Color col = t >= 0.5f
-            ? Color.Lerp(colorMid, colorHigh, (t - 0.5f) * 2f)
-            : Color.Lerp(colorLow, colorMid,  t * 2f);
+        // ใช้ threshold ที่กว้างขึ้นเพื่อไม่ให้สีกระพริบตาม fluctuation
+        // เขียว >= 75, เหลือง >= 55, แดง < 55
+        float fidHigh2 = 75f, fidLow2 = 55f;
+        float t2 = Mathf.InverseLerp(fidLow2, fidHigh2, fidelity);
+        Color col = t2 >= 0.5f
+            ? Color.Lerp(colorMid, colorHigh, (t2 - 0.5f) * 2f)
+            : Color.Lerp(colorLow, colorMid,  t2 * 2f);
 
         ApplyColor(col);
     }
@@ -243,7 +247,14 @@ public class LinkFlowEffect : MonoBehaviour
             lr.startColor = c;
             lr.endColor   = c;
         }
+        else
+        {
+            // restore สีตาม currentFidelity เมื่อ re-enable
+            SetFidelity(currentFidelity);
+        }
     }
+
+    public bool IsFlowEnabled() => flowEnabled;
 
     public void RefreshPathAndRespawn()
     {

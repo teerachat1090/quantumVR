@@ -18,10 +18,10 @@ public class NoiseInfoPanel : MonoBehaviour
     public TextMeshProUGUI fidAfterNoiseText;
     public TextMeshProUGUI statusText;
 
-    [Header("Colors")]
-    public Color colorHigh = new Color(0.11f, 0.62f, 0.46f);
-    public Color colorMid  = new Color(0.73f, 0.46f, 0.09f);
-    public Color colorLow  = new Color(0.85f, 0.35f, 0.19f);
+    [Header("Colors — ต้องตรงกับ LinkFlowEffect")]
+    public Color colorHigh = new Color(0.0f,  1.0f, 0.0f);  // เขียวสด (>= 75%)
+    public Color colorMid  = new Color(1.0f,  0.5f, 0.0f);  // ส้ม (>= 55%)
+    public Color colorLow  = new Color(1.0f,  0.1f, 0.0f);  // แดงส้ม (< 55%)
 
     private float lastNoiseValue = -1f;
 
@@ -88,6 +88,23 @@ public class NoiseInfoPanel : MonoBehaviour
             return;
         }
 
+        // ── FIX 2: ซ่อน rows ถ้า linkFidelities ยังเป็น init state ──────────
+        // (ทุก link ยังมีค่าเท่ากันหมด = Coroutine ยังไม่ได้ animate ค่าแรก)
+        bool isInitState = true;
+        float initVal = gm.fidelity;
+        foreach (float lf in gm.linkFidelities)
+        {
+            if (Mathf.Abs(lf - initVal) > 0.5f) { isInitState = false; break; }
+        }
+        if (isInitState)
+        {
+            HideAllRows();
+            if (fidAfterNoiseText != null) fidAfterNoiseText.text = "Fidelity after noise: —";
+            if (statusText != null)        statusText.text = "";
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         var orderedLinks = gm.GetLinksInOrder();
         HideAllRows();
 
@@ -105,7 +122,7 @@ public class NoiseInfoPanel : MonoBehaviour
             string toLbl   = builder.nodeDataList[b].label;
 
             accumulated *= f / 100f;
-            Color col = FidColor(f);
+            Color col = FidColor(f);  // ← ใช้ gradient เหมือน LinkFlowEffect
 
             rows[rowIdx].SetActive(true);
 
@@ -165,10 +182,15 @@ public class NoiseInfoPanel : MonoBehaviour
             noiseValueText.text = Mathf.RoundToInt(v * 100) + "%";
     }
 
+    // ── FIX 1: ใช้ gradient lerp ตรงกับ LinkFlowEffect.SetFidelity() ─────────
+    // เดิม: hard threshold (f >= 75 → เขียว, f >= 55 → ส้ม, else → แดง)
+    // ใหม่: interpolate smooth เหมือนสีที่ Photon แสดงบนแต่ละ link
     Color FidColor(float f)
     {
-        if (f >= 80) return colorHigh;
-        if (f >= 60) return colorMid;
-        return colorLow;
+        const float fidHigh2 = 75f, fidLow2 = 55f;
+        float t2 = Mathf.InverseLerp(fidLow2, fidHigh2, f);
+        return t2 >= 0.5f
+            ? Color.Lerp(colorMid, colorHigh, (t2 - 0.5f) * 2f)
+            : Color.Lerp(colorLow, colorMid,  t2 * 2f);
     }
 }

@@ -13,10 +13,10 @@ public class TopologyBuilder : MonoBehaviour
     public Transform linkParent;
 
     [Header("Graph Transform")]
-    public Vector3 graphPosition   = new Vector3(0, 1.5f, 5f);
+    public Vector3 graphPosition   = new Vector3(0, 1f,5f);
     public Vector3 graphRotation   = new Vector3(0, 0, 0);
     public Vector3 linearRotation  = new Vector3(0, 0, 0);
-    public Vector3 treePosition    = new Vector3(0, 1.5f, 5f);
+    public Vector3 treePosition    = new Vector3(0, 1f, 5f);
     
     [Header("Link Label Background")]
     public Color  linkLabelBGColor  = new Color(1f, 1f, 1f, 0.55f); // ขาวโปร่งแสง
@@ -173,6 +173,9 @@ public class TopologyBuilder : MonoBehaviour
 
         
         FlowManager.Instance?.Clear();
+        // init cache array ตาม link count
+        if (GraphManager.Instance != null)
+            GraphManager.Instance.noiseLinkMaterials = new Material[links.Count];
         nodes.Clear();
         links.Clear();
         linkRenderers.Clear();
@@ -509,16 +512,31 @@ public class TopologyBuilder : MonoBehaviour
     {
         if (GraphManager.Instance == null) return;
 
-        bool  showDist      = GraphManager.Instance.ovDist;
-        bool  showFid       = GraphManager.Instance.ovFid;
-        float distKmPerLink = GraphManager.Instance.distKm;
-        float fidelityPct   = GraphManager.Instance.fidelity;
+        var   gm            = GraphManager.Instance;
+        bool  showDist      = gm.ovDist;
+        bool  showFid       = gm.ovFid;
+        float distKmPerLink = gm.distKm;
+        float globalFid     = gm.fidelity;
+
+        // ใช้ linkFidelities รายลิ้งค์เมื่อ Noise เปิดและมีข้อมูลแล้ว
+        bool useNoiseFid = gm.simJam
+                        && gm.linkFidelities != null
+                        && gm.linkFidelities.Length > 0;
+
+        // ตรวจว่า linkFidelities ยัง init state (ทุกค่า = globalFid) → ยังไม่ animate
+        if (useNoiseFid)
+        {
+            bool isInit = true;
+            foreach (float lf in gm.linkFidelities)
+                if (Mathf.Abs(lf - globalFid) > 0.5f) { isInit = false; break; }
+            if (isInit) useNoiseFid = false;
+        }
 
         for (int i = 0; i < linkLabelsDist.Count; i++)
         {
             if (linkLabelsDist[i] == null) continue;
             linkLabelsDist[i].text     = distKmPerLink + " km";
-            linkLabelsDist[i].fontSize = linkLabelFontSizeDist;   // ← sync font size runtime
+            linkLabelsDist[i].fontSize = linkLabelFontSizeDist;
             linkLabelsDist[i].color    = linkLabelColorDist;
             linkLabelsDist[i].gameObject.SetActive(showDist);
         }
@@ -526,11 +544,32 @@ public class TopologyBuilder : MonoBehaviour
         for (int i = 0; i < linkLabelsFid.Count; i++)
         {
             if (linkLabelsFid[i] == null) continue;
-            linkLabelsFid[i].text     = "F: " + fidelityPct.ToString("F0") + "%";
-            linkLabelsFid[i].fontSize = linkLabelFontSizeFid;     // ← sync font size runtime
-            linkLabelsFid[i].color    = linkLabelColorFid;
+
+            // ── FIX: แสดง fidelity รายลิ้งค์เมื่อ Noise เปิด ──────────────────
+            float fidPct = (useNoiseFid && i < gm.linkFidelities.Length)
+                         ? gm.linkFidelities[i]
+                         : globalFid;
+            Color fidCol = useNoiseFid ? FidLabelColor(fidPct) : linkLabelColorFid;
+            // ─────────────────────────────────────────────────────────────────────
+
+            linkLabelsFid[i].text     = "F: " + fidPct.ToString("F0") + "%";
+            linkLabelsFid[i].fontSize = linkLabelFontSizeFid;
+            linkLabelsFid[i].color    = fidCol;
             linkLabelsFid[i].gameObject.SetActive(showFid);
         }
+    }
+
+    // สีตรงกับ LinkFlowEffect + NoiseInfoPanel (gradient lerp)
+    Color FidLabelColor(float f)
+    {
+        const float fidHigh2 = 75f, fidLow2 = 55f;
+        float t2 = Mathf.InverseLerp(fidLow2, fidHigh2, f);
+        Color high = new Color(0.0f, 0.6f, 0.2f);
+        Color mid  = new Color(1.0f, 0.5f, 0.0f);
+        Color low  = new Color(1.0f, 0.1f, 0.0f);
+        return t2 >= 0.5f
+            ? Color.Lerp(mid, high, (t2 - 0.5f) * 2f)
+            : Color.Lerp(low, mid,  t2 * 2f);
     }
 
     // ─── Update Link Colors ───────────────────────────────

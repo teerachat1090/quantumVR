@@ -21,11 +21,11 @@ public class MetricsPanel : MonoBehaviour
 
         MetricsData m = GraphManager.Instance.GetMetrics();
 
-        txt_Hops.text     = $"Hops: {m.hops}";
-        txt_Fidelity.text = $"Total Fidelity: {m.fidelity}%";
-        txt_Links.text    = $"Links: {m.links}";
-        txt_Distance.text = $"Distance: {m.distKm} km";
-        txt_Fault.text    = $"Fault Tolerance: {FaultToEng(m.fault)}";
+        txt_Hops.text     = $"{m.hops}";
+        txt_Fidelity.text = $"{m.fidelity}%";
+        txt_Links.text    = $"{m.links}";
+        txt_Distance.text = $"{m.distKm} km";
+        txt_Fault.text    = $"{FaultToEng(m.fault)}";
     }
 
     string FaultToEng(string fault)

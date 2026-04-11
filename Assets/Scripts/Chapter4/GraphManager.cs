@@ -42,6 +42,9 @@ public class GraphManager : MonoBehaviour
     // Noise — fidelity ต่อ link หลังคำนวณ noise
     [HideInInspector] public float[] linkFidelities = new float[0];
 
+    // Cache noise materials เพื่อไม่ให้สร้างใหม่ทุก Refresh()
+    [HideInInspector] public Material[] noiseLinkMaterials = new Material[0];
+
     private Coroutine cascadeCoroutine;
     public  Coroutine noiseCoroutine;
 
@@ -75,7 +78,8 @@ public class GraphManager : MonoBehaviour
         if (noiseCoroutine   != null) StopCoroutine(noiseCoroutine);
         cascadeFailedNodes.Clear();
         degradedLinks.Clear();
-        linkFidelities = new float[0];
+        linkFidelities    = new float[0];
+        noiseLinkMaterials = new Material[0];
 
         builder.Build(currentTopo, nodeCount, spacing);
         Refresh();
@@ -96,7 +100,7 @@ public class GraphManager : MonoBehaviour
         flowManager?.SetFlowEnabled(ovFlow);
         flowManager?.RefreshFailedLinks(failNode, cascadeFailedNodes, builder);
 
-        // Noise — ถ้าเปิด noise ใช้ linkFidelities แทน global fidelity
+        // Noise — เรียกหลังสุดเสมอ ไม่ให้ถูก override โดย RefreshFailedLinks
         if (simJam && linkFidelities.Length > 0)
             flowManager?.SetNoisyFidelities(linkFidelities);
         else
@@ -107,13 +111,17 @@ public class GraphManager : MonoBehaviour
     }
 
     // ─── Topology ────────────────────────────────────────
+    // Event แจ้ง UIController ว่า simJam state เปลี่ยน
+    public System.Action<bool> onSimJamChanged;
+
     public void SetTopo(string topo)
     {
         currentTopo = topo;
         failNode = -1; selNode = -1;
         simDegrade = false; simCascade = false;
         // ไม่ reset simJam เพื่อให้ noise ยังเปิดอยู่
-        linkFidelities = new float[0];
+        linkFidelities    = new float[0];
+        noiseLinkMaterials = new Material[0];
         if (noiseInfoCanvas != null) noiseInfoCanvas.SetActive(simJam);
         if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
         Rebuild();
@@ -198,32 +206,66 @@ public class GraphManager : MonoBehaviour
         // หา link ที่เรียงตาม path จาก Alice → Bob
         var orderedLinks = GetLinksInOrder();
 
-        // animate ลด fidelity ทีละ link
+        // ── Distance factor (Fiber Attenuation Model) ────────────────────────
+        // ระยะทางต่อ link = distKm / จำนวน link ทั้งหมด
+        // distFactor อิงสูตร exponential attenuation: e^(-d / L_att)
+        // L_att = 200 km (baseline สำหรับ quantum fiber)
+        // ยิ่งไกล → distFactor ยิ่งน้อย → fidelity ลดมากขึ้น
+        float distPerLink  = Mathf.Max(1f, distKm / Mathf.Max(1, linkCount));
+        float L_att        = 200f;
+        float distFactor   = Mathf.Exp(-distPerLink / L_att);  // range (0, 1]
+        // ─────────────────────────────────────────────────────────────────────
+
+        // animate ลด fidelity ทีละ link — noise สะสมตาม hop + distance
+        int hopIndex = 0;
         foreach (int li in orderedLinks)
         {
             if (!simJam) yield break;
 
-            // noise สะสม — ยิ่งห่างจาก Alice ยิ่งมี noise มาก
-            float baseFid   = fidelity / 100f;
-            float noiseFactor = 1f - noiseStrength * (1f + Random.Range(-0.3f, 0.3f));
-            linkFidelities[li] = Mathf.Max(8f, baseFid * noiseFactor * 100f);
+            float baseFid     = fidelity / 100f;
+            // noise สะสม: ยิ่ง hop มาก noise มากขึ้น 10% ต่อ hop
+            float accumFactor = 1f + hopIndex * 0.1f;
+            float noiseFactor = 1f - noiseStrength * accumFactor * (1f + Random.Range(-0.2f, 0.2f));
+            // คูณ distFactor: ระยะไกล → fidelity ลดเพิ่มอีกชั้น
+            linkFidelities[li] = Mathf.Max(8f, baseFid * noiseFactor * distFactor * 100f);
 
+            hopIndex++;
             Refresh();
             yield return new WaitForSeconds(0.4f);
         }
 
-        // link ที่ไม่อยู่ใน path หลัก (mesh/star/tree branches) ลด noise เบาๆ
+        // link นอก main path (branch ใน mesh/star/tree) — noise เบาๆ + distance
         for (int i = 0; i < linkCount; i++)
         {
-            if (linkFidelities[i] >= fidelity) // ยังไม่ได้ถูก noise
+            if (linkFidelities[i] >= fidelity)
             {
-                float baseFid = fidelity / 100f;
-                float noiseFactor = 1f - (noiseStrength * 0.5f) * (1f + Random.Range(-0.3f, 0.3f));
-                linkFidelities[i] = Mathf.Max(8f, baseFid * noiseFactor * 100f);
+                float baseFid     = fidelity / 100f;
+                float noiseFactor = 1f - (noiseStrength * 0.5f) * (1f + Random.Range(-0.2f, 0.2f));
+                linkFidelities[i] = Mathf.Max(8f, baseFid * noiseFactor * distFactor * 100f);
             }
         }
 
         Refresh();
+
+        // ── Subtle fluctuation หลัง animate จบ ──────────
+        // เก็บค่า base fidelity หลัง noise ไว้ fluctuate รอบๆ
+        float[] baseFidelities = new float[linkFidelities.Length];
+        System.Array.Copy(linkFidelities, baseFidelities, linkFidelities.Length);
+
+        while (simJam)
+        {
+            yield return new WaitForSeconds(1.5f);
+            if (!simJam) break;
+
+            // fluctuate เล็กน้อย ±5% รอบค่า base
+            for (int i = 0; i < linkFidelities.Length; i++)
+            {
+                float fluctuation = Random.Range(-0.02f, 0.02f) * baseFidelities[i];
+                linkFidelities[i] = Mathf.Max(8f, baseFidelities[i] + fluctuation);
+            }
+
+            Refresh();
+        }
     }
 
     // หา link เรียงตาม path จาก Alice → Bob ของแต่ละ topology
@@ -351,12 +393,10 @@ public class GraphManager : MonoBehaviour
     // ─── Node Click ──────────────────────────────────────
     public void OnNodeClicked(int index)
     {
-        if (simFail)
-            failNode = (failNode == index) ? -1 : index;
-        else
-            selNode  = (selNode  == index) ? -1 : index;
+        if (!simFail) return;  // ← กดได้เฉพาะตอน Node Fail เท่านั้น
+        failNode = (failNode == index) ? -1 : index;
         Refresh();
-    }
+    }   
 
     // ─── Metrics ─────────────────────────────────────────
     public MetricsData GetMetrics()
