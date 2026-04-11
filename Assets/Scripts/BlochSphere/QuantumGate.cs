@@ -9,7 +9,7 @@ public class QuantumGate : MonoBehaviour
 {
     [Header("Gate Info")]
     [SerializeField] private string gateName; // H, X, Y, Z, CNOT, etc.
-    public enum inputType{Single, Double, Triple, target, Default}; 
+    public enum inputType{Single, Double, Triple, target, measure, Default}; 
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     

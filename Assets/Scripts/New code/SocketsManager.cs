@@ -10,6 +10,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 public class SocketsManager : MonoBehaviour
 {
     [SerializeField] GameObject qubitSocketPrefab = null;
+    [SerializeField] GameObject classicalSocketPrefab = null;
 
     [Header("Interaction setting")]
     [SerializeField] private GameObject storage = null; //disable grabbable when in animated mode
@@ -25,6 +26,7 @@ public class SocketsManager : MonoBehaviour
     private CircuitManager headManager;
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
+    private ClassicalBitManager CBManager = null;
     private List<int> exportIndex = new List<int>();
     private List<GameObject> multiGateList = new List<GameObject>();
     private List<List<GateSocket>> socketMap = new List<List<GateSocket>>();
@@ -76,7 +78,7 @@ public class SocketsManager : MonoBehaviour
     {
         if(qubitSocketPrefab == null) 
         {
-            Debug.LogError("Error: unable to spawn prefab - null element.");
+            Debug.LogError("Error: unable to spawn qubit socket prefab - null element.");
             return false;
         }
 
@@ -84,6 +86,12 @@ public class SocketsManager : MonoBehaviour
         if(circuit is null)
         {
             Debug.LogError("Error: Prefab has no necessary component - QubitCircuit");
+            return false;
+        }
+
+        if(classicalSocketPrefab == null)
+        {
+            Debug.LogError("Error: unable to spawn classical socket prefab - null element.");
             return false;
         }
 
@@ -119,7 +127,7 @@ public class SocketsManager : MonoBehaviour
             qubitAmount = 1;
         }
 
-        float xPos = 0.0f + (qubitAmount - 1.0f) * 0.1f + (qubitAmount%2==0? 0.1f: 0.0f);
+        float xPos = 0.1f*qubitAmount;
 
         for(int i=0; i<qubitAmount; i++)
         {
@@ -136,6 +144,14 @@ public class SocketsManager : MonoBehaviour
             xPos-=0.2f;
         }
         qubitCircuits.Sort((a,b) => a.circuitIndex.CompareTo(b.circuitIndex));
+
+        GameObject classicalRow = Instantiate(classicalSocketPrefab, gameObject.transform, false);
+        classicalRow.transform.Translate(xPos*Vector3.right);
+        classicalRow.name = classicalSocketPrefab.name;
+
+        CBManager = classicalRow.GetComponent<ClassicalBitManager>();
+        CBManager.socketAmount = totalSocket;
+        classicalRow.SetActive(true);
 
         totalQubits = qubitAmount;
         getAvailibleQubit();
@@ -205,12 +221,13 @@ public class SocketsManager : MonoBehaviour
         var connect = groupParent.AddComponent<MultiInputGateConnect>();
         connect.socketsManager = this;
         connect.column = col;
-        
+        connect.AddMember(baseObject);
+
         var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
         baseObject_quantumGate.friendExist = true;
         baseObject_quantumGate.socket = socketMap[row][col];
         connect.gateName = baseObject_quantumGate.getGateName();
-        connect.AddMember(baseObject_quantumGate);
+        
 
         controlNum--;   total--;
         while(total > 0)
@@ -226,11 +243,12 @@ public class SocketsManager : MonoBehaviour
                 var spawned = Instantiate(isController ? controlPrefab: targetPrefab, 
                                         socketTransform.position, quaternion.identity);
                 spawned.transform.localScale *= .25f;
+                connect.AddMember(spawned);
 
                 var spawned_quantumGate = spawned.GetComponent<QuantumGate>();
                 spawned_quantumGate.friendExist = true;
                 spawned_quantumGate.socket = targetSocket;
-                connect.AddMember(spawned_quantumGate);
+                
                 
                 if(controlNum > 0)  controlNum--;
                 else                targetNum--;
@@ -241,14 +259,14 @@ public class SocketsManager : MonoBehaviour
         }
 
         connect.RunLineConnect();
+        Debug.Log("Add <multi-gate> to multiGateList");
         multiGateList.Add(groupParent);
 
         // ===> do update circuit in here instead
         updateCircuitByJson(connect.gateName, col, row, true);
     }
 
-    // only target = NOT gate
-    public bool LookSocketMap(GameObject baseObject, int row, int col, int controlNum = 1, int targetNum = 1)
+    public bool ChecksocketSpace(GameObject baseObject, int row, int col, int controlNum = 1, int targetNum = 1)
     {
         if(targetPrefab == null || controlPrefab == null){
             Debug.LogWarning("Warning: prefab for control or target is missing.");
@@ -282,6 +300,47 @@ public class SocketsManager : MonoBehaviour
         return true;
     }
 
+    public void AssignMeasurement(GameObject baseObject, int row, int col)
+    {
+        //assign base and other prefab
+        var groupParent = new GameObject(){name = "holder"};
+        var connect = groupParent.AddComponent<MultiInputGateConnect>();
+        connect.socketsManager = this;
+        connect.column = col;
+        connect.classicalRelated = true;
+        connect.AddMember(baseObject);
+        connect.gateName = baseObject.name;
+
+        var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
+        baseObject_quantumGate.friendExist = true;
+        baseObject_quantumGate.socket = socketMap[row][col];
+        
+        GameObject classicalConnect = CBManager.GetSocketByCol(col);
+        CBManager.ShowPointByCol(col);
+        connect.AddMember(classicalConnect);
+
+        connect.RunLineConnect();
+        Debug.Log("Add <measurement> to multiGateList");
+        multiGateList.Add(groupParent);
+
+        // ===> do update circuit in here instead
+        updateCircuitByJson(connect.gateName, col, row, true);
+    }
+
+    public bool CheckPathToClassicalBit(GameObject baseObject, int row, int col)
+    {
+        // check downward
+        for(int i=row+1; i<totalQubits; i++)
+        {
+            if(socketMap[i][col].getCurrentGate() != null) return false;
+        }
+
+        //assign to group
+        AssignMeasurement(baseObject, row, col);
+        return true;
+    }
+
+    // Try to remove this function (use socketMap instead)
     public List<QubitCircuit> GetOverallCircuit()
     {
         return qubitCircuits;
@@ -346,7 +405,7 @@ public class SocketsManager : MonoBehaviour
                 if(gate == null) {
                     continue;
                 } 
-                if(gate.GetNumInput() > 1) {
+                if(gate.getGateType() != QuantumGate.inputType.Single) {
                     continue;
                 }
 
@@ -371,15 +430,23 @@ public class SocketsManager : MonoBehaviour
             if(connect == null) continue;
 
             //create info for multi-gate 
-            connect.GetGateListByType(out List<int> controlsow, out List<int> targetsRow);
-            var gateInfo = new GateInfo
+            var gateInfo = new GateInfo()
             {
                 id = count,
                 name = connect.gateName,
-                column = connect.column,
-                controlRow = controlsow,
-                targetRow = targetsRow
+                column = connect.column
             };
+            if (connect.classicalRelated)
+            {
+                gateInfo.controlRow = connect.GetOneGate();
+                var targetList = new List<int>() {CBManager.GetTargetClassicalBit(gateInfo.column)};
+                gateInfo.targetRow = targetList;
+                gateInfo.measure = true;
+            } else {
+                connect.GetGateListByType(out List<int> controlRow, out List<int> targetsRow);
+                gateInfo.controlRow = controlRow;
+                gateInfo.targetRow = targetsRow;
+            }
             count++;
             circuitInfo.gateList.Add(gateInfo);
             circuitInfo.columnList.Add(connect.column);
@@ -450,6 +517,7 @@ public class CircuitInfo
 public class GateInfo
 {
     public int id;
+    public bool measure = false;
     public string name;
     public int column;
     public List<int> controlRow, targetRow;

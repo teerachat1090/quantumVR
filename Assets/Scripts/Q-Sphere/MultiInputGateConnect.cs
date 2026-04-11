@@ -4,15 +4,17 @@ using System.Linq;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using System.Threading.Tasks;
 
 public class MultiInputGateConnect : MonoBehaviour
 {
     public SocketsManager socketsManager = null;
-    private List<QuantumGate> gateMember = new List<QuantumGate>();
+    private List<GameObject> gateMember = new List<GameObject>();
     private List<LineConnecting> targetConnect = new List<LineConnecting>();
     private bool memberSet = false;
     public int column = -1;
     public string gateName = "";
+    public bool classicalRelated = false;
 
     private GateSocket GetCurrentGatesocket(QuantumGate gate)
     {
@@ -38,21 +40,40 @@ public class MultiInputGateConnect : MonoBehaviour
         return null;
     }
 
+    public List<int> GetOneGate()
+    {
+        var control = new List<int>();
+        foreach(GameObject gate in gateMember)
+        {
+            var quantumGate = gate.GetComponent<QuantumGate>();
+            if(quantumGate == null) continue;
+            GateSocket gateSocket = quantumGate.socket;
+            if(gateSocket == null) continue;
+
+            control.Add(gateSocket.qubitIndex);
+            break;
+        }
+        return control;
+    }
+
     public void GetGateListByType(out List<int> controlsRow, out List<int> targetsRow)
     {
         var control_temp = new List<int>();
         var target_temp = new List<int>();
 
-        foreach(QuantumGate gate in gateMember)
+        foreach(GameObject gate in gateMember)
         {
-            GateSocket gateSocket = gate.socket;
+            var quantumGate = gate.GetComponent<QuantumGate>();
+            if(quantumGate == null) continue;
+
+            GateSocket gateSocket = quantumGate.socket;
             if(gateSocket == null) {
                 Debug.LogWarning("no socket attach to this gate");
                 continue;
             }
 
             int row = gateSocket.qubitIndex;
-            if (gate.isController)  control_temp.Add(row);
+            if (quantumGate.isController)  control_temp.Add(row);
             else target_temp.Add(row);
         }
 
@@ -65,8 +86,11 @@ public class MultiInputGateConnect : MonoBehaviour
         // iterate through member and get most high-low index
         highQ = -1; lowQ = -1; col = column;
 
-        foreach(QuantumGate gate in gateMember)
+        foreach(GameObject gate in gateMember)
         {
+            var QuantumGate = gate.GetComponent<QuantumGate>();
+            if(QuantumGate == null) continue;
+
             var grabInteractable = gate.gameObject.GetComponent<XRGrabInteractable>();
 
             if(grabInteractable == null)
@@ -75,7 +99,9 @@ public class MultiInputGateConnect : MonoBehaviour
                 continue;
             }
 
-            GateSocket gateSocket = gate.socket;
+            if(classicalRelated && QuantumGate.getGateType() != QuantumGate.inputType.measure) continue;
+
+            GateSocket gateSocket = QuantumGate.socket;
             if(gateSocket == null) continue;
 
             int val = gateSocket.qubitIndex;
@@ -91,6 +117,11 @@ public class MultiInputGateConnect : MonoBehaviour
         
         int highQubit, lowQubit, column;
         getHighLow(out highQubit, out lowQubit, out column);
+        if (classicalRelated)
+        {
+            lowQubit = socketsManager.totalQubits - 1;
+            if(highQubit < 0) highQubit = lowQubit;
+        }
         if(socketsManager == null)
         {
             Debug.LogError("Error: socketsManager is null. can't proceed further.");
@@ -106,17 +137,20 @@ public class MultiInputGateConnect : MonoBehaviour
         socketsManager.ToggleMultiGateColumn(highQubit, lowQubit, column, doLock);
     }
 
-    public void AddMember(QuantumGate memberGate)
+    public void AddMember(GameObject memberGate)
     {
         gateMember.Add(memberGate);
     }
 
     public void RunLineConnect()
     {
-        foreach(QuantumGate gate in gateMember)
+        foreach(GameObject gate in gateMember)
         {
-            gate.connect = this;
-            Debug.Log($"member name: {gate.gameObject.name}");
+            var QuantumGate = gate.GetComponent<QuantumGate>();
+            if(QuantumGate == null) continue;
+
+            if(QuantumGate != null) QuantumGate.connect = this;
+            Debug.Log($"member name: {gate.name}");
         }
         ConnectLine();
         memberSet = true;
@@ -128,8 +162,8 @@ public class MultiInputGateConnect : MonoBehaviour
         int count = gateMember.Count;
         for(int i=0; i<count-1; i++)
         {
-            GameObject target0 = gateMember[i].gameObject;
-            GameObject target1 = gateMember[i+1].gameObject;
+            GameObject target0 = gateMember[i];
+            GameObject target1 = gateMember[i+1];
 
             var connect = new LineConnecting(target0, target1, gameObject);
             targetConnect.Add(connect);   
@@ -150,14 +184,22 @@ public class MultiInputGateConnect : MonoBehaviour
     public void deleteItself()
     {
         ToggleCurrentColumn(doLock: false);
-        foreach(QuantumGate gate in gateMember)
+        foreach(GameObject gate in gateMember)
         {
-            gate.beingDestroyed = true;
-            Destroy(gate.gameObject);
-            Debug.Log($"delete member name: {gate.gameObject.name}");
+            var QuantumGate = gate.GetComponent<QuantumGate>();
+            if(QuantumGate == null)
+            {
+                gate.SetActive(false);
+                continue;
+            }
+
+            QuantumGate.beingDestroyed = true;
+            Debug.Log($"delete member name: {gate.name}");
+            Destroy(gate);
         }
         socketsManager.RemoveFromMultiGateList(this);
 
+        Debug.Log("Connetion removed...");
         Destroy(gameObject);
     }
 

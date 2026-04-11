@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4674101659733313620}
   - component: {fileID: 2464946979348600293}
   m_Layer: 0
-  m_Name: qubit line
+  m_Name: classical line
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9f20b86e3c668774d95ae7327ba6b872, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -121,10 +121,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3308397211609674090}
-  - component: {fileID: 5621854235163556923}
-  - component: {fileID: 8806070610778748125}
+  - component: {fileID: 8672115002614161145}
   m_Layer: 0
-  m_Name: Sockets
+  m_Name: Classical Sockets
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -146,26 +145,7 @@ Transform:
   - {fileID: 9090362381246051482}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 30}
---- !u!114 &5621854235163556923
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5887405409416211165}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4439420b125d6d45befa7006dc2cef8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CircuitTable
-  displayText: {fileID: 0}
-  delayBetweenGates: 0.5
-  blochSphere: {fileID: 0}
-  gateAnimationDelay: 1.2
-  circuitData: []
-  enableSmartUndo: 1
-  animateUndo: 1
---- !u!114 &8806070610778748125
+--- !u!114 &8672115002614161145
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -174,13 +154,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 5887405409416211165}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8eb52f456faf43b4494eeaed21b4fecf, type: 3}
+  m_Script: {fileID: 11500000, guid: 29101e840cd0e4d4ab7c543094a811ae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QubitCircuit
+  m_EditorClassIdentifier: Assembly-CSharp::ClassicalBitManager
   circuitIndex: 0
   socketAmount: -1
-  defaultInteractionLayer:
-    m_Bits: 1073741824
-  socketPrefab: {fileID: 6530603518612538485, guid: c90f05d8e96b3e849bbd4145341765d0,
+  ClassicalIOPrefab: {fileID: 1947450505676389424, guid: 61827e07596647840a39711665c091f6,
     type: 3}
   space: 0.25

@@ -2206,7 +2206,7 @@ PrefabInstance:
     - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
@@ -2282,8 +2282,7 @@ PrefabInstance:
         type: 3}
       propertyPath: spawnPrefab
       value: 
-      objectReference: {fileID: 7174970961716740934, guid: 974e8d93b26ff284b81366bfc70ec691,
-        type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 6591746103745945851, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
       propertyPath: scaleMultiplier

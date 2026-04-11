@@ -40,12 +40,16 @@ public class QubitCircuit : MonoBehaviour
         {
             GameObject spawn = Instantiate(socketPrefab, gameObject.transform);
             spawn.transform.localPosition = position;
-            spawn.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
+            //spawn.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
             spawn.name = $"SC{i}";
 
             var socket = spawn.GetComponent<GateSocket>();
-            if(socket is null) Debug.LogWarning("Warning: This missing GateSocket Component!");
-            else socket.qubitIndex = circuitIndex;
+            if(socket is null) {
+                Debug.LogWarning("Warning: This missing GateSocket Component!");
+                continue;
+            }
+
+            socket.qubitIndex = circuitIndex;
             socket.socketIndex = i;
 
             position.z -= space;

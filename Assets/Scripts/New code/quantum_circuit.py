@@ -39,11 +39,24 @@ multi_input_gate = {
     "CNOT": lambda qc, control, target : qc.cx(*control, *target)
 }
 
+classical_bit_storage = {
+
+}
+
 # get json data
 def load_circuit_from_json(json_path: str):
     """ Load string from json file given its data path"""
     with open(json_path, "r", encoding="utf-8") as file:
         return json.load(file)
+
+def do_measurement_on(qc, qubit_measured: int):
+    """simulate state vector after measurement like in IBM composer"""
+    sv = Statevector(qc)
+    outcome, collapsed_sv = sv.measure([qubit_measured])
+    collapsed_sv = collapsed_sv / np.linalg.norm(collapsed_sv.data)
+    qc_new = QuantumCircuit(qc.num_qubits)
+    qc_new.initialize(collapsed_sv.data)
+    return qc_new
 
 def create_circuit(circuit_data: str):
     """A method to extract data from new json format"""
@@ -58,7 +71,7 @@ def create_circuit(circuit_data: str):
         print("Json file error: no field name (socketAmount - int)!")
         sys.exit(1)
 
-    qc = QuantumCircuit(qubit_amount)
+    qc = QuantumCircuit(qubit_amount, qubit_amount)
 
     column_list = circuit_data.get("columnList", None)
     if not column_list:
@@ -81,8 +94,12 @@ def create_circuit(circuit_data: str):
                 continue
 
             if target_list:
-                multi_input_gate[gate_type](qc, control_list, target_list)
-            else:
+                if gate.get("controlRow", False):
+                    qc = do_measurement_on(qc, control_list[0]) #add target classical after that
+                elif gate_type in multi_input_gate:
+                    multi_input_gate[gate_type](qc, control_list, target_list)
+
+            elif gate_type in single_input_gate:
                 single_input_gate[gate_type](qc,control_list[0])
     return qc
 

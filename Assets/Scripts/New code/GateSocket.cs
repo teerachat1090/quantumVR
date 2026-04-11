@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
 using System.Collections.Generic;
-using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class GateSocket : MonoBehaviour
@@ -59,18 +58,32 @@ public class GateSocket : MonoBehaviour
             return;
         }
 
-        int numInput = gate.GetNumInput();
-        if(numInput == 1)
+        var inputType = gate.getGateType();
+        if(inputType == QuantumGate.inputType.Single)
         {
-            
             updateCircuit(true);
             return;
         }
         
+        //------------------------ Classical bit related --------------------
+        var socketsManager = parentCircuit.GetSocketsManager();
+        if(inputType == QuantumGate.inputType.measure)
+        {
+            Debug.Log("checling about measurement");
+            bool pathAvailible = socketsManager.CheckPathToClassicalBit(gate.gameObject, qubitIndex, socketIndex);
+            if (!pathAvailible)
+            {
+                Debug.LogWarning("There gate block path downward.");
+                Destroy(gate.gameObject);
+            }
+            return;
+        }
+        //---------------------------------------------------------------------
+
+        //----------------------- multiple input gate -------------------------
+        Debug.Log("checking about multi-input gate");
         if (gate.friendExist) //unlock layer of placed gate
         {
-            var socketsManager = parentCircuit.GetSocketsManager();
-
             var grabInteractable = GetGrabInteractable(gate);
             if(grabInteractable == null) return;
             grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
@@ -79,8 +92,7 @@ public class GateSocket : MonoBehaviour
         }
         else //introduce new gate to socket manager
         {
-            var socketsManager = parentCircuit.GetSocketsManager();
-            bool spaceAvailible = socketsManager.LookSocketMap(gate.gameObject, qubitIndex, socketIndex);
+            bool spaceAvailible = socketsManager.ChecksocketSpace(gate.gameObject, qubitIndex, socketIndex);
             if (!spaceAvailible)
             {
                 Debug.LogWarning("Space Not Availible.");
