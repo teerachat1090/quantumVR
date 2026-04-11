@@ -6,10 +6,10 @@ public class LinkFlowEffect : MonoBehaviour
 {
     [Header("Photon — จำนวนและขนาด")]
     [Range(1, 12)]
-    [SerializeField] private int particleCount = 3;
+    [SerializeField] private int particleCount = 6;
 
-    [Range(0.01f, 0.2f)]
-    [SerializeField] private float dotSize = 0.025f;
+    [Range(0.01f, 0.3f)]
+    [SerializeField] private float dotSize = 0.05f;
 
     [Header("Photon — ความเร็ว")]
     [Range(0.2f, 8f)]
@@ -36,9 +36,9 @@ public class LinkFlowEffect : MonoBehaviour
     [SerializeField] private float glowPulseSpeed = 0.8f;
 
     [Header("Fidelity Color")]
-    [SerializeField] private Color colorHigh = new Color(0.0f,  1.0f,  0.3f);  // เขียวสว่าง
-    [SerializeField] private Color colorMid  = new Color(1.0f,  0.85f, 0.0f);  // เหลืองสว่าง
-    [SerializeField] private Color colorLow  = new Color(1.0f,  0.15f, 0.0f);  // แดงสว่าง
+    [SerializeField] private Color colorHigh = new Color(0.0f, 1.0f, 0.0f);  // เขียวสด
+    [SerializeField] private Color colorMid  = new Color(1.0f, 0.5f, 0.0f);  // ส้ม
+    [SerializeField] private Color colorLow  = new Color(1.0f, 0.1f, 0.0f);  // แดงส้ม
 
     [Range(0f, 100f)]
     [SerializeField] private float fidLow  = 50f;
@@ -46,15 +46,13 @@ public class LinkFlowEffect : MonoBehaviour
     [Range(0f, 100f)]
     [SerializeField] private float fidHigh = 85f;
 
-    // ─────────────────────────────────────────
-    //  Runtime
-    // ─────────────────────────────────────────
+    // ── Runtime ──────────────────────────────────────────
     private LineRenderer     lr;
     private float[]          headOffsets;
-    private List<GameObject> dots           = new List<GameObject>();
-    private bool             flowEnabled    = true;
-    private bool             reversed        = false; // วิ่งย้อนทิศ
-    private float            speedMultiplier = 1f;   // Heavy Traffic
+    private List<GameObject> dots            = new List<GameObject>();
+    private bool             flowEnabled     = true;
+    private bool             reversed        = false;
+    private float            speedMultiplier = 1f;
     private float            currentFidelity = 90f;
     private Color            particleColor;
 
@@ -62,13 +60,10 @@ public class LinkFlowEffect : MonoBehaviour
     private float[]   pathSegLengths;
     private float     totalLength;
 
-    // ─────────────────────────────────────────
-    //  Unity
-    // ─────────────────────────────────────────
+    // ── Unity ─────────────────────────────────────────────
     void Awake()
     {
-        lr = GetComponent<LineRenderer>();
-        // set particleColor default ก่อน SpawnDots
+        lr            = GetComponent<LineRenderer>();
         particleColor = colorHigh;
     }
 
@@ -79,9 +74,7 @@ public class LinkFlowEffect : MonoBehaviour
         SetFidelity(currentFidelity);
     }
 
-    // ─────────────────────────────────────────
-    //  Path
-    // ─────────────────────────────────────────
+    // ── Path ──────────────────────────────────────────────
     void RefreshPath()
     {
         int n = lr.positionCount;
@@ -126,9 +119,7 @@ public class LinkFlowEffect : MonoBehaviour
         return pathPoints[pathPoints.Length - 1];
     }
 
-    // ─────────────────────────────────────────
-    //  Spawn
-    // ─────────────────────────────────────────
+    // ── Spawn ─────────────────────────────────────────────
     void SpawnDots()
     {
         foreach (var d in dots) if (d) Destroy(d);
@@ -139,7 +130,6 @@ public class LinkFlowEffect : MonoBehaviour
         for (int p = 0; p < particleCount; p++)
         {
             headOffsets[p] = (float)p / particleCount;
-
             dots.Add(CreateDot(dotSize, 1.0f));
 
             for (int t = 0; t < tailCount; t++)
@@ -160,8 +150,7 @@ public class LinkFlowEffect : MonoBehaviour
         go.name = "Photon";
 
         var mr     = go.GetComponent<MeshRenderer>();
-        var shader = Shader.Find("Universal Render Pipeline/Lit")
-                  ?? Shader.Find("Standard");
+        var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
         var mat    = new Material(shader);
 
         mat.SetFloat("_Mode", 3);
@@ -172,10 +161,7 @@ public class LinkFlowEffect : MonoBehaviour
         mat.EnableKeyword("_ALPHABLEND_ON");
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.renderQueue = 3000;
-
-        // ใช้ particleColor ที่ set ใน Awake แล้ว
-        mat.color = new Color(particleColor.r, particleColor.g,
-                              particleColor.b, alphaMul);
+        mat.color = new Color(particleColor.r, particleColor.g, particleColor.b, alphaMul);
 
         mr.material          = mat;
         mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -184,15 +170,12 @@ public class LinkFlowEffect : MonoBehaviour
         return go;
     }
 
-    // ─────────────────────────────────────────
-    //  Update
-    // ─────────────────────────────────────────
+    // ── Update ────────────────────────────────────────────
     void Update()
     {
         if (!flowEnabled) return;
         if (headOffsets == null || dots.Count == 0) return;
 
-        // Fiber glow pulse
         float glowT   = (Mathf.Sin(Time.time * glowPulseSpeed) + 1f) * 0.5f;
         float alpha   = Mathf.Lerp(glowAlphaMin, glowAlphaMax, glowT);
         Color lineCol = lr.startColor;
@@ -200,17 +183,15 @@ public class LinkFlowEffect : MonoBehaviour
         lr.startColor = lineCol;
         lr.endColor   = lineCol;
 
-        // Move dots — reversed = วิ่งย้อนทิศ
         float step = (flowSpeed * speedMultiplier / totalLength) * Time.deltaTime;
         if (reversed) step = -step;
-        int   dpp  = 1 + tailCount;
+        int dpp = 1 + tailCount;
 
         for (int p = 0; p < particleCount; p++)
         {
             headOffsets[p] = Mathf.Repeat(headOffsets[p] + step, 1f);
 
             int baseIdx = p * dpp;
-
             if (baseIdx < dots.Count && dots[baseIdx] != null)
                 dots[baseIdx].transform.position = SamplePath(headOffsets[p]);
 
@@ -218,50 +199,23 @@ public class LinkFlowEffect : MonoBehaviour
             {
                 int   di    = baseIdx + 1 + t;
                 float tailT = headOffsets[p] - (t + 1) * tailSpacing / totalLength;
-
                 if (di < dots.Count && dots[di] != null)
                     dots[di].transform.position = SamplePath(tailT);
             }
         }
     }
 
-    // ─────────────────────────────────────────
-    //  Public API
-    // ─────────────────────────────────────────
+    // ── Public API ────────────────────────────────────────
     public void SetFidelity(float fidelity)
     {
         currentFidelity = fidelity;
         float t = Mathf.InverseLerp(fidLow, fidHigh, fidelity);
 
-        // คำนวณสีตาม fidelity
-        particleColor = t >= 0.5f
+        Color col = t >= 0.5f
             ? Color.Lerp(colorMid, colorHigh, (t - 0.5f) * 2f)
             : Color.Lerp(colorLow, colorMid,  t * 2f);
 
-        // อัปเดต dot ทุกตัว
-        int dpp = 1 + tailCount;
-        for (int p = 0; p < particleCount; p++)
-        {
-            for (int d = 0; d < dpp; d++)
-            {
-                int idx = p * dpp + d;
-                if (idx >= dots.Count || dots[idx] == null) continue;
-
-                float alphaMul = (d == 0)
-                    ? 1.0f
-                    : Mathf.Lerp(0.6f, tailEndAlpha, (float)d / dpp);
-
-                var mat = dots[idx].GetComponent<MeshRenderer>().material;
-                mat.color = new Color(particleColor.r, particleColor.g,
-                                      particleColor.b, alphaMul);
-            }
-        }
-
-        // Fiber line color ตาม particleColor
-        Color lc      = new Color(particleColor.r, particleColor.g,
-                                  particleColor.b, glowAlphaMin);
-        lr.startColor = lc;
-        lr.endColor   = lc;
+        ApplyColor(col);
     }
 
     public void SetSpeedMultiplier(float multiplier)
@@ -269,15 +223,10 @@ public class LinkFlowEffect : MonoBehaviour
         speedMultiplier = Mathf.Clamp(multiplier, 0.1f, 2f);
     }
 
-    // กำหนดทิศทาง flow — true = วิ่งจาก position[1] → position[0]
-    public void SetReversed(bool rev)
-    {
-        reversed = rev;
-    }
+    public void SetReversed(bool rev) { reversed = rev; }
 
     public void SetDegraded(bool degraded)
     {
-        // บังคับสีแดงส้มเมื่อ link degrade
         if (degraded) ApplyColor(colorLow);
         else SetFidelity(currentFidelity);
     }
@@ -289,8 +238,8 @@ public class LinkFlowEffect : MonoBehaviour
 
         if (!enabled)
         {
-            Color c       = lr.startColor;
-            c.a           = 0.5f;
+            Color c   = lr.startColor;
+            c.a       = 0.15f;
             lr.startColor = c;
             lr.endColor   = c;
         }

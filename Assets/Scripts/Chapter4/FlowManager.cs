@@ -34,6 +34,17 @@ public class FlowManager : MonoBehaviour
             if (e != null) { e.RefreshPathAndRespawn(); e.SetFidelity(fidelity); }
     }
 
+    // ── Noise — ส่ง fidelity ต่าง hop ให้แต่ละ link ────────
+    public void SetNoisyFidelities(float[] linkFidelities)
+    {
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effects[i] == null) continue;
+            float f = (i < linkFidelities.Length) ? linkFidelities[i] : 90f;
+            effects[i].SetFidelity(f);
+        }
+    }
+
     // ── Heavy Traffic ─────────────────────────────────────
     public void SetHeavyTraffic(bool heavy)
     {

@@ -17,8 +17,15 @@ public class GraphManager : MonoBehaviour
     [Header("Flow")]
     public FlowManager flowManager;
 
+    [Header("UI Panels")]
+    public GameObject noiseInfoCanvas;
+
     [Header("Cascade Settings")]
-    public float cascadeInterval = 1.0f;  // วินาทีต่อ node ที่พัง
+    public float cascadeInterval = 1.0f;
+
+    [Header("Noise Settings")]
+    [Range(0f, 0.5f)]
+    public float noiseStrength = 0.15f; // noise ต่อ link (0 = ไม่มี, 0.5 = มาก)
 
     // Simulation state
     [HideInInspector] public bool simFail, simJam, simHeavy;
@@ -26,13 +33,17 @@ public class GraphManager : MonoBehaviour
     [HideInInspector] public int  failNode = -1;
     [HideInInspector] public int  selNode  = -1;
 
-    // LinkDegrade — เก็บ index ของ link ที่ degrade
+    // LinkDegrade
     [HideInInspector] public HashSet<int> degradedLinks = new HashSet<int>();
 
-    // CascadeFailure — เก็บ node ที่พังแล้ว
+    // CascadeFailure
     [HideInInspector] public HashSet<int> cascadeFailedNodes = new HashSet<int>();
 
+    // Noise — fidelity ต่อ link หลังคำนวณ noise
+    [HideInInspector] public float[] linkFidelities = new float[0];
+
     private Coroutine cascadeCoroutine;
+    public  Coroutine noiseCoroutine;
 
     // Overlay state
     [HideInInspector] public bool ovLabel = true;
@@ -50,6 +61,8 @@ public class GraphManager : MonoBehaviour
 
     IEnumerator Start()
     {
+        if (noiseInfoCanvas != null)
+            noiseInfoCanvas.SetActive(false);
         Rebuild();
         yield return null;
         Refresh();
@@ -58,10 +71,11 @@ public class GraphManager : MonoBehaviour
     // ─── Rebuild ─────────────────────────────────────────
     public void Rebuild()
     {
-        // หยุด cascade ก่อน rebuild
         if (cascadeCoroutine != null) StopCoroutine(cascadeCoroutine);
+        if (noiseCoroutine   != null) StopCoroutine(noiseCoroutine);
         cascadeFailedNodes.Clear();
         degradedLinks.Clear();
+        linkFidelities = new float[0];
 
         builder.Build(currentTopo, nodeCount, spacing);
         Refresh();
@@ -75,12 +89,21 @@ public class GraphManager : MonoBehaviour
                                    simDegrade, degradedLinks, cascadeFailedNodes);
         builder.RefreshLabels(failNode, selNode);
         builder.RefreshLinkLabels();
-        flowManager?.SetFidelity(fidelity);
+
+        // Flow
         flowManager?.SetHeavyTraffic(simHeavy);
         flowManager?.RefreshDegradedLinks(degradedLinks);
-        flowManager?.SetFlowEnabled(ovFlow);                              // ← ย้ายมาก่อน
-        flowManager?.RefreshFailedLinks(failNode, cascadeFailedNodes, builder); // ← หลังสุด
+        flowManager?.SetFlowEnabled(ovFlow);
+        flowManager?.RefreshFailedLinks(failNode, cascadeFailedNodes, builder);
+
+        // Noise — ถ้าเปิด noise ใช้ linkFidelities แทน global fidelity
+        if (simJam && linkFidelities.Length > 0)
+            flowManager?.SetNoisyFidelities(linkFidelities);
+        else
+            flowManager?.SetFidelity(fidelity);
+
         FindFirstObjectByType<MetricsPanel>()?.Refresh();
+        FindFirstObjectByType<NoiseInfoPanel>()?.Refresh();
     }
 
     // ─── Topology ────────────────────────────────────────
@@ -89,7 +112,13 @@ public class GraphManager : MonoBehaviour
         currentTopo = topo;
         failNode = -1; selNode = -1;
         simDegrade = false; simCascade = false;
+        // ไม่ reset simJam เพื่อให้ noise ยังเปิดอยู่
+        linkFidelities = new float[0];
+        if (noiseInfoCanvas != null) noiseInfoCanvas.SetActive(simJam);
+        if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
         Rebuild();
+        if (simJam)
+            noiseCoroutine = StartCoroutine(NoiseRoutine());
     }
 
     // ─── Parameters ──────────────────────────────────────
@@ -97,12 +126,25 @@ public class GraphManager : MonoBehaviour
     {
         nodeCount = n;
         failNode = -1; selNode = -1;
+        linkFidelities = new float[0];
+        if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
         Rebuild();
+        if (simJam)
+            noiseCoroutine = StartCoroutine(NoiseRoutine());
     }
 
     public void SetSpacing(float s)   { spacing  = s; Rebuild(); }
     public void SetDistKm(float d)    { distKm   = d; Refresh(); }
-    public void SetFidelity(float f)  { fidelity = f; Refresh(); }
+    public void SetFidelity(float f)
+    {
+        fidelity = f;
+        if (simJam)
+        {
+            if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
+            noiseCoroutine = StartCoroutine(NoiseRoutine());
+        }
+        else Refresh();
+    }
     public void SetRedundancy(int r)  { redundancy   = r; Refresh(); }
     public void SetHubCapacity(int h) { hubCapacity  = h; Refresh(); }
 
@@ -114,7 +156,6 @@ public class GraphManager : MonoBehaviour
 
     // ─── Simulation ──────────────────────────────────────
 
-    // Node Fail — node กลางพัง
     public void ToggleFail()
     {
         simFail  = !simFail;
@@ -122,42 +163,147 @@ public class GraphManager : MonoBehaviour
         Refresh();
     }
 
-    // Noise — สัญญาณรบกวน fidelity ลด
-    public void ToggleJam()   { simJam   = !simJam;   Refresh(); }
-
-    // Heavy Traffic — hops เพิ่ม latency สูง
-    public void ToggleHeavy() { simHeavy = !simHeavy; Refresh(); }
-
-    // Link Degrade — link สุ่ม degrade fidelity ลด 30%
-    public void ToggleDegrade()
+    // Noise — animate fidelity ลดทีละ link จาก Alice → Bob
+    public void ToggleJam()
     {
-        simDegrade = !simDegrade;
+        simJam = !simJam;
 
-        if (simDegrade)
-        {
-            // สุ่ม ~40% ของ link ให้ degrade
-            degradedLinks.Clear();
-            int total = builder.links.Count;
-            for (int i = 0; i < total; i++)
-                if (Random.value < 0.4f) degradedLinks.Add(i);
+        // แสดง/ซ่อน NoiseInfoCanvas
+        if (noiseInfoCanvas != null)
+            noiseInfoCanvas.SetActive(simJam);
 
-            // ถ้าไม่มีเลยให้มีอย่างน้อย 1
-            if (degradedLinks.Count == 0 && total > 0)
-                degradedLinks.Add(Random.Range(0, total));
-        }
+        if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
+
+        if (simJam)
+            noiseCoroutine = StartCoroutine(NoiseRoutine());
         else
         {
-            degradedLinks.Clear();
+            linkFidelities = new float[0];
+            Refresh();
+        }
+    }
+
+    public IEnumerator NoiseRoutine()
+    {
+        int linkCount = builder.links.Count;
+        linkFidelities = new float[linkCount];
+
+        // เริ่มด้วย fidelity ปกติทุก link
+        for (int i = 0; i < linkCount; i++)
+            linkFidelities[i] = fidelity;
+
+        Refresh();
+        yield return new WaitForSeconds(0.3f);
+
+        // หา link ที่เรียงตาม path จาก Alice → Bob
+        var orderedLinks = GetLinksInOrder();
+
+        // animate ลด fidelity ทีละ link
+        foreach (int li in orderedLinks)
+        {
+            if (!simJam) yield break;
+
+            // noise สะสม — ยิ่งห่างจาก Alice ยิ่งมี noise มาก
+            float baseFid   = fidelity / 100f;
+            float noiseFactor = 1f - noiseStrength * (1f + Random.Range(-0.3f, 0.3f));
+            linkFidelities[li] = Mathf.Max(8f, baseFid * noiseFactor * 100f);
+
+            Refresh();
+            yield return new WaitForSeconds(0.4f);
+        }
+
+        // link ที่ไม่อยู่ใน path หลัก (mesh/star/tree branches) ลด noise เบาๆ
+        for (int i = 0; i < linkCount; i++)
+        {
+            if (linkFidelities[i] >= fidelity) // ยังไม่ได้ถูก noise
+            {
+                float baseFid = fidelity / 100f;
+                float noiseFactor = 1f - (noiseStrength * 0.5f) * (1f + Random.Range(-0.3f, 0.3f));
+                linkFidelities[i] = Mathf.Max(8f, baseFid * noiseFactor * 100f);
+            }
         }
 
         Refresh();
     }
 
-    // Cascade Failure — node พังลามทีละตัวทุก cascadeInterval วินาที
+    // หา link เรียงตาม path จาก Alice → Bob ของแต่ละ topology
+    public List<int> GetLinksInOrder()
+    {
+        var ordered = new List<int>();
+        int n       = nodeCount;
+
+        switch (currentTopo)
+        {
+            case "linear":
+                // link (0,1),(1,2),...,(n-2,n-1) เรียงตาม index
+                for (int i = 0; i < builder.links.Count; i++)
+                    ordered.Add(i);
+                break;
+
+            case "star":
+                // Alice(1)→Hub(0) ก่อน แล้ว Hub(0)→Bob(2)
+                for (int i = 0; i < builder.links.Count; i++)
+                {
+                    var (a, b) = builder.links[i];
+                    if ((a == 0 && b == 1) || (a == 1 && b == 0)) { ordered.Insert(0, i); }
+                    else if ((a == 0 && b == 2) || (a == 2 && b == 0)) { ordered.Add(i); }
+                }
+                break;
+
+            case "ring":
+                // CW path ก่อน: link (0,1),(1,2),...,(half-1,half)
+                int half = Mathf.CeilToInt(n / 2f);
+                for (int i = 0; i < builder.links.Count; i++)
+                {
+                    var (a, b) = builder.links[i];
+                    if (a < half && b <= half && Mathf.Abs(a - b) == 1)
+                        ordered.Add(i);
+                }
+                break;
+
+            case "tree":
+                // จาก Alice(1)→Root(0) แล้วลงมาถึง Bob(n-1)
+                // เรียงตาม depth ของ link
+                for (int i = 0; i < builder.links.Count; i++)
+                    ordered.Add(i);
+                break;
+
+            case "mesh":
+                // เรียงตาม index link ที่ใกล้ Alice ก่อน
+                for (int i = 0; i < builder.links.Count; i++)
+                    ordered.Add(i);
+                break;
+        }
+
+        // ถ้าไม่มีเลยใช้ทุก link
+        if (ordered.Count == 0)
+            for (int i = 0; i < builder.links.Count; i++)
+                ordered.Add(i);
+
+        return ordered;
+    }
+
+    public void ToggleHeavy()   { simHeavy   = !simHeavy;   Refresh(); }
+
+    public void ToggleDegrade()
+    {
+        simDegrade = !simDegrade;
+        if (simDegrade)
+        {
+            degradedLinks.Clear();
+            int total = builder.links.Count;
+            for (int i = 0; i < total; i++)
+                if (Random.value < 0.4f) degradedLinks.Add(i);
+            if (degradedLinks.Count == 0 && total > 0)
+                degradedLinks.Add(Random.Range(0, total));
+        }
+        else degradedLinks.Clear();
+        Refresh();
+    }
+
     public void ToggleCascade()
     {
         simCascade = !simCascade;
-
         if (simCascade)
         {
             cascadeFailedNodes.Clear();
@@ -173,22 +319,18 @@ public class GraphManager : MonoBehaviour
 
     IEnumerator CascadeRoutine()
     {
-        // เริ่มจาก node กลาง
         int start = nodeCount / 2;
         cascadeFailedNodes.Add(start);
         Refresh();
 
-        // ลามไปยัง neighbor ที่ยังไม่พัง ทีละตัวทุก cascadeInterval วินาที
         Queue<int> queue = new Queue<int>();
         queue.Enqueue(start);
 
         while (queue.Count > 0 && simCascade)
         {
             yield return new WaitForSeconds(cascadeInterval);
-
             int current = queue.Dequeue();
 
-            // หา neighbor ของ current
             foreach (var (a, b) in builder.links)
             {
                 int neighbor = -1;
@@ -244,8 +386,19 @@ public class GraphManager : MonoBehaviour
         float fid    = fidelity / 100f;
         int totalFid = Mathf.RoundToInt(Mathf.Pow(fid, hops) * 100);
 
-        if (simFail)    { hops++; totalFid = Mathf.Max(8, totalFid - 22); }
-        if (simJam)     totalFid = Mathf.Max(8, totalFid - 18);
+        if (simFail)  { hops++; totalFid = Mathf.Max(8, totalFid - 22); }
+
+        // Noise — ใช้ค่า fidelity สะสมจาก linkFidelities จริงๆ
+        if (simJam && linkFidelities.Length > 0)
+        {
+            float accumulated = 1f;
+            var   path        = GetLinksInOrder();
+            foreach (int li in path)
+                if (li < linkFidelities.Length)
+                    accumulated *= linkFidelities[li] / 100f;
+            totalFid = Mathf.Max(8, Mathf.RoundToInt(accumulated * 100));
+        }
+
         if (simHeavy)   hops     = Mathf.RoundToInt(hops * 1.5f);
         if (simDegrade) totalFid = Mathf.Max(8, totalFid - 15);
         if (simCascade && cascadeFailedNodes.Count > 0)

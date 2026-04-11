@@ -35,6 +35,11 @@ public class TopologyBuilder : MonoBehaviour
     public Material matLinkJam;
     public Material matLinkHeavy;
 
+    [Header("Noise Link Colors")]
+    public Color noiseLinkColorHigh = new Color(0.11f, 0.62f, 0.46f); // เขียว fidelity >= 80
+    public Color noiseLinkColorMid  = new Color(0.73f, 0.46f, 0.09f); // เหลืองส้ม fidelity >= 60
+    public Color noiseLinkColorLow  = new Color(0.85f, 0.35f, 0.19f); // แดงส้ม fidelity < 60
+
     // สร้าง Material พื้นหลังมุมโค้งครั้งเดียว
     private Material _bgMat;
     Material GetBGMaterial()
@@ -534,22 +539,43 @@ public class TopologyBuilder : MonoBehaviour
                                   bool simDegrade, System.Collections.Generic.HashSet<int> degradedLinks,
                                   System.Collections.Generic.HashSet<int> cascadeFailedNodes)
     {
+        float[] linkFids = GraphManager.Instance != null
+                         ? GraphManager.Instance.linkFidelities
+                         : null;
+
         for (int i = 0; i < links.Count; i++)
         {
             var (a, b) = links[i];
-            bool isFail     = simFail    && (a == failNode || b == failNode);
-            bool isCascade  = cascadeFailedNodes != null &&
-                              (cascadeFailedNodes.Contains(a) || cascadeFailedNodes.Contains(b));
-            bool isJam      = simJam     && i % 3 == 1;
-            bool isHeavy    = simHeavy   && i % 2 == 0;
-            bool isDegrade  = simDegrade && degradedLinks != null && degradedLinks.Contains(i);
-            bool isSel      = selNode >= 0 && (a == selNode || b == selNode);
+            bool isFail    = simFail  && (a == failNode || b == failNode);
+            bool isCascade = cascadeFailedNodes != null &&
+                             (cascadeFailedNodes.Contains(a) || cascadeFailedNodes.Contains(b));
+            bool isHeavy   = simHeavy   && i % 2 == 0;
+            bool isDegrade = simDegrade && degradedLinks != null && degradedLinks.Contains(i);
+            bool isSel     = selNode >= 0 && (a == selNode || b == selNode);
 
-            var mat = (isFail || isCascade) ? matLinkFail
-                    : isJam                 ? matLinkJam
-                    : isHeavy               ? matLinkHeavy
-                    : isDegrade             ? matLinkFail   // ใช้ matLinkFail สีส้มแทน degrade
-                    :                         matLink;
+            // Noise — เปลี่ยนสี link ตาม fidelity จริงของแต่ละ link
+            bool isNoise = simJam && linkFids != null && linkFids.Length > i;
+
+            Material mat;
+            if (isFail || isCascade)
+                mat = matLinkFail;
+            else if (isDegrade)
+                mat = matLinkFail;
+            else if (isHeavy)
+                mat = matLinkHeavy;
+            else if (isNoise)
+            {
+                // สร้าง material instance และเปลี่ยนสีตาม fidelity
+                mat = new Material(matLink);
+                float f   = linkFids[i];
+                Color col = f >= 80 ? noiseLinkColorHigh
+                          : f >= 60 ? noiseLinkColorMid
+                          :           noiseLinkColorLow;
+                col.a = 0.05f;
+                mat.color = col;
+            }
+            else
+                mat = matLink;
 
             linkRenderers[i].material   = mat;
             linkRenderers[i].startWidth = (isSel || isHeavy) ? 0.12f : 0.06f;

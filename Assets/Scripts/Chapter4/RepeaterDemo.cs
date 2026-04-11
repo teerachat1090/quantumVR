@@ -173,9 +173,9 @@ public class RepeaterDemo : MonoBehaviour
         steps.Add(new StepData {
             title       = "Result: Failed",
             description = "Without a Quantum Repeater:\n\n" +
-                          "✗ Signal cannot reach Bob\n" +
-                          "✗ Fidelity = 0%\n" +
-                          "✗ Communication failed\n\n" +
+                          "• Signal cannot reach Bob\n" +
+                        //   "• Fidelity = 0%\n" +
+                          "• Communication failed\n\n" +
                           "A solution is needed for long-distance\n" +
                           "quantum communication.",
             runAnimation = false,
@@ -242,9 +242,9 @@ public class RepeaterDemo : MonoBehaviour
         steps.Add(new StepData {
             title       = "Result: Success!",
             description = "With Quantum Repeaters:\n\n" +
-                          "✓ Signal reached Bob\n" +
-                          "✓ Fidelity maintained at 85%+\n" +
-                          "✓ Entanglement Swapping worked\n\n" +
+                          "• Signal reached Bob\n" +
+                        //   "• Fidelity maintained at 85%+\n" +
+                          "• Entanglement Swapping worked\n\n" +
                           "Quantum Repeaters make long-distance\n" +
                           "quantum communication possible!",
             runAnimation = false,
@@ -265,18 +265,22 @@ public class RepeaterDemo : MonoBehaviour
     //  Step Navigation
     // ─────────────────────────────────────────
     void OnNextPressed()
+{
+    // รอเฉพาะ With Repeater เท่านั้น
+    if (isRunning && mode == DemoMode.WithRepeater)
     {
-        // รอให้ animation จบก่อนถ้ากำลังวิ่งอยู่
-        if (isRunning) return;
-
-        stepIndex++;
-        if (stepIndex >= steps.Count)
-        {
-            ShowSelectScreen();
-            return;
-        }
-        ShowCurrentStep();
+        SetStatus("Please wait for the signal to finish...");
+        return;
     }
+
+    stepIndex++;
+    if (stepIndex >= steps.Count)
+    {
+        ShowSelectScreen();
+        return;
+    }
+    ShowCurrentStep();
+}
 
     void ShowCurrentStep()
     {
@@ -320,23 +324,23 @@ public class RepeaterDemo : MonoBehaviour
     //  Update: Fail (No Repeater)
     // ─────────────────────────────────────────
     void UpdateFail()
+{
+    if (aliceTransform == null || bobTransform == null) return;
+    float step = particleSpeed * Time.deltaTime;
+
+    for (int i = 0; i < particleCount; i++)
     {
-        if (aliceTransform == null || bobTransform == null) return;
-        float step = particleSpeed * Time.deltaTime;
+        particleT[i] = Mathf.Repeat(particleT[i] + step, 1f);
+        float   t   = particleT[i];
+        Vector3 pos = Vector3.Lerp(aliceTransform.position, bobTransform.position, t);
+        particles[i].transform.position = pos;
 
-        for (int i = 0; i < particleCount; i++)
-        {
-            particleT[i] = Mathf.Repeat(particleT[i] + step, 1f);
-            float   t   = particleT[i];
-            Vector3 pos = Vector3.Lerp(aliceTransform.position, bobTransform.position, t);
-            particles[i].transform.position = pos;
-
-            float alpha = t < 0.4f  ? 1f
-                        : t < 0.75f ? Mathf.Lerp(1f, 0f, (t - 0.4f) / 0.35f)
-                        : 0f;
-            SetParticleAlpha(i, alpha);
-        }
+        float alpha = t < 0.4f  ? 1f
+                    : t < 0.75f ? Mathf.Lerp(1f, 0f, (t - 0.4f) / 0.35f)
+                    : 0f;
+        SetParticleAlpha(i, alpha);
     }
+}
 
     // ─────────────────────────────────────────
     //  Update: Segment (With Repeater)
