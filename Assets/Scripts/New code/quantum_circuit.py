@@ -56,12 +56,13 @@ def do_measurement_on(qc, qubit_measured: int):
     collapsed_sv = collapsed_sv / np.linalg.norm(collapsed_sv.data)
     qc_new = QuantumCircuit(qc.num_qubits)
     qc_new.initialize(collapsed_sv.data)
-    return qc_new
+    return int(outcome[0]), qc_new
 
 def create_circuit(circuit_data: str):
     """A method to extract data from new json format"""
     qubit_amount = circuit_data.get("qubitAmount", None)
     socket_amount = circuit_data.get("socketAmount", None)
+    cbit_amount = circuit_data.get("CBitAmount", None)
 
     if qubit_amount is None:
         print("Json file error: no field name (qubitAmount - int)!")
@@ -71,7 +72,12 @@ def create_circuit(circuit_data: str):
         print("Json file error: no field name (socketAmount - int)!")
         sys.exit(1)
 
+    if cbit_amount is None:
+        print("Json file error: no field name (CBitAmount - int)!")
+        sys.exit(1)
+
     qc = QuantumCircuit(qubit_amount, qubit_amount)
+    cbit_arr = [0]*cbit_amount
 
     column_list = circuit_data.get("columnList", None)
     if not column_list:
@@ -94,8 +100,11 @@ def create_circuit(circuit_data: str):
                 continue
 
             if target_list:
-                if gate.get("controlRow", False):
-                    qc = do_measurement_on(qc, control_list[0]) #add target classical after that
+                if gate.get("classical", False):
+                    if gate.get("condition", False) and cbit_arr[target_list[0]]:
+                        single_input_gate[gate_type](qc,control_list[0])
+                    else:
+                        cbit_arr[target_list[0]], qc = do_measurement_on(qc, control_list[0])
                 elif gate_type in multi_input_gate:
                     multi_input_gate[gate_type](qc, control_list, target_list)
 

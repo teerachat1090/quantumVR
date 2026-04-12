@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using System.Threading.Tasks;
 
 public class MultiInputGateConnect : MonoBehaviour
 {
@@ -15,32 +14,11 @@ public class MultiInputGateConnect : MonoBehaviour
     public int column = -1;
     public string gateName = "";
     public bool classicalRelated = false;
+    public bool conditionRelated = false;
+    public Material classicalMaterial = null;
+    private int highNote = -1, lowNote = -1;
 
-    private GateSocket GetCurrentGatesocket(QuantumGate gate)
-    {
-        XRGrabInteractable grabInteractable = gate.GetComponent<XRGrabInteractable>();
-        if(grabInteractable == null) {
-            Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");
-            return null;
-        }
-
-        IXRSelectInteractor selectingInteractor = grabInteractable.interactorsSelecting.FirstOrDefault();
-        if (selectingInteractor != null && selectingInteractor is XRSocketInteractor socket)
-        {
-            GateSocket gateSocket = socket.GetComponent<GateSocket>();
-            if(gateSocket == null)
-            {
-                Debug.LogWarning("Warning: socket's component is missing (GateSocket).");
-                return null;
-            }
-
-            return gateSocket;
-        }
-
-        return null;
-    }
-
-    public List<int> GetOneGate()
+    public List<int> GetIndexOneGate()
     {
         var control = new List<int>();
         foreach(GameObject gate in gateMember)
@@ -84,7 +62,7 @@ public class MultiInputGateConnect : MonoBehaviour
     public void getHighLow(out int highQ, out int lowQ, out int col)
     {
         // iterate through member and get most high-low index
-        highQ = -1; lowQ = -1; col = column;
+        int highTemp = -1, lowTemp = -1;
 
         foreach(GameObject gate in gateMember)
         {
@@ -102,15 +80,48 @@ public class MultiInputGateConnect : MonoBehaviour
             if(classicalRelated && QuantumGate.getGateType() != QuantumGate.inputType.measure) continue;
 
             GateSocket gateSocket = QuantumGate.socket;
-            if(gateSocket == null) continue;
+            if(gateSocket == null) {
+                Debug.LogWarning("socket is empty");
+                continue;}
 
+            
             int val = gateSocket.qubitIndex;
-            if(highQ < 0)        highQ = lowQ = val;
-            else if(val > highQ) highQ = val;
-            else if(val < lowQ)  lowQ = val;
+            Debug.Log($"high-low value assigned: {val}");
+            if(highTemp < 0)        highTemp = lowTemp = val;
+            else if(val > highTemp) highTemp = val;
+            else if(val < lowTemp)  lowTemp = val;
+            Debug.Log($"Value change: high->{highTemp}, low->{lowTemp}");
+        }
+
+        highNote = highTemp; lowNote = lowTemp;
+
+        highQ = highTemp; lowQ = lowTemp;
+        col = column;
+    }
+
+    public void SetSocketInBetween(bool useTempVal = false, bool doEnable = true)
+    {
+        if(socketsManager == null)
+        {
+            Debug.LogWarning("Warning: socket manager is missing");
+            return;
+        }
+
+        Debug.Log($"status: tempVal-{useTempVal}");
+        if (useTempVal)
+        {
+            Debug.Log($"Set socket temp : high->{highNote}, low->{lowNote}");
+            socketsManager.SetColumnSocketBetween(highNote, lowNote, column, isEnable: doEnable);
+        } 
+        else
+        {
+            getHighLow(out int highQ, out int lowQ, out _);
+            Debug.Log($"Set socket real : high->{highQ}, low->{lowQ}");
+            socketsManager.SetColumnSocketBetween(highQ, lowQ, column, isEnable: doEnable);
         }
     }
 
+    //apply exclusive gate to column
     public void ToggleCurrentColumn(bool doLock = true)
     {
         if(!Application.isPlaying) return;
@@ -130,7 +141,7 @@ public class MultiInputGateConnect : MonoBehaviour
 
         if(highQubit < 0 || lowQubit < 0 || column < 0)
         {
-            Debug.LogError("Error: invalid range of multi gate.");
+            Debug.LogWarning($"Error: invalid range of multi gate: high-{highQubit}, low-{lowQubit}, col-{column}");
             return;
         }
 
@@ -140,6 +151,10 @@ public class MultiInputGateConnect : MonoBehaviour
     public void AddMember(GameObject memberGate)
     {
         gateMember.Add(memberGate);
+        var quantumGate = memberGate.GetComponent<QuantumGate>();
+        if(quantumGate is null) return;
+        quantumGate.setConditionSocket(false);
+        if(quantumGate.getGateType() == QuantumGate.inputType.condition) conditionRelated = true;
     }
 
     public void RunLineConnect()
@@ -165,7 +180,7 @@ public class MultiInputGateConnect : MonoBehaviour
             GameObject target0 = gateMember[i];
             GameObject target1 = gateMember[i+1];
 
-            var connect = new LineConnecting(target0, target1, gameObject);
+            var connect = new LineConnecting(target0, target1, gameObject, classicalMat: classicalMaterial);
             targetConnect.Add(connect);   
         }
     }
@@ -211,7 +226,7 @@ public class MultiInputGateConnect : MonoBehaviour
         Vector3 offset, linePosition;
         float distance;
 
-        public LineConnecting(GameObject Target0, GameObject Target1, GameObject Manager)
+        public LineConnecting(GameObject Target0, GameObject Target1, GameObject Manager, Material classicalMat = null)
         {
             target0 = Target0; target1 = Target1;
             
@@ -219,10 +234,17 @@ public class MultiInputGateConnect : MonoBehaviour
             Renderer lineRen = line.GetComponent<Renderer>();
             line.transform.SetParent(Manager.transform);
 
-            Renderer ren = target0.GetComponentInChildren<Renderer>();
-            Material mat = ren.material;
+            if(classicalMat == null)
+            {
+                Renderer ren = target0.GetComponentInChildren<Renderer>();
+                Material mat = ren.material;
+                lineRen.material =  mat;
+            }
+            else
+            {
+                lineRen.material = classicalMat;
+            }
             
-            lineRen.material = mat;
             
             UpdateLine();
         }

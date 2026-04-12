@@ -4,23 +4,61 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class QuantumGate : MonoBehaviour
 {
     [Header("Gate Info")]
     [SerializeField] private string gateName; // H, X, Y, Z, CNOT, etc.
-    public enum inputType{Single, Double, Triple, target, measure, Default}; 
+    public enum inputType{Single, Double, Triple, target, measure, condition, Default}; 
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     
-    public SocketsManager _socketsManager = null;
     private CircuitSocket currentSocket;
+    private XRSocketInteractor socketInteractor;
 
     [Header("Multi-input Gate Info")]
     public bool friendExist = false, beingDestroyed = false;
     public bool isController = false;
     public GateSocket socket = null;
     public MultiInputGateConnect connect = null;
+
+    public void setConditionSocket(bool state)
+    {
+        if(socketInteractor == null) return;
+        socketInteractor.enabled = state;
+    }
+
+    void CheckComponent()
+    {
+        socketInteractor = GetComponent<XRSocketInteractor>();
+        if(socketInteractor != null)
+        {
+            socketInteractor.selectEntered.AddListener(OnGatePlaced);
+        }
+    }
+
+    void OnGatePlaced(SelectEnterEventArgs args)
+    {
+        GameObject trigger = args.interactableObject.transform.gameObject;
+        Destroy(trigger);
+
+        if(socket == null) return;
+
+        gatetype = inputType.condition;
+        bool completed = socket.RegistClassicalRelated(gameObject);
+        if(!completed) {
+            gatetype = inputType.Single;
+            return;
+        }
+        
+        socketInteractor.enabled = false;
+    }
+
+    void Awake()
+    {
+        CheckComponent();
+    }
 
     void Start()
     {
@@ -58,25 +96,9 @@ public class QuantumGate : MonoBehaviour
 
     public inputType getGateType()  {return gatetype; }
 
-    public int GetNumInput()
+    void OnDestroy()
     {
-        if(gatetype == inputType.Single) return 1;
-
-        if(gatetype == inputType.Double) return 2;
-
-        if(gatetype == inputType.Triple) return 3;
-
-        return 0;
-    }
-
-    public void AddTarget(int qubitIndex, Position targetPosition)
-    {
+        if(socketInteractor != null) socketInteractor.selectEntered.RemoveListener(OnGatePlaced);
         
-    }
-
-    public class TargetGate
-    {
-        GameObject target;
-        int qubitIndex;
     }
 }

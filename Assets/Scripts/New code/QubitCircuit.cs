@@ -84,12 +84,6 @@ public class QubitCircuit : MonoBehaviour
         return socketsManager;
     }
 
-    public GameObject CheckIfSocketEmpty(int index)
-    {
-        if(gateSockets[index].getCurrentGate() is null) return gateSockets[index].gameObject;
-        else return null;
-    }
-
     public void updateStatus(string gateName, int socketIndex, bool isPlaced)
     {
         if(!isEnabled) return;
@@ -100,11 +94,6 @@ public class QubitCircuit : MonoBehaviour
     void toggleCircuit()
     {
         isEnabled = !isEnabled;
-    }
-
-    public int getNumberOfGates()
-    {
-        return gateSockets.Length;
     }
 
     public List<QuantumGate> getListOfGate()

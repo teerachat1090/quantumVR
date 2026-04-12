@@ -23,6 +23,9 @@ public class GateSocket : MonoBehaviour
         {
             socketInteractor.selectEntered.AddListener(OnGatePlaced);
             socketInteractor.selectExited.AddListener(OnGateRemoved);
+        } else
+        {
+            Debug.LogWarning("Warning: there's no socket interactor here!");
         }
     }
 
@@ -40,6 +43,19 @@ public class GateSocket : MonoBehaviour
         }
 
         return grabInteractable;
+    }
+
+    public bool RegistClassicalRelated(GameObject baseObject)
+    {
+        var socketsManager = parentCircuit.GetSocketsManager();
+        Debug.Log("checking about measurement");
+        bool pathAvailible = socketsManager.CheckPathToClassicalBit(baseObject, qubitIndex, socketIndex);
+        if (!pathAvailible)
+        {
+            Debug.LogWarning("There gate block path downward.");
+            return false;
+        }
+        return true;
     }
 
     void OnGatePlaced(SelectEnterEventArgs args)
@@ -69,13 +85,8 @@ public class GateSocket : MonoBehaviour
         var socketsManager = parentCircuit.GetSocketsManager();
         if(inputType == QuantumGate.inputType.measure)
         {
-            Debug.Log("checling about measurement");
-            bool pathAvailible = socketsManager.CheckPathToClassicalBit(gate.gameObject, qubitIndex, socketIndex);
-            if (!pathAvailible)
-            {
-                Debug.LogWarning("There gate block path downward.");
-                Destroy(gate.gameObject);
-            }
+            bool completed = RegistClassicalRelated(gate.gameObject);
+            if(!completed) Destroy(gate.gameObject);
             return;
         }
         //---------------------------------------------------------------------
@@ -88,7 +99,9 @@ public class GateSocket : MonoBehaviour
             if(grabInteractable == null) return;
             grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
 
+            //disable socket inbetween
             gate.connect.ToggleCurrentColumn(doLock: false);
+            gate.connect.SetSocketInBetween(doEnable: false);
         }
         else //introduce new gate to socket manager
         {
@@ -107,12 +120,14 @@ public class GateSocket : MonoBehaviour
         currentGate = null;
         gate.socket = null;
 
-        int numInput = gate.GetNumInput();
-        if(numInput == 1)
+        if(gate.getGateType() == QuantumGate.inputType.Single)
         {
             updateCircuit(false);
             return;
         } 
+
+        // enable socket inbetween
+        gate.connect.SetSocketInBetween(useTempVal: true);
 
         // Remove assigned multi-input gate
         if(gate.friendExist && !gate.beingDestroyed)
@@ -152,10 +167,5 @@ public class GateSocket : MonoBehaviour
     public QuantumGate getCurrentGate()
     {
         return currentGate;
-    }
-
-    public void setQubitIndex(int index)
-    {
-        socketIndex = index;
     }
 }

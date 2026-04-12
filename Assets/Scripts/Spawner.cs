@@ -28,7 +28,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private bool destroyOnFloorHit = true;
     
     [Tooltip("Despawn height (meters)")]
-    [SerializeField] private float despawnHeight = 0.1f;
+    [SerializeField] private float despawnHeight = -1.0f;
     
     [Tooltip("Spawn Cooldown (seconds)")]
     [SerializeField] private float spawnCooldown = 0.5f;
@@ -137,6 +137,9 @@ public class Spawner : MonoBehaviour
             quantumgate.name = name.Remove(sepIndex);
             return;
         }
+
+        QuantumGate quantumGate = spawnedObject.GetComponent<QuantumGate>();
+        quantumGate.setConditionSocket(true);
 
         // Edit spawn script (if has one): Prefab must not spawn another
         Spawner spawnedScript = spawnedObject.GetComponent<Spawner>();

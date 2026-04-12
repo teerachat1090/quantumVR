@@ -22,6 +22,9 @@ public class SocketsManager : MonoBehaviour
     [SerializeField] InteractionLayerMask lockLayer;
     [SerializeField] InteractionLayerMask gateLayer;
 
+    [Header("Classical Bit Material")]
+    [SerializeField] private Material classicalLineMaterial = null;
+
     private XRGrabInteractable[] sourceGates;
     private CircuitManager headManager;
     // script stationed for qubit
@@ -178,8 +181,10 @@ public class SocketsManager : MonoBehaviour
             return;
         }
 
+        //block gate that already placed 
         FreezeGateBlock(doLock);
 
+        //add/delete exclusive layer
         //inside range
         for(int i = lowQubit; i<=highQubit; i++)
         {
@@ -219,6 +224,7 @@ public class SocketsManager : MonoBehaviour
         //assign base and other prefab
         var groupParent = new GameObject(){name = "holder"};
         var connect = groupParent.AddComponent<MultiInputGateConnect>();
+        connect.classicalMaterial = classicalLineMaterial;
         connect.socketsManager = this;
         connect.column = col;
         connect.AddMember(baseObject);
@@ -305,15 +311,16 @@ public class SocketsManager : MonoBehaviour
         //assign base and other prefab
         var groupParent = new GameObject(){name = "holder"};
         var connect = groupParent.AddComponent<MultiInputGateConnect>();
+        connect.classicalMaterial = classicalLineMaterial;
         connect.socketsManager = this;
         connect.column = col;
         connect.classicalRelated = true;
         connect.AddMember(baseObject);
-        connect.gateName = baseObject.name;
 
         var baseObject_quantumGate = baseObject.GetComponent<QuantumGate>();
         baseObject_quantumGate.friendExist = true;
         baseObject_quantumGate.socket = socketMap[row][col];
+        connect.gateName = baseObject_quantumGate.getGateName();
         
         GameObject classicalConnect = CBManager.GetSocketByCol(col);
         CBManager.ShowPointByCol(col);
@@ -327,7 +334,7 @@ public class SocketsManager : MonoBehaviour
         updateCircuitByJson(connect.gateName, col, row, true);
     }
 
-    public bool CheckPathToClassicalBit(GameObject baseObject, int row, int col)
+    public bool CheckDownward(int row, int col)
     {
         // check downward
         for(int i=row+1; i<totalQubits; i++)
@@ -335,9 +342,32 @@ public class SocketsManager : MonoBehaviour
             if(socketMap[i][col].getCurrentGate() != null) return false;
         }
 
+        return true;
+    }
+
+    public bool CheckPathToClassicalBit(GameObject baseObject, int row, int col)
+    {
+        // check downward
+        if(!CheckDownward(row, col)) return false;
+
         //assign to group
         AssignMeasurement(baseObject, row, col);
         return true;
+    }
+
+    public void SetColumnSocketBetween(int highIndex, int lowIndex, int col, bool isEnable = false)
+    {
+        // 0 <= low < high < totalQ
+        if(!(0 <= lowIndex && lowIndex < highIndex && highIndex < totalQubits)) return;
+        
+        for(int i=lowIndex+1; i<highIndex; i++)
+        {
+            if(socketMap[i][col].getCurrentGate() != null) continue;
+            Debug.Log($"Set socket inbetween... mode:{isEnable}");
+            var socketInteract = socketMap[i][col].GetComponent<XRSocketInteractor>();
+            if(socketInteract != null) socketInteract.enabled = isEnable;
+            else Debug.LogWarning("XRSocketInteractor is missing?");
+        }
     }
 
     // Try to remove this function (use socketMap instead)
@@ -390,6 +420,7 @@ public class SocketsManager : MonoBehaviour
         {
             qubitAmount = totalQubits,
             socketAmount = totalSocketEach,
+            CBitAmount = totalQubits,
             columnList = new List<int>(),
             gateList = new List<GateInfo>()
         };
@@ -438,10 +469,11 @@ public class SocketsManager : MonoBehaviour
             };
             if (connect.classicalRelated)
             {
-                gateInfo.controlRow = connect.GetOneGate();
+                gateInfo.controlRow = connect.GetIndexOneGate();
                 var targetList = new List<int>() {CBManager.GetTargetClassicalBit(gateInfo.column)};
                 gateInfo.targetRow = targetList;
-                gateInfo.measure = true;
+                gateInfo.classical = true;
+                gateInfo.condition = connect.conditionRelated;
             } else {
                 connect.GetGateListByType(out List<int> controlRow, out List<int> targetsRow);
                 gateInfo.controlRow = controlRow;
@@ -474,7 +506,7 @@ public class SocketsManager : MonoBehaviour
         }
         foreach(XRGrabInteractable xrGrab in sourceGates)
         {
-            xrGrab.interactionLayers = doDisable ? InteractionLayerMask.GetMask("Default") : interactionLayer;
+            xrGrab.enabled = !doDisable;
         }
     }
 }
@@ -507,7 +539,7 @@ public class QuantumGateExport
 [Serializable]
 public class CircuitInfo
 {
-    public int qubitAmount, socketAmount;
+    public int qubitAmount, socketAmount, CBitAmount;
     public List<int> columnList;
     public List<GateInfo> gateList;
 
@@ -517,7 +549,7 @@ public class CircuitInfo
 public class GateInfo
 {
     public int id;
-    public bool measure = false;
+    public bool classical = false, condition = false;
     public string name;
     public int column;
     public List<int> controlRow, targetRow;
