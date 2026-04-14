@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class ClassicalBitManager : MonoBehaviour
 {
-    public int circuitIndex = 0; //0 by default
     public int socketAmount = -1;
+    public int maxBitPosition = -1;
     [SerializeField] private GameObject ClassicalIOPrefab = null;
     [SerializeField] private float space = 0.25f;
 
     private SocketsManager socketsManager = null;
-    private List<ClassicalBitPoint> classicalSocketList = new List<ClassicalBitPoint>();
+    private List<IOClassical> classicalSocketList = new List<IOClassical>();
 
     private void SetSocketPrefab(int amount)
     {
@@ -35,12 +35,15 @@ public class ClassicalBitManager : MonoBehaviour
         {
             GameObject spawn = Instantiate(ClassicalIOPrefab, gameObject.transform);
             spawn.transform.localPosition = position;
+            spawn.transform.localRotation = Quaternion.Euler(0, 90, 0);
             spawn.name = $"CBSC{i}";
 
-            var bit = new ClassicalBitPoint{
-                IOPoint = spawn
-            };
-            classicalSocketList.Add(bit);
+            var IOBit = spawn.GetComponent<IOClassical>();
+            if(IOBit!=null) {
+                IOBit.CBManager = this;
+                IOBit.maxPosition = maxBitPosition;
+                classicalSocketList.Add(IOBit);
+            }
 
             position.z -= space;
         }
@@ -60,40 +63,19 @@ public class ClassicalBitManager : MonoBehaviour
     public void ShowPointByCol(int index)
     {
         if(index < 0 && index >= socketAmount) return;
-        ClassicalBitPoint socket = classicalSocketList[index];
-        socket.IOPoint.SetActive(true);
+        classicalSocketList[index].gameObject.SetActive(true);
     }
 
     public GameObject GetSocketByCol(int index)
     {
         if(index < 0 && index >= socketAmount) return null;
-        ClassicalBitPoint socket = classicalSocketList[index];
-        return socket.IOPoint;
+        return classicalSocketList[index].gameObject;
     }
 
     public int GetTargetClassicalBit(int index)
     {
         if(index < 0 && index >= socketAmount) return -1;
-        ClassicalBitPoint socket = classicalSocketList[index];
-        return socket.bitFocus;
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    [Serializable]
-    public class ClassicalBitPoint
-    {
-        public int bitFocus = 0;
-        public GameObject IOPoint;
+        IOClassical socket = classicalSocketList[index];
+        return socket.GetBitPosition();
     }
 }

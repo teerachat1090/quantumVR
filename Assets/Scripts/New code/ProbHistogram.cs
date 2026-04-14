@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 using QubitStat = FileManager.QubitStat;
 
 public class ProbHistogram : MonoBehaviour

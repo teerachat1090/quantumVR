@@ -180,7 +180,8 @@ public class MultiInputGateConnect : MonoBehaviour
             GameObject target0 = gateMember[i];
             GameObject target1 = gateMember[i+1];
 
-            var connect = new LineConnecting(target0, target1, gameObject, classicalMat: classicalMaterial);
+            Material usedMat = classicalRelated ? classicalMaterial : null;
+            var connect = new LineConnecting(target0, target1, gameObject, classicalMat: usedMat);
             targetConnect.Add(connect);   
         }
     }

@@ -15,10 +15,12 @@ public class SocketsManager : MonoBehaviour
     [Header("Interaction setting")]
     [SerializeField] private GameObject storage = null; //disable grabbable when in animated mode
     [SerializeField] private InteractionLayerMask interactionLayer;
+    [SerializeField] private float socketOffset = 0.0f;
 
     [Header("CNOT Gate Setting")]
     [SerializeField] private GameObject controlPrefab = null;
     [SerializeField] private GameObject targetPrefab = null;
+    [SerializeField] private bool useClassical = true;
     [SerializeField] InteractionLayerMask lockLayer;
     [SerializeField] InteractionLayerMask gateLayer;
 
@@ -92,7 +94,7 @@ public class SocketsManager : MonoBehaviour
             return false;
         }
 
-        if(classicalSocketPrefab == null)
+        if(classicalSocketPrefab == null && useClassical)
         {
             Debug.LogError("Error: unable to spawn classical socket prefab - null element.");
             return false;
@@ -130,7 +132,7 @@ public class SocketsManager : MonoBehaviour
             qubitAmount = 1;
         }
 
-        float xPos = 0.1f*qubitAmount;
+        float xPos = 0.1f*(qubitAmount - (useClassical ? 0: 1)) + socketOffset;
 
         for(int i=0; i<qubitAmount; i++)
         {
@@ -148,13 +150,16 @@ public class SocketsManager : MonoBehaviour
         }
         qubitCircuits.Sort((a,b) => a.circuitIndex.CompareTo(b.circuitIndex));
 
-        GameObject classicalRow = Instantiate(classicalSocketPrefab, gameObject.transform, false);
-        classicalRow.transform.Translate(xPos*Vector3.right);
-        classicalRow.name = classicalSocketPrefab.name;
+        if(useClassical){
+            GameObject classicalRow = Instantiate(classicalSocketPrefab, gameObject.transform, false);
+            classicalRow.transform.Translate(xPos*Vector3.right);
+            classicalRow.name = classicalSocketPrefab.name;
 
-        CBManager = classicalRow.GetComponent<ClassicalBitManager>();
-        CBManager.socketAmount = totalSocket;
-        classicalRow.SetActive(true);
+            CBManager = classicalRow.GetComponent<ClassicalBitManager>();
+            CBManager.socketAmount = totalSocket;
+            CBManager.maxBitPosition = totalQubits;
+            classicalRow.SetActive(true);
+        }
 
         totalQubits = qubitAmount;
         getAvailibleQubit();
