@@ -34,6 +34,7 @@ public class TopologyBuilder : MonoBehaviour
     public Material matLinkFail;
     public Material matLinkJam;
     public Material matLinkHeavy;
+    public Material matLinkDegrade; // ใหม่ — ส้มอมน้ำตาล สำหรับ degraded link
 
     [Header("Noise Link Colors")]
     public Color noiseLinkColorHigh = new Color(0.11f, 0.62f, 0.46f); // เขียว fidelity >= 80
@@ -290,21 +291,24 @@ public class TopologyBuilder : MonoBehaviour
         float r = spacing * n / (2 * Mathf.PI);
         r = Mathf.Clamp(r, spacing, spacing * 2.5f);
 
+        int half     = Mathf.CeilToInt(n / 2f);
+        int repCount = 0;
         for (int i = 0; i < n; i++)
         {
-            float angle = -Mathf.PI / 2 + 2 * Mathf.PI * i / n;
-            int half = Mathf.CeilToInt(n / 2f);
+            float  angle = -Mathf.PI / 2 + 2 * Mathf.PI * i / n;
+            string lbl   = i == 0    ? "Alice"
+                         : i == half ? "Bob"
+                         : "R" + (++repCount);
             nodeDataList.Add(new NodeData
             {
                 index    = i,
                 type     = (i == 0 || i == half) ? NodeType.End : NodeType.Repeater,
-                label    = i == 0 ? "Alice" : i == half ? "Bob" : "R" + i,
+                label    = lbl,
                 position = new Vector3(Mathf.Cos(angle) * r, 0, Mathf.Sin(angle) * r)
             });
         }
         for (int i = 0; i < n; i++) links.Add((i, (i + 1) % n));
     }
-
     // ─── Spawn GameObjects ────────────────────────────────
 
     void SpawnObjects()
@@ -532,30 +536,65 @@ public class TopologyBuilder : MonoBehaviour
             if (isInit) useNoiseFid = false;
         }
 
+        // รวม failed nodes ทั้งหมด (failNode + cascadeFailedNodes)
+        var allFailed = new System.Collections.Generic.HashSet<int>(
+            gm.cascadeFailedNodes ?? new System.Collections.Generic.HashSet<int>());
+        if (gm.simFail && gm.failNode >= 0) allFailed.Add(gm.failNode);
+
         for (int i = 0; i < linkLabelsDist.Count; i++)
         {
             if (linkLabelsDist[i] == null) continue;
-            linkLabelsDist[i].text     = distKmPerLink + " km";
-            linkLabelsDist[i].fontSize = linkLabelFontSizeDist;
-            linkLabelsDist[i].color    = linkLabelColorDist;
-            linkLabelsDist[i].gameObject.SetActive(showDist);
+
+            // เช็คว่า link นี้ติด failed node ไหม
+            bool linkFailed = i < links.Count &&
+                              (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
+
+            if (linkFailed)
+            {
+                // Link พัง — แสดง "—" สีแดง
+                linkLabelsDist[i].text     = "—";
+                linkLabelsDist[i].fontSize = linkLabelFontSizeDist;
+                linkLabelsDist[i].color    = new Color(1.0f, 0.2f, 0.1f);
+                linkLabelsDist[i].gameObject.SetActive(showDist);
+            }
+            else
+            {
+                linkLabelsDist[i].text     = distKmPerLink + " km";
+                linkLabelsDist[i].fontSize = linkLabelFontSizeDist;
+                linkLabelsDist[i].color    = linkLabelColorDist;
+                linkLabelsDist[i].gameObject.SetActive(showDist);
+            }
         }
 
         for (int i = 0; i < linkLabelsFid.Count; i++)
         {
             if (linkLabelsFid[i] == null) continue;
 
-            // ── FIX: แสดง fidelity รายลิ้งค์เมื่อ Noise เปิด ──────────────────
-            float fidPct = (useNoiseFid && i < gm.linkFidelities.Length)
-                         ? gm.linkFidelities[i]
-                         : globalFid;
-            Color fidCol = useNoiseFid ? FidLabelColor(fidPct) : linkLabelColorFid;
-            // ─────────────────────────────────────────────────────────────────────
+            // เช็คว่า link นี้ติด failed node ไหม
+            bool linkFailed = i < links.Count &&
+                              (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
 
-            linkLabelsFid[i].text     = "F: " + fidPct.ToString("F0") + "%";
-            linkLabelsFid[i].fontSize = linkLabelFontSizeFid;
-            linkLabelsFid[i].color    = fidCol;
-            linkLabelsFid[i].gameObject.SetActive(showFid);
+            if (linkFailed)
+            {
+                // Link พัง — แสดง "F: —" สีแดง
+                linkLabelsFid[i].text     = "F: —";
+                linkLabelsFid[i].fontSize = linkLabelFontSizeFid;
+                linkLabelsFid[i].color    = new Color(1.0f, 0.2f, 0.1f);
+                linkLabelsFid[i].gameObject.SetActive(showFid);
+            }
+            else
+            {
+                // Link ปกติ
+                float fidPct = (useNoiseFid && i < gm.linkFidelities.Length)
+                             ? gm.linkFidelities[i]
+                             : globalFid;
+                Color fidCol = useNoiseFid ? FidLabelColor(fidPct) : linkLabelColorFid;
+
+                linkLabelsFid[i].text     = "F: " + fidPct.ToString("F0") + "%";
+                linkLabelsFid[i].fontSize = linkLabelFontSizeFid;
+                linkLabelsFid[i].color    = fidCol;
+                linkLabelsFid[i].gameObject.SetActive(showFid);
+            }
         }
     }
 
@@ -588,7 +627,7 @@ public class TopologyBuilder : MonoBehaviour
             bool isFail    = simFail  && (a == failNode || b == failNode);
             bool isCascade = cascadeFailedNodes != null &&
                              (cascadeFailedNodes.Contains(a) || cascadeFailedNodes.Contains(b));
-            bool isHeavy   = simHeavy   && i % 2 == 0;
+            bool isHeavy   = simHeavy && false; // visual handled by photon now
             bool isDegrade = simDegrade && degradedLinks != null && degradedLinks.Contains(i);
             bool isSel     = selNode >= 0 && (a == selNode || b == selNode);
 
@@ -599,12 +638,11 @@ public class TopologyBuilder : MonoBehaviour
             if (isFail || isCascade)
                 mat = matLinkFail;
             else if (isDegrade)
-                mat = matLinkFail;
+                mat = matLinkDegrade != null ? matLinkDegrade : matLinkFail;
             else if (isHeavy)
                 mat = matLinkHeavy;
             else if (isNoise)
             {
-                // สร้าง material instance และเปลี่ยนสีตาม fidelity
                 mat = new Material(matLink);
                 float f   = linkFids[i];
                 Color col = f >= 80 ? noiseLinkColorHigh
@@ -617,8 +655,10 @@ public class TopologyBuilder : MonoBehaviour
                 mat = matLink;
 
             linkRenderers[i].material   = mat;
-            linkRenderers[i].startWidth = (isSel || isHeavy) ? 0.12f : 0.06f;
-            linkRenderers[i].endWidth   = (isSel || isHeavy) ? 0.12f : 0.06f;
+            // degraded link บางลงนิดนึง สื่อว่าเสื่อมสภาพ
+            float w = isSel ? 0.12f : isDegrade ? 0.04f : 0.06f;
+            linkRenderers[i].startWidth = w;
+            linkRenderers[i].endWidth   = w;
         }
     }
 

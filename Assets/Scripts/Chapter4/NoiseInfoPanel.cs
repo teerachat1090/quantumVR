@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
 
@@ -88,38 +89,101 @@ public class NoiseInfoPanel : MonoBehaviour
             return;
         }
 
-        // ── FIX 2: ซ่อน rows ถ้า linkFidelities ยังเป็น init state ──────────
-        // (ทุก link ยังมีค่าเท่ากันหมด = Coroutine ยังไม่ได้ animate ค่าแรก)
-        bool isInitState = true;
-        float initVal = gm.fidelity;
-        foreach (float lf in gm.linkFidelities)
+        // ซ่อน rows ถ้า linkFidelities ยัง init state
+        // ยกเว้น noiseStrength = 0 ซึ่งจงใจให้ทุก link = fidelity
+        if (gm.noiseStrength > 0f)
         {
-            if (Mathf.Abs(lf - initVal) > 0.5f) { isInitState = false; break; }
+            bool isInitState = true;
+            float initVal = gm.fidelity;
+            foreach (float lf in gm.linkFidelities)
+            {
+                if (Mathf.Abs(lf - initVal) > 0.1f) { isInitState = false; break; }
+            }
+            if (isInitState)
+            {
+                HideAllRows();
+                if (fidAfterNoiseText != null) fidAfterNoiseText.text = "Fidelity after noise: —";
+                if (statusText != null)        statusText.text = "";
+                return;
+            }
         }
-        if (isInitState)
+
+        // ใช้ path จริงหลัง reroute — ข้าม failNode และ cascadeFailedNodes
+        List<int> orderedLinks;
+        List<int> orderedNodes = new List<int>(); // เก็บ node path เพื่อ label ถูกทิศ
+        bool hasFailure = (gm.simFail && gm.failNode >= 0) ||
+                          (gm.cascadeFailedNodes != null && gm.cascadeFailedNodes.Count > 0);
+
+        int aliceIdx2 = builder.nodeDataList.FindIndex(d => d.label == "Alice");
+        int bobIdx2   = builder.nodeDataList.FindIndex(d => d.label == "Bob");
+
+        if (hasFailure)
+        {
+            var allFailed = new HashSet<int>(
+                gm.cascadeFailedNodes ?? new HashSet<int>());
+            if (gm.simFail && gm.failNode >= 0) allFailed.Add(gm.failNode);
+            orderedLinks = gm.BFSPathExcluding(aliceIdx2, bobIdx2, allFailed);
+        }
+        else
+            orderedLinks = gm.GetLinksInOrder();
+
+        // สร้าง orderedNodes จาก orderedLinks เพื่อ label ถูกทิศทุก topology
+        if (orderedLinks.Count > 0 && aliceIdx2 >= 0)
+        {
+            orderedNodes.Add(aliceIdx2);
+            int cur = aliceIdx2;
+            foreach (int li in orderedLinks)
+            {
+                var (a, b) = builder.links[li];
+                int next = (a == cur) ? b : a;
+                orderedNodes.Add(next);
+                cur = next;
+            }
+        }
+
+        // ถ้า path ว่าง = partitioned → แสดง "No path"
+        if (orderedLinks.Count == 0)
         {
             HideAllRows();
-            if (fidAfterNoiseText != null) fidAfterNoiseText.text = "Fidelity after noise: —";
-            if (statusText != null)        statusText.text = "";
+            if (fidAfterNoiseText != null)
+            {
+                fidAfterNoiseText.text  = "Fidelity after noise: 0%";
+                fidAfterNoiseText.color = colorLow;
+            }
+            if (statusText != null)
+            {
+                statusText.text  = "No path";
+                statusText.color = colorLow;
+            }
             return;
         }
-        // ─────────────────────────────────────────────────────────────────────
 
-        var orderedLinks = gm.GetLinksInOrder();
+        var orderedList = new List<int>(orderedLinks);
+
         HideAllRows();
 
         float accumulated = 1f;
         int   rowIdx      = 0;
 
-        foreach (int li in orderedLinks)
+        foreach (int li in orderedList)
         {
             if (rowIdx >= rows.Length) break;
             if (li >= gm.linkFidelities.Length) continue;
 
             float  f       = gm.linkFidelities[li];
-            var    (a, b)  = builder.links[li];
-            string fromLbl = builder.nodeDataList[a].label;
-            string toLbl   = builder.nodeDataList[b].label;
+            // ใช้ orderedNodes สำหรับ label ถูกทิศทุก topology
+            string fromLbl, toLbl;
+            if (orderedNodes.Count > rowIdx + 1)
+            {
+                fromLbl = builder.nodeDataList[orderedNodes[rowIdx]].label;
+                toLbl   = builder.nodeDataList[orderedNodes[rowIdx + 1]].label;
+            }
+            else
+            {
+                var (a, b) = builder.links[li];
+                fromLbl = builder.nodeDataList[a].label;
+                toLbl   = builder.nodeDataList[b].label;
+            }
 
             accumulated *= f / 100f;
             Color col = FidColor(f);  // ← ใช้ gradient เหมือน LinkFlowEffect
@@ -160,12 +224,12 @@ public class NoiseInfoPanel : MonoBehaviour
 
         if (statusText != null)
         {
-            if (totalFid >= 70)
-            { statusText.text = "Good";     statusText.color = colorHigh; }
-            else if (totalFid >= 40)
-            { statusText.text = "Moderate"; statusText.color = colorMid;  }
+            if (totalFid >= 78)
+            { statusText.text = "Secure";   statusText.color = colorHigh; }
+            else if (totalFid >= 50)
+            { statusText.text = "Degraded"; statusText.color = colorMid;  }
             else
-            { statusText.text = "Too low";  statusText.color = colorLow;  }
+            { statusText.text = "Insecure"; statusText.color = colorLow;  }
         }
     }
 

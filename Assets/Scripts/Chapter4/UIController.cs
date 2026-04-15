@@ -30,6 +30,18 @@ public class UIController : MonoBehaviour
     public UISwitcher.UISwitcher togDegrade;
     public UISwitcher.UISwitcher togCascade;
 
+    // รายชื่อ Situation toggles ทั้งหมด สำหรับทำ exclusive (radio group)
+    private UISwitcher.UISwitcher[] _sitToggles;
+
+    // ปิด Situation toggles ทุกอันยกเว้น active
+    // เรียกก่อน update GraphManager เพื่อให้ listener ของแต่ละ toggle ดับ sim state ที่ค้างอยู่
+    void ExcludeSituation(UISwitcher.UISwitcher active)
+    {
+        foreach (var tog in _sitToggles)
+            if (tog != null && tog != active && tog.isOn)
+                tog.isOn = false;
+    }
+
     void Start()
     {
         // ─── Topology Buttons ─────────────────────────────
@@ -54,9 +66,9 @@ public class UIController : MonoBehaviour
         });
 
         // ค่า default sliders
-        sliderNodes.minValue = 3; sliderNodes.maxValue = 10; sliderNodes.value = 5;
-        sliderDist.minValue  = 50; sliderDist.maxValue = 500; sliderDist.value = 150;
-        sliderFidelity.minValue = 60; sliderFidelity.maxValue = 99; sliderFidelity.value = 90;
+        sliderNodes.minValue = 3; sliderNodes.maxValue = 10; sliderNodes.value = 3;
+        sliderDist.minValue  = 50; sliderDist.maxValue = 500; sliderDist.value = 50;
+        sliderFidelity.minValue = 50; sliderFidelity.maxValue = 99; sliderFidelity.value = 95;
 
         // ─── Overlay Toggles ──────────────────────────────
         if (togLabel != null)
@@ -80,24 +92,30 @@ public class UIController : MonoBehaviour
             togFlow.onValueChanged.AddListener(v => GraphManager.Instance.SetOvFlow(v));
         }
 
-        // ─── Situation Toggles ────────────────────────────
+        // ─── Situation Toggles (exclusive / radio group) ─────────────────
+        _sitToggles = new[] { togNodeFail, togNoise, togHeavy, togDegrade, togCascade };
+
         if (togNodeFail != null)
         {
             togNodeFail.isOn = false;
             togNodeFail.onValueChanged.AddListener(v => {
-                // sync state กับ GraphManager
+                if (v) ExcludeSituation(togNodeFail);   // เปิด → ปิดอันอื่น
                 if (v != GraphManager.Instance.simFail)
                     GraphManager.Instance.ToggleFail();
             });
+            // sync toggle เมื่อ GraphManager ปิด simFail อัตโนมัติ
+            GraphManager.Instance.onSimFailChanged += v => {
+                if (togNodeFail.isOn != v) togNodeFail.isOn = v;
+            };
         }
         if (togNoise != null)
         {
             togNoise.isOn = false;
             togNoise.onValueChanged.AddListener(v => {
+                if (v) ExcludeSituation(togNoise);      // เปิด → ปิดอันอื่น
                 if (v != GraphManager.Instance.simJam)
                     GraphManager.Instance.ToggleJam();
             });
-            // sync toggle เมื่อ GraphManager reset simJam
             GraphManager.Instance.onSimJamChanged += v => {
                 if (togNoise.isOn != v) togNoise.isOn = v;
             };
@@ -106,6 +124,7 @@ public class UIController : MonoBehaviour
         {
             togHeavy.isOn = false;
             togHeavy.onValueChanged.AddListener(v => {
+                if (v) ExcludeSituation(togHeavy);      // เปิด → ปิดอันอื่น
                 if (v != GraphManager.Instance.simHeavy)
                     GraphManager.Instance.ToggleHeavy();
             });
@@ -114,6 +133,7 @@ public class UIController : MonoBehaviour
         {
             togDegrade.isOn = false;
             togDegrade.onValueChanged.AddListener(v => {
+                if (v) ExcludeSituation(togDegrade);    // เปิด → ปิดอันอื่น
                 if (v != GraphManager.Instance.simDegrade)
                     GraphManager.Instance.ToggleDegrade();
             });
@@ -122,9 +142,14 @@ public class UIController : MonoBehaviour
         {
             togCascade.isOn = false;
             togCascade.onValueChanged.AddListener(v => {
+                if (v) ExcludeSituation(togCascade);    // เปิด → ปิดอันอื่น
                 if (v != GraphManager.Instance.simCascade)
                     GraphManager.Instance.ToggleCascade();
             });
+            // sync toggle เมื่อ GraphManager ปิด simCascade อัตโนมัติ
+            GraphManager.Instance.onSimCascadeChanged += v => {
+                if (togCascade.isOn != v) togCascade.isOn = v;
+            };
         }
     }
 }

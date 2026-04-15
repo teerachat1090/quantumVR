@@ -47,12 +47,23 @@ public class FlowManager : MonoBehaviour
         }
     }
 
+    // ── Distance Speed ────────────────────────────────────
+    public void SetDistanceSpeed(float distKm)
+    {
+        float speedMul = Mathf.Clamp(1f - (distKm / 500f) * 0.5f, 0.3f, 1.0f);
+        foreach (var e in effects)
+            if (e != null) e.SetSpeedMultiplier(speedMul);
+    }
+
     // ── Heavy Traffic ─────────────────────────────────────
     public void SetHeavyTraffic(bool heavy)
     {
-        float multiplier = heavy ? 0.3f : 1.0f;
+        if (!heavy) return;
+        float distKm     = GraphManager.Instance != null ? GraphManager.Instance.distKm : 50f;
+        float distSpeed  = Mathf.Clamp(1f - (distKm / 500f) * 0.5f, 0.3f, 1.0f);
+        float heavySpeed = Mathf.Clamp(distSpeed * 0.35f, 0.1f, 0.5f);
         foreach (var e in effects)
-            if (e != null) e.SetSpeedMultiplier(multiplier);
+            if (e != null) e.SetSpeedMultiplier(heavySpeed);
     }
 
     // ── Link Degrade ──────────────────────────────────────
@@ -63,6 +74,7 @@ public class FlowManager : MonoBehaviour
             if (effects[i] == null) continue;
             bool deg = degradedLinks != null && degradedLinks.Contains(i);
             effects[i].SetDegraded(deg);
+            // speed จัดการใน SetDegraded() แล้ว ไม่ต้องเรียกซ้ำ
         }
     }
 

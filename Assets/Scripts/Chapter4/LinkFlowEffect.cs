@@ -6,14 +6,14 @@ public class LinkFlowEffect : MonoBehaviour
 {
     [Header("Photon — จำนวนและขนาด")]
     [Range(1, 12)]
-    [SerializeField] private int particleCount = 6;
+    [SerializeField] private int particleCount = 5;
 
     [Range(0.01f, 0.3f)]
-    [SerializeField] private float dotSize = 0.05f;
+    [SerializeField] private float dotSize = 0.04f;
 
     [Header("Photon — ความเร็ว")]
     [Range(0.2f, 8f)]
-    [SerializeField] private float flowSpeed = 0.8f;
+    [SerializeField] private float flowSpeed = 0.7f;
 
     [Header("Photon — หาง (Tail)")]
     [Range(0, 5)]
@@ -55,6 +55,7 @@ public class LinkFlowEffect : MonoBehaviour
     private float            speedMultiplier = 1f;
     private float            currentFidelity = 90f;
     private Color            particleColor;
+    private bool             heavyMode       = false;
 
     private Vector3[] pathPoints;
     private float[]   pathSegLengths;
@@ -231,8 +232,32 @@ public class LinkFlowEffect : MonoBehaviour
 
     public void SetDegraded(bool degraded)
     {
-        if (degraded) ApplyColor(colorLow);
-        else SetFidelity(currentFidelity);
+        if (degraded)
+        {
+            speedMultiplier = 0.6f;
+            Color col = new Color(0.9f, 0.3f, 0.1f);
+            particleColor = col;
+            int dpp = 1 + tailCount;
+            for (int p = 0; p < particleCount; p++)
+            {
+                for (int d = 0; d < dpp; d++)
+                {
+                    int idx = p * dpp + d;
+                    if (idx >= dots.Count || dots[idx] == null) continue;
+                    float alphaMul = (d == 0) ? 0.45f : Mathf.Lerp(0.25f, 0.05f, (float)d / dpp);
+                    var mat = dots[idx].GetComponent<MeshRenderer>().material;
+                    mat.color = new Color(col.r, col.g, col.b, alphaMul);
+                }
+            }
+            Color lc = new Color(col.r, col.g, col.b, glowAlphaMin * 0.5f);
+            lr.startColor = lc;
+            lr.endColor   = lc;
+        }
+        else
+        {
+            speedMultiplier = 1f;
+            SetFidelity(currentFidelity);
+        }
     }
 
     public void SetFlowEnabled(bool enabled)
@@ -281,6 +306,22 @@ public class LinkFlowEffect : MonoBehaviour
         Color lc = new Color(col.r, col.g, col.b, glowAlphaMin);
         lr.startColor = lc;
         lr.endColor   = lc;
+    }
+
+    public void SetHeavyMode(bool heavy)
+    {
+        heavyMode = heavy;
+
+        if (heavy)
+        {
+            speedMultiplier = 0.35f;
+            ApplyColor(new Color(1.0f, 0.55f, 0.05f));
+        }
+        else
+        {
+            speedMultiplier = 1f;
+            SetFidelity(currentFidelity);
+        }
     }
 
     void OnDestroy()
