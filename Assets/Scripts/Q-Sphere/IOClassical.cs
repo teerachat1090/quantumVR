@@ -97,18 +97,31 @@ public class IOClassical : MonoBehaviour
         display.text = "b"+underscript;
     }
 
-    void DoScrollUp(){
+    private void TellCBManagerToUpdate()
+    {
+        if(CBManager == null)
+        {
+            Debug.LogWarning("Warning: ClassicalBitManager Reference is missing in IOClassical.");
+            return;
+        }
+        CBManager.UpdateBitPositionToCircuit();
+    }
+
+    private void DoScrollUp(){
         if(bitPosition == maxPosition) return;
 
         bitPosition++;
         UpdateDisplay();
+        TellCBManagerToUpdate();
         Debug.Log("Event: Thumbstick UP!");
     }
-    void DoScrollDown(){
+
+    private void DoScrollDown(){
         if(bitPosition == 0) return;
 
         bitPosition--;
         UpdateDisplay();
+        TellCBManagerToUpdate();
         Debug.Log("Event: Thumbstick DOWN!");
     }
 

@@ -78,4 +78,15 @@ public class ClassicalBitManager : MonoBehaviour
         IOClassical socket = classicalSocketList[index];
         return socket.GetBitPosition();
     }
+
+    public void UpdateBitPositionToCircuit()
+    {
+        if(socketsManager == null)
+        {
+            Debug.LogWarning("Warning: SocketsManager Reference is missing");
+            return;
+        }
+
+        socketsManager.updateCircuitByJson("classical bit", -1, -1, false);
+    }
 }
