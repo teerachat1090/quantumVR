@@ -6,6 +6,7 @@ public class FlowManager : MonoBehaviour
     public static FlowManager Instance { get; private set; }
 
     private List<LinkFlowEffect> effects = new List<LinkFlowEffect>();
+    private float baseSpeedMul = 1f; // เก็บ speed จาก distance ไว้ใช้ตอน Degrade
 
     void Awake() { Instance = this; }
 
@@ -50,9 +51,9 @@ public class FlowManager : MonoBehaviour
     // ── Distance Speed ────────────────────────────────────
     public void SetDistanceSpeed(float distKm)
     {
-        float speedMul = Mathf.Clamp(1f - (distKm / 500f) * 0.5f, 0.3f, 1.0f);
+        baseSpeedMul = Mathf.Clamp(1f - (distKm / 500f) * 0.5f, 0.3f, 1.0f);
         foreach (var e in effects)
-            if (e != null) e.SetSpeedMultiplier(speedMul);
+            if (e != null) e.SetSpeedMultiplier(baseSpeedMul);
     }
 
     // ── Heavy Traffic ─────────────────────────────────────
@@ -62,6 +63,7 @@ public class FlowManager : MonoBehaviour
         float distKm     = GraphManager.Instance != null ? GraphManager.Instance.distKm : 50f;
         float distSpeed  = Mathf.Clamp(1f - (distKm / 500f) * 0.5f, 0.3f, 1.0f);
         float heavySpeed = Mathf.Clamp(distSpeed * 0.35f, 0.1f, 0.5f);
+        baseSpeedMul     = heavySpeed; // อัปเดตให้ RefreshDegradedLinks ใช้ค่านี้ ไม่ reset ทับ
         foreach (var e in effects)
             if (e != null) e.SetSpeedMultiplier(heavySpeed);
     }
@@ -74,7 +76,12 @@ public class FlowManager : MonoBehaviour
             if (effects[i] == null) continue;
             bool deg = degradedLinks != null && degradedLinks.Contains(i);
             effects[i].SetDegraded(deg);
-            // speed จัดการใน SetDegraded() แล้ว ไม่ต้องเรียกซ้ำ
+            // ปรับ speed ให้สอดคล้องกับ distance เสมอ
+            // — degraded: 60% ของ distance speed  |  ปกติ: distance speed เต็ม
+            float targetSpeed = deg
+                ? Mathf.Clamp(baseSpeedMul * 0.6f, 0.1f, 0.6f)
+                : baseSpeedMul;
+            effects[i].SetSpeedMultiplier(targetSpeed);
         }
     }
 

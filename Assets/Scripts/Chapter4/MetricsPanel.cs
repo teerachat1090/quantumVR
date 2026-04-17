@@ -42,7 +42,9 @@ public class MetricsPanel : MonoBehaviour
         }
 
         txt_Hops.text     = m.hops > 0 ? $"{m.hops}" : "—";
-        txt_Fidelity.text = $"{m.fidelity}%";
+        txt_Fidelity.text = string.IsNullOrEmpty(m.penaltyTag)
+            ? $"{m.fidelity}%"
+            : $"{m.fidelity}% <color=#FF8844><size=80%>({m.penaltyTag})</size></color>";
         txt_Links.text    = $"{m.links}";
         txt_Distance.text = $"{m.distKm} km";
         txt_Fault.text    = $"{FaultToEng(m.fault)}";

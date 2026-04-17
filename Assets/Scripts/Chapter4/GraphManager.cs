@@ -23,6 +23,14 @@ public class GraphManager : MonoBehaviour
     [Header("Cascade Settings")]
     public float cascadeInterval = 1.0f;
 
+    [Header("Cascade Pulse Settings")]
+    [Range(1, 8)]
+    public int   cascadePulseCount    = 4;     // จำนวนครั้งที่กระพริบ
+    [Range(0.03f, 0.2f)]
+    public float cascadePulseOnTime   = 0.07f; // วินาทีที่แสง "สว่าง" (matFail)
+    [Range(0.03f, 0.2f)]
+    public float cascadePulseOffTime  = 0.07f; // วินาทีที่แสง "ดับ" (matCascade)
+
     [Header("Noise Settings")]
     [Range(0f, 0.5f)]
     public float noiseStrength = 0.15f; // noise ต่อ link (0 = ไม่มี, 0.5 = มาก)
@@ -59,6 +67,7 @@ public class GraphManager : MonoBehaviour
     [HideInInspector] public float fidelity  = 90f;
     [HideInInspector] public int redundancy  = 2;
     [HideInInspector] public int hubCapacity = 4;
+    [HideInInspector] public bool cascadeFinished = false;
 
     void Awake() { Instance = this; }
 
@@ -100,8 +109,8 @@ public class GraphManager : MonoBehaviour
         flowManager?.SetFlowEnabled(ovFlow);
         flowManager?.RefreshFailedLinks(failNode, cascadeFailedNodes, builder);
 
-        // Distance speed (ถ้า Heavy และ Degrade ไม่เปิด)
-        if (!simHeavy && !simDegrade) flowManager?.SetDistanceSpeed(distKm);
+        // Distance speed (ถ้า Heavy ไม่เปิด — Degrade ใช้ด้วยได้ FlowManager จะปรับ speed ต่อ)
+        if (!simHeavy) flowManager?.SetDistanceSpeed(distKm);
 
         // Noise / Heavy — สีตาม fidelity จริง
         if ((simJam || simHeavy) && linkFidelities.Length > 0)
@@ -120,45 +129,128 @@ public class GraphManager : MonoBehaviour
     }
 
     // ─── Topology ────────────────────────────────────────
-    // Event แจ้ง UIController ว่า simJam state เปลี่ยน
     // Events แจ้ง UIController เมื่อ state เปลี่ยน (สำหรับ mutex UI sync)
     public System.Action<bool> onSimJamChanged;
     public System.Action<bool> onSimFailChanged;
     public System.Action<bool> onSimCascadeChanged;
 
-    public void SetTopo(string topo)
+        public void SetTopo(string topo)
     {
         currentTopo = topo;
-        failNode = -1; selNode = -1;
+        failNode = -1; 
+        selNode = -1;
+        
+        // ─── หยุด Coroutine ทั้งหมดก่อน ───────────────────────────────────
+        if (cascadeCoroutine != null) { StopCoroutine(cascadeCoroutine); cascadeCoroutine = null; }
+        if (noiseCoroutine   != null) { StopCoroutine(noiseCoroutine);   noiseCoroutine   = null; }
+        if (heavyCoroutine   != null) { StopCoroutine(heavyCoroutine);   heavyCoroutine   = null; }
+
+        // ─── บันทึก state ที่ต้อง restore หลัง rebuild ────────────────────
+        bool wasCascade = simCascade;
+        bool wasDegrade = simDegrade;
+
+        // ─── Reset simulation state ทั้งหมดก่อน Rebuild ──────────────────
+        // สำคัญ: ต้อง set false ก่อน Rebuild() เพื่อไม่ให้ CascadeRoutine
+        // เริ่มรันอีกครั้งระหว่าง rebuild ด้วยข้อมูลโหนดเก่า
         simCascade = false;
+        simDegrade = false;
+        cascadeFailedNodes.Clear();
+        degradedLinks.Clear();
+        
         linkFidelities     = new float[0];
         noiseLinkMaterials = new Material[0];
+
         if (noiseInfoCanvas != null) noiseInfoCanvas.SetActive(simJam);
-        if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
-        bool wasDegrade = simDegrade;
-        simDegrade = false;
+
+        // ─── Rebuild graph ─────────────────────────────────────────────────
         Rebuild();
+
+        // ─── Restore simulations บน topology ใหม่ ─────────────────────────
         if (simJam)
             noiseCoroutine = StartCoroutine(NoiseRoutine());
-        // re-random degrade บน topology ใหม่
-        if (wasDegrade) ToggleDegrade();
+            
+        if (wasDegrade)
+        {
+            simDegrade = true;
+            degradedLinks.Clear();
+            int total = builder.links.Count;
+            for (int i = 0; i < total; i++)
+                if (Random.value < 0.4f) degradedLinks.Add(i);
+            if (degradedLinks.Count == 0 && total > 0)
+                degradedLinks.Add(Random.Range(0, total));
+            Refresh();
+        }
+
+        // Cascade: restore บน topology ใหม่ และแจ้ง UI sync
+        if (wasCascade)
+        {
+            simCascade = true;
+            cascadeFailedNodes.Clear();
+            cascadeCoroutine = StartCoroutine(CascadeRoutine());
+            onSimCascadeChanged?.Invoke(true);
+        }
+        else
+        {
+            // แจ้ง UI ว่า cascade ปิดอยู่ (sync toggle ให้ถูก)
+            onSimCascadeChanged?.Invoke(false);
+        }
     }
 
     // ─── Parameters ──────────────────────────────────────
     public void SetNodeCount(int n)
+{
+    nodeCount = n;
+    failNode = -1; 
+    selNode = -1;
+    
+    // ─── หยุด Coroutine ทั้งหมดก่อน ───────────────────────────────────
+    if (cascadeCoroutine != null) { StopCoroutine(cascadeCoroutine); cascadeCoroutine = null; }
+    if (noiseCoroutine   != null) { StopCoroutine(noiseCoroutine);   noiseCoroutine   = null; }
+    if (heavyCoroutine   != null) { StopCoroutine(heavyCoroutine);   heavyCoroutine   = null; }
+
+    // ─── บันทึก state ที่ต้อง restore หลัง rebuild ────────────────────
+    bool wasCascade = simCascade;
+    bool wasDegrade = simDegrade;
+
+    // ─── Reset simulation state ทั้งหมดก่อน Rebuild ──────────────────
+    simCascade = false;
+    simDegrade = false;
+    cascadeFailedNodes.Clear();
+    degradedLinks.Clear();
+
+    linkFidelities     = new float[0];
+    noiseLinkMaterials = new Material[0];
+
+    Rebuild();
+
+    if (simJam)
+        noiseCoroutine = StartCoroutine(NoiseRoutine());
+        
+    if (wasDegrade)
     {
-        nodeCount = n;
-        failNode = -1; selNode = -1;
-        linkFidelities = new float[0];
-        if (noiseCoroutine != null) StopCoroutine(noiseCoroutine);
-        bool wasDegrade = simDegrade;
-        simDegrade = false;
-        Rebuild();
-        if (simJam)
-            noiseCoroutine = StartCoroutine(NoiseRoutine());
-        // re-random degrade บน node count ใหม่
-        if (wasDegrade) ToggleDegrade();
+        simDegrade = true;
+        degradedLinks.Clear();
+        int total = builder.links.Count;
+        for (int i = 0; i < total; i++)
+            if (Random.value < 0.4f) degradedLinks.Add(i);
+        if (degradedLinks.Count == 0 && total > 0)
+            degradedLinks.Add(Random.Range(0, total));
+        Refresh();
     }
+
+    // Cascade: restore บน graph ใหม่ และแจ้ง UI sync
+    if (wasCascade)
+    {
+        simCascade = true;
+        cascadeFailedNodes.Clear();
+        cascadeCoroutine = StartCoroutine(CascadeRoutine());
+        onSimCascadeChanged?.Invoke(true);
+    }
+    else
+    {
+        onSimCascadeChanged?.Invoke(false);
+    }
+}
 
     public void SetSpacing(float s)   { spacing  = s; Rebuild(); }
     public void SetDistKm(float d)    { distKm   = d; Refresh(); }
@@ -407,8 +499,6 @@ public class GraphManager : MonoBehaviour
         path.Reverse();
         return path;
     }
-
-    // ─── BFS Path ข้าม failed nodes ─────────────────────
 
     // หา link เรียงตาม path จาก Alice → Bob ของแต่ละ topology
     public List<int> GetLinksInOrder()
@@ -675,33 +765,118 @@ public class GraphManager : MonoBehaviour
         onSimCascadeChanged?.Invoke(simCascade);
     }
 
+    // ── Feature 2: Pulse/Flash node ที่เพิ่งถูก cascade "ติดเชื้อ" ──────────
+    // สลับสีระหว่าง matFail (แดง/สว่าง) กับ matCascade (ม่วง) หลาย cycle
+    // แล้ว settle เป็น matCascade ถาวร
+    // หมายเหตุ: Refresh() หลังจาก PulseNode จะ override material กลับเป็น cascade
+    // ซึ่งถูกต้องอยู่แล้ว — pulse ทำงานก่อน Refresh() ครั้งถัดไป
+    IEnumerator PulseNode(int nodeIdx)
+    {
+        if (nodeIdx < 0 || nodeIdx >= builder.nodes.Count) yield break;
+
+        var go = builder.nodes[nodeIdx];
+        if (go == null) yield break;
+
+        var rend = go.GetComponent<Renderer>();
+        if (rend == null) yield break;
+
+        Material bright  = builder.matFail;
+        Material cascade = builder.matCascade != null ? builder.matCascade : builder.matFail;
+
+        for (int i = 0; i < cascadePulseCount; i++)
+        {
+            // เช็คก่อนทุกครั้งที่จะแตะ renderer — GameObject อาจถูก Destroy ระหว่าง yield
+            if (go == null || rend == null) yield break;
+            rend.material = bright;
+            yield return new WaitForSeconds(cascadePulseOnTime);
+
+            if (go == null || rend == null) yield break;
+            rend.material = cascade;
+            yield return new WaitForSeconds(cascadePulseOffTime);
+        }
+
+        if (go == null || rend == null) yield break;
+        rend.material = cascade;
+    }
+
     IEnumerator CascadeRoutine()
     {
-        int start = nodeCount / 2;
+        // ── Bug 1 Fix: หา node เริ่มต้นที่ไม่ใช่ Alice/Bob ──────────────────
+        int aliceIdx = builder.nodeDataList.FindIndex(d => d.label == "Alice");
+        int bobIdx   = builder.nodeDataList.FindIndex(d => d.label == "Bob");
+
+        int start = -1;
+        int mid   = nodeCount / 2;
+        for (int attempt = 0; attempt < nodeCount; attempt++)
+        {
+            int idx = (mid + attempt) % nodeCount;
+            if (idx != aliceIdx && idx != bobIdx)
+            {
+                start = idx;
+                break;
+            }
+        }
+
+        // ถ้าหา node กลางไม่ได้เลย (เช่น network มีแค่ Alice กับ Bob) — ยกเลิก
+        if (start < 0)
+        {
+            simCascade = false;
+            onSimCascadeChanged?.Invoke(false);
+            yield break;
+        }
+
+        // ── Feature 2: Pulse node เริ่มต้น ──────────────────────────────────
         cascadeFailedNodes.Add(start);
+        StartCoroutine(PulseNode(start));
         Refresh();
 
+        // ── Bug 2 Fix: fail ทีละ 1 node ต่อ interval ────────────────────────
+        // ใช้ Queue แต่ dequeue แล้ว fail ทีละ neighbor ไม่ใช่ทั้งหมดพร้อมกัน
         Queue<int> queue = new Queue<int>();
         queue.Enqueue(start);
 
         while (queue.Count > 0 && simCascade)
         {
             yield return new WaitForSeconds(cascadeInterval);
+            if (!simCascade) yield break;
+
             int current = queue.Dequeue();
 
+            // รวบ neighbors ที่ยังไม่ล้มของ current ก่อน
+            var neighbors = new List<int>();
             foreach (var (a, b) in builder.links)
             {
-                int neighbor = -1;
-                if (a == current && !cascadeFailedNodes.Contains(b)) neighbor = b;
-                if (b == current && !cascadeFailedNodes.Contains(a)) neighbor = a;
+                int nb = -1;
+                if (a == current && !cascadeFailedNodes.Contains(b)) nb = b;
+                else if (b == current && !cascadeFailedNodes.Contains(a)) nb = a;
+                if (nb >= 0 && !neighbors.Contains(nb)) neighbors.Add(nb);
+            }
 
-                if (neighbor >= 0)
+            // ── Bug 2 Fix: fail ทีละ 1 node พร้อม interval แยกต่างหาก ──────
+            foreach (int neighbor in neighbors)
+            {
+                if (!simCascade) yield break;
+
+                cascadeFailedNodes.Add(neighbor);
+
+                // ── Feature 2: Pulse flash node ที่เพิ่งถูก "ติดเชื้อ" ────────
+                StartCoroutine(PulseNode(neighbor));
+
+                // ── Bug 3 Fix: ตรวจ Alice/Bob ล้ม → partitioned ─────────────
+                if (neighbor == aliceIdx || neighbor == bobIdx)
                 {
-                    cascadeFailedNodes.Add(neighbor);
-                    queue.Enqueue(neighbor);
                     Refresh();
-                    yield return new WaitForSeconds(cascadeInterval);
+                    // ปิด simCascade และแจ้ง UIController ให้ sync toggle
+                    //yield return new WaitForSeconds(1.5f); 
+                    //simCascade = false;
+                    //onSimCascadeChanged?.Invoke(false);
+                    yield break;
                 }
+
+                queue.Enqueue(neighbor);
+                Refresh();
+                yield return new WaitForSeconds(cascadeInterval);
+                if (!simCascade) yield break;
             }
         }
     }
@@ -716,7 +891,7 @@ public class GraphManager : MonoBehaviour
         if (index == aliceIdx || index == bobIdx) return;
         failNode = (failNode == index) ? -1 : index;
         Refresh();
-    }   
+    }
 
     // ─── Quantum Routing: Dijkstra บน fidelity สูงสุด ────
     // ใน Quantum Network จริง เลือก path ที่ fidelity สะสมสูงสุด
@@ -915,45 +1090,75 @@ public class GraphManager : MonoBehaviour
             totalFid = Mathf.Max(20, Mathf.RoundToInt(Mathf.Pow(avgLinkFid, heavyExp) * 100));
         }
 
-        // Node Fail / Degrade / Cascade penalties
+        // ── Penalties + penaltyTag ────────────────────────────
+        var penaltyParts = new System.Collections.Generic.List<string>();
+
+        // Node Fail
         if (simFail && failNode >= 0 && hops > baseHops)
+        {
             totalFid = Mathf.Max(20, totalFid - 5);
-        if (simDegrade)
-            totalFid = Mathf.Max(20, totalFid - 15);
+            penaltyParts.Add("-5 node fail");
+        }
+
+        // Dynamic Degrade — นับเฉพาะ link degrade บน path จริง
+        if (simDegrade && degradedLinks.Count > 0)
+        {
+            var allFailedDeg = new HashSet<int>(cascadeFailedNodes ?? new HashSet<int>());
+            if (simFail && failNode >= 0) allFailedDeg.Add(failNode);
+
+            List<int> degradePath = allFailedDeg.Count > 0
+                ? BFSPathExcluding(aliceIdx, bobIdx, allFailedDeg)
+                : GetLinksInOrder();
+            if (degradePath.Count == 0) degradePath = GetLinksInOrder();
+
+            int degradedOnPath = 0;
+            foreach (int li in degradePath)
+                if (degradedLinks.Contains(li)) degradedOnPath++;
+
+            if (degradedOnPath > 0)
+            {
+                int pen = degradedOnPath * 8;
+                totalFid = Mathf.Max(20, totalFid - pen);
+                penaltyParts.Add($"-{pen} degrade");
+            }
+        }
+
+        // Cascade
         if (simCascade && cascadeFailedNodes.Count > 0)
-            totalFid = Mathf.Max(20, totalFid - cascadeFailedNodes.Count * 5);
+        {
+            int pen = cascadeFailedNodes.Count * 5;
+            totalFid = Mathf.Max(20, totalFid - pen);
+            penaltyParts.Add($"-{pen} cascade");
+        }
+
+        // Heavy — penalty อยู่ใน totalFid แล้ว แค่ tag
+        if (simHeavy)
+            penaltyParts.Add("heavy");
+
+        string penaltyTag = penaltyParts.Count > 0
+            ? string.Join(", ", penaltyParts)
+            : "";
 
         int totalDistKm = Mathf.RoundToInt(distKm * baseHops);
 
         // QBER = (1 - F) / 2
         float qber = (1f - totalFid / 100f) / 2f;
 
-        // E-Rate — ใช้ totalFid เสมอ หาร 1.5^hops
+        // E-Rate
         float R0   = 1000f;
         float rate = R0 * Mathf.Pow(totalFid / 100f, baseHops)
                        / Mathf.Pow(1.5f, baseHops);
 
         return new MetricsData
         {
-            hops            = hops,
-            links           = L,
-            fidelity        = totalFid,
-            distKm          = totalDistKm,
-            fault           = fault,
-            qber            = qber,
-            entangleRate    = rate,
+            hops         = hops,
+            links        = L,
+            fidelity     = totalFid,
+            distKm       = totalDistKm,
+            fault        = fault,
+            qber         = qber,
+            entangleRate = rate,
+            penaltyTag   = penaltyTag,
         };
     }
-}
-
-public class MetricsData
-{
-    public int    hops;          // -1 = network partitioned
-    public int    links;
-    public int    fidelity;
-    public int    distKm;
-    public string fault;
-    public float  qber;          // Quantum Bit Error Rate (0–0.5)
-    public float  entangleRate;  // Entanglement Generation Rate (ebit/s)
-    public bool   partitioned => hops == -1;  // shorthand
 }

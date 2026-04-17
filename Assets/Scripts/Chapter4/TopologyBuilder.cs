@@ -29,12 +29,14 @@ public class TopologyBuilder : MonoBehaviour
     public Material matHub;
     public Material matRep;
     public Material matFail;
+    public Material matCascade;     // ม่วงเข้ม — node ล้มจาก cascade (ต่างจาก node fail)
     public Material matSelected;
     public Material matLink;
     public Material matLinkFail;
+    public Material matLinkCascade; // ม่วงเข้ม — link ติด cascade node
     public Material matLinkJam;
     public Material matLinkHeavy;
-    public Material matLinkDegrade; // ใหม่ — ส้มอมน้ำตาล สำหรับ degraded link
+    public Material matLinkDegrade; // ส้มอมน้ำตาล — degraded link
 
     [Header("Noise Link Colors")]
     public Color noiseLinkColorHigh = new Color(0.11f, 0.62f, 0.46f); // เขียว fidelity >= 80
@@ -92,8 +94,15 @@ public class TopologyBuilder : MonoBehaviour
     public Color labelColorEnd  = new Color(0.42f, 0.39f, 0.83f);
     public Color labelColorHub  = new Color(0.83f, 0.65f, 0.13f);
     public Color labelColorRep  = new Color(0.54f, 0.54f, 0.54f);
-    public Color labelColorFail = new Color(0.88f, 0.44f, 0.31f);
-    public Color labelColorSel  = new Color(0.18f, 0.16f, 0.29f);
+    public Color labelColorFail    = new Color(0.88f, 0.44f, 0.31f); // ส้มแดง — node fail
+    public Color labelColorCascade = new Color(1f, 1f, 1f, 1f);      // ขาว — cascade
+    public Color labelColorSel     = new Color(0.18f, 0.16f, 0.29f);
+
+    [Header("Cascade Label Settings")]
+    [Tooltip("ข้อความที่แสดงใต้ชื่อ node เมื่อ cascade (ใช้ TMP rich text ได้)")]
+    public string cascadeLabelSuffix = "[Cascade]";
+    [Tooltip("สี [Cascade] tag — ถ้าปล่อยว่าง (alpha=0) จะใช้ labelColorCascade")]
+    public Color  cascadeLabelSuffixColor = new Color(1f, 0.55f, 0.55f, 1f); // ชมพูอ่อน
 
     [Header("Link Label Settings")]
     [Tooltip("ขนาดตัวอักษร Distance (km) กลางเส้น")]
@@ -132,7 +141,7 @@ public class TopologyBuilder : MonoBehaviour
         bgGO.transform.localScale    = new Vector3(widthScale, heightScale, 1f);
 
         bgGO.GetComponent<MeshRenderer>().material = GetBGMaterial();
-}
+    }
 
     public enum NodeType { End, Hub, Repeater }
 
@@ -309,6 +318,7 @@ public class TopologyBuilder : MonoBehaviour
         }
         for (int i = 0; i < n; i++) links.Add((i, (i + 1) % n));
     }
+
     // ─── Spawn GameObjects ────────────────────────────────
 
     void SpawnObjects()
@@ -488,9 +498,17 @@ public class TopologyBuilder : MonoBehaviour
     }
 
     // ─── Refresh Labels (Node) ────────────────────────────
+    // ── Feature 3: แสดง "[Cascade]" suffix ใต้ชื่อ node ที่ล้มจาก cascade ──
+    // ใช้ TMP rich text เพื่อให้ขนาดและสีต่างจากชื่อหลักได้
     public void RefreshLabels(int failNode, int selNode)
     {
         bool show = GraphManager.Instance != null && GraphManager.Instance.ovLabel;
+        var  cascadeNodes = GraphManager.Instance != null
+                          ? GraphManager.Instance.cascadeFailedNodes
+                          : null;
+
+        // สร้าง hex string ของ cascadeLabelSuffixColor สำหรับ TMP rich text
+        string suffixColorHex = ColorUtility.ToHtmlStringRGB(cascadeLabelSuffixColor);
 
         for (int i = 0; i < nodeLabels.Count; i++)
         {
@@ -498,13 +516,30 @@ public class TopologyBuilder : MonoBehaviour
             nodeLabels[i].gameObject.SetActive(show);
             if (!show) continue;
 
-            bool isFail = i == failNode;
-            bool isSel  = i == selNode;
+            bool isFail    = i == failNode;
+            bool isCascade = cascadeNodes != null && cascadeNodes.Contains(i);
+            bool isSel     = i == selNode;
 
-            nodeLabels[i].color = isFail ? labelColorFail
-                                : isSel  ? labelColorSel
+            // ── Feature 3: set text — cascade node ได้ suffix "[Cascade]" ────
+            string baseName = nodeDataList[i].label;
+            if (isCascade && !string.IsNullOrEmpty(cascadeLabelSuffix))
+            {
+                // ใช้ rich text: ชื่อหลักสีขาว (ตาม labelColorCascade) + suffix สีชมพูอ่อน ขนาด 70%
+                nodeLabels[i].text = baseName
+                    + $"\n<size=70%><color=#{suffixColorHex}>{cascadeLabelSuffix}</color></size>";
+            }
+            else
+            {
+                // node ปกติ — แสดงแค่ชื่อ
+                nodeLabels[i].text = baseName;
+            }
+            // ─────────────────────────────────────────────────────────────────
+
+            nodeLabels[i].color = isCascade ? labelColorCascade
+                                : isFail    ? labelColorFail
+                                : isSel     ? labelColorSel
                                 : nodeDataList[i].type == NodeType.Hub ? labelColorHub
-                                : nodeDataList[i].type == NodeType.End  ? labelColorEnd
+                                : nodeDataList[i].type == NodeType.End ? labelColorEnd
                                 : labelColorRep;
         }
     }
@@ -541,13 +576,15 @@ public class TopologyBuilder : MonoBehaviour
             gm.cascadeFailedNodes ?? new System.Collections.Generic.HashSet<int>());
         if (gm.simFail && gm.failNode >= 0) allFailed.Add(gm.failNode);
 
+        Color degradeColor = new Color(0.9f, 0.3f, 0.1f); // ส้มแดง เหมือน particle
+
         for (int i = 0; i < linkLabelsDist.Count; i++)
         {
             if (linkLabelsDist[i] == null) continue;
 
-            // เช็คว่า link นี้ติด failed node ไหม
-            bool linkFailed = i < links.Count &&
-                              (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
+            bool linkFailed  = i < links.Count &&
+                               (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
+            bool linkDegrade = gm.simDegrade && gm.degradedLinks != null && gm.degradedLinks.Contains(i);
 
             if (linkFailed)
             {
@@ -556,6 +593,14 @@ public class TopologyBuilder : MonoBehaviour
                 linkLabelsDist[i].fontSize = linkLabelFontSizeDist;
                 linkLabelsDist[i].color    = new Color(1.0f, 0.2f, 0.1f);
                 linkLabelsDist[i].gameObject.SetActive(showDist);
+            }
+            else if (linkDegrade)
+            {
+                // Link degrade — แสดง "Degraded" สีส้ม เสมอ (ไม่ขึ้นกับ overlay toggle)
+                linkLabelsDist[i].text     = "Degraded";
+                linkLabelsDist[i].fontSize = linkLabelFontSizeDist * 0.75f;
+                linkLabelsDist[i].color    = degradeColor;
+                linkLabelsDist[i].gameObject.SetActive(true);
             }
             else
             {
@@ -570,9 +615,9 @@ public class TopologyBuilder : MonoBehaviour
         {
             if (linkLabelsFid[i] == null) continue;
 
-            // เช็คว่า link นี้ติด failed node ไหม
-            bool linkFailed = i < links.Count &&
-                              (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
+            bool linkFailed  = i < links.Count &&
+                               (allFailed.Contains(links[i].a) || allFailed.Contains(links[i].b));
+            bool linkDegrade = gm.simDegrade && gm.degradedLinks != null && gm.degradedLinks.Contains(i);
 
             if (linkFailed)
             {
@@ -584,11 +629,13 @@ public class TopologyBuilder : MonoBehaviour
             }
             else
             {
-                // Link ปกติ
                 float fidPct = (useNoiseFid && i < gm.linkFidelities.Length)
                              ? gm.linkFidelities[i]
                              : globalFid;
-                Color fidCol = useNoiseFid ? FidLabelColor(fidPct) : linkLabelColorFid;
+                // degrade — สีส้ม ทั้งที่ noise หรือปกติ
+                Color fidCol = linkDegrade  ? degradeColor
+                             : useNoiseFid ? FidLabelColor(fidPct)
+                             :               linkLabelColorFid;
 
                 linkLabelsFid[i].text     = "F: " + fidPct.ToString("F0") + "%";
                 linkLabelsFid[i].fontSize = linkLabelFontSizeFid;
@@ -627,7 +674,7 @@ public class TopologyBuilder : MonoBehaviour
             bool isFail    = simFail  && (a == failNode || b == failNode);
             bool isCascade = cascadeFailedNodes != null &&
                              (cascadeFailedNodes.Contains(a) || cascadeFailedNodes.Contains(b));
-            bool isHeavy   = simHeavy && false; // visual handled by photon now
+            bool isHeavy   = simHeavy; // priority จัดการโดย if-else ด้านล่าง (fail/cascade/degrade มาก่อน)
             bool isDegrade = simDegrade && degradedLinks != null && degradedLinks.Contains(i);
             bool isSel     = selNode >= 0 && (a == selNode || b == selNode);
 
@@ -635,7 +682,9 @@ public class TopologyBuilder : MonoBehaviour
             bool isNoise = simJam && linkFids != null && linkFids.Length > i;
 
             Material mat;
-            if (isFail || isCascade)
+            if (isCascade)
+                mat = matLinkCascade != null ? matLinkCascade : matLinkFail;
+            else if (isFail)
                 mat = matLinkFail;
             else if (isDegrade)
                 mat = matLinkDegrade != null ? matLinkDegrade : matLinkFail;
@@ -673,9 +722,10 @@ public class TopologyBuilder : MonoBehaviour
             bool isCascade = cascadeFailedNodes != null && cascadeFailedNodes.Contains(i);
             bool isSel     = i == selNode;
 
-            var mat = (isFail || isCascade) ? matFail
-                    : isSel                 ? matSelected
-                    : data.type == NodeType.Hub ? matHub
+            var mat = isCascade                  ? (matCascade != null ? matCascade : matFail)
+                    : isFail                     ? matFail
+                    : isSel                      ? matSelected
+                    : data.type == NodeType.Hub  ? matHub
                     : data.type == NodeType.End  ? matEnd : matRep;
 
             nodes[i].GetComponent<Renderer>().material = mat;
