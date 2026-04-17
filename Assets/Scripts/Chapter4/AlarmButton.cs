@@ -1,73 +1,176 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class AlarmButton : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Button        alarmBtn;
-    [SerializeField] private ProblemPopup  problemPopup;
+    public Button alarmBtn;
 
     [Header("Pulse Animation")]
-    [SerializeField] private float pulseScale  = 1.15f;
-    [SerializeField] private float pulseSpeed  = 0.6f;
+    public float pulseScale = 1.15f;
+    public float pulseSpeed = 0.6f;
 
-    private RectTransform _rect;
-    private Coroutine     _pulseCoroutine;
+    [Header("Alarm Sound")]
+    public AudioClip alarmSound;
+    public bool loopSound = true;
+    [Range(0f, 1f)]
+    public float volume = 1f;
+
+    [Header("Problem Cards")]
+    public GameObject problemPopup;
+    public GameObject cardDisplay;
+    public Sprite[] cardImages;
+    public Button nextButton;
+    public Button backButton;
+    public Button closeButton;
+    public Button enterNextSceneButton;  // ✅ เพิ่มปุ่มใหม่
+
+    [Header("Hide When Popup Opens")]
+    public GameObject canvasNumpad;   // ← ลาก CanvasNumpad ใส่
+    public GameObject canvasResult;   // ← ลาก CanvasResult ใส่
+
+    private AudioSource audioSource;
+    private bool isAlarming = false;
+    private int currentCardIndex = 0;
+    private Coroutine blinkCoroutine;
 
     void Start()
     {
-        _rect = alarmBtn.GetComponent<RectTransform>();
-        alarmBtn.gameObject.SetActive(false);
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = alarmSound;
+        audioSource.loop = loopSound;
+        audioSource.volume = volume;
+        audioSource.playOnAwake = false;
+
         alarmBtn.onClick.AddListener(OnAlarmPressed);
+        nextButton.onClick.AddListener(OnNextCard);
+        backButton.onClick.AddListener(OnBackCard);
+        closeButton.onClick.AddListener(ClosePopup);
+
+        problemPopup.SetActive(false);
+        gameObject.SetActive(false);
+
+        if (enterNextSceneButton)
+        enterNextSceneButton.onClick.AddListener(OnEnterNextScene);
     }
 
-    // เรียกจาก AliceNumpad หลัง Send สำเร็จ
-    public void ShowAlarm()
+        void OnEnterNextScene()
     {
-        alarmBtn.gameObject.SetActive(true);
-        _pulseCoroutine = StartCoroutine(PulseLoop());
+        SceneManager.LoadScene("Chapter4.1"); // เปลี่ยนเป็นชื่อ Scene จริงๆ
+    }
+     public void ShowAlarm()
+    {
+        gameObject.SetActive(true);
+        isAlarming = false;
+        problemPopup.SetActive(false);
+
+        if (blinkCoroutine != null) StopCoroutine(blinkCoroutine);
+        blinkCoroutine = StartCoroutine(BlinkAlarm());
+
+        if (alarmSound != null)
+        {
+            audioSource.clip = alarmSound;
+            audioSource.loop = loopSound;
+            audioSource.Play();
+            isAlarming = true;
+        }
     }
 
-    public void HideAlarm()
+    IEnumerator BlinkAlarm()
     {
-        alarmBtn.gameObject.SetActive(false);
-        if (_pulseCoroutine != null) StopCoroutine(_pulseCoroutine);
-        _rect.localScale = Vector3.one;
+        Image btnImage = alarmBtn.GetComponent<Image>();
+        Color original = btnImage.color;
+        Color highlight = Color.red;
+
+        while (isAlarming)
+        {
+            btnImage.color = highlight;
+            yield return new WaitForSeconds(0.3f);
+            btnImage.color = original;
+            yield return new WaitForSeconds(0.3f);
+        }
+
+        btnImage.color = original;
     }
 
     void OnAlarmPressed()
     {
-        HideAlarm();
-        if (problemPopup) problemPopup.OpenPopup();
-    }
-
-    IEnumerator PulseLoop()
-    {
-        while (true)
+        if (isAlarming)
         {
-            // scale ขึ้น
-            yield return ScaleTo(Vector3.one * pulseScale, pulseSpeed / 2f);
-            // scale ลง
-            yield return ScaleTo(Vector3.one, pulseSpeed / 2f);
+            audioSource.Stop();
+            isAlarming = false;
+
+            if (blinkCoroutine != null)
+            {
+                StopCoroutine(blinkCoroutine);
+                alarmBtn.GetComponent<Image>().color = Color.white;
+            }
+
+            ShowCards();
         }
     }
 
-    IEnumerator ScaleTo(Vector3 target, float duration)
+    void ShowCards()
+{
+    if (cardImages == null || cardImages.Length == 0) return;
+
+    if (canvasNumpad) canvasNumpad.SetActive(false);
+    if (canvasResult) canvasResult.SetActive(false);
+
+    currentCardIndex = 0;
+    if (enterNextSceneButton)
+        enterNextSceneButton.gameObject.SetActive(false);
+
+    UpdateCard();
+    problemPopup.SetActive(true);
+}
+    void OnNextCard()
     {
-        Vector3 start = _rect.localScale;
-        float   t     = 0f;
-        while (t < 1f)
+        if (currentCardIndex < cardImages.Length - 1)
         {
-            t += Time.deltaTime / duration;
-            _rect.localScale = Vector3.Lerp(start, target, t);
-            yield return null;
+            currentCardIndex++;
+            UpdateCard();
         }
-        _rect.localScale = target;
     }
 
-    void OnDestroy()
+    void OnBackCard()
     {
-        alarmBtn.onClick.RemoveAllListeners();
+        if (currentCardIndex > 0)
+        {
+            currentCardIndex--;
+            UpdateCard();
+        }
+    }
+
+    void ClosePopup()
+    {
+        problemPopup.SetActive(false);
+        currentCardIndex = 0;
+
+        // คืน Numpad และ Result
+        if (canvasNumpad) canvasNumpad.SetActive(true);
+        if (canvasResult) canvasResult.SetActive(true);
+
+        // ✅ ซ่อนตัวเอง (Alarm Button หายไป รอกรอกรหัสใหม่)
+        gameObject.SetActive(false);
+    }   
+
+    void UpdateCard()
+    {
+        Image img = cardDisplay.GetComponentInChildren<Image>();
+        if (img != null)
+            img.sprite = cardImages[currentCardIndex];
+
+        bool isLast = currentCardIndex == cardImages.Length - 1;
+
+        nextButton.gameObject.SetActive(!isLast);
+        backButton.gameObject.SetActive(currentCardIndex > 0);
+
+        // ✅ การ์ดสุดท้าย → ซ่อน Cancel, แสดง Enter Next Scene
+        closeButton.gameObject.SetActive(!isLast);
+        if (enterNextSceneButton)
+            enterNextSceneButton.gameObject.SetActive(isLast);
     }
 }

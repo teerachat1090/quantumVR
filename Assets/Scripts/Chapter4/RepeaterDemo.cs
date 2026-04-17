@@ -1,15 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
 // ════════════════════════════════════════════════════════════════
-//  RepeaterDemo.cs  (v5 — Select Mode + Next per Step)
+//  RepeaterDemo.cs  (v6 — Enter Next Scene after both modes seen)
 //
 //  Flow:
 //  1. กดเลือก "No Repeater" หรือ "With Repeater"
 //  2. กด Next ทีละขั้น — แต่ละขั้นมี Particle + คำอธิบาย
+//  3. ดูครบทั้งสอง mode → ปุ่ม "Enter Next Scene" โชว์ที่ Select Screen
 //
 //  No Repeater (3 ขั้น):
 //    1: Alice ส่งสัญญาณ — Particle วิ่งแล้วจางหาย
@@ -39,6 +41,9 @@ public class RepeaterDemo : MonoBehaviour
     public Button          btn_NoRepeater;
     public Button          btn_HasRepeater;
 
+    [Header("Next Scene")]
+    public Button          btn_EnterNextScene;   // ← ลาก assign ใน Inspector
+
     [Header("Status Text")]
     public TextMeshProUGUI txt_Status;
 
@@ -57,9 +62,9 @@ public class RepeaterDemo : MonoBehaviour
     //  Inspector — Particle
     // ─────────────────────────────────────────
     [Header("Particle Settings")]
-    [Range(1, 6)]     public int   particleCount = 3;
-    [Range(0.3f, 4f)] public float particleSpeed = 1.0f;
-    [Range(0.02f, 0.15f)] public float particleSize = 0.05f;
+    [Range(1, 6)]         public int   particleCount = 3;
+    [Range(0.3f, 4f)]     public float particleSpeed = 1.0f;
+    [Range(0.02f, 0.15f)] public float particleSize  = 0.05f;
     public Color colorFail    = new Color(1f, 0.2f, 0.2f);
     public Color colorSuccess = new Color(0f, 1f, 0.3f);
 
@@ -69,6 +74,10 @@ public class RepeaterDemo : MonoBehaviour
     private enum DemoMode { None, NoRepeater, WithRepeater }
     private DemoMode mode = DemoMode.None;
 
+    // ── Progress tracking (ดูครบแล้วหรือยัง) ──
+    private bool seenNoRepeater  = false;
+    private bool seenWithRepeater = false;
+
     // Steps สำหรับแต่ละ mode
     private List<StepData> steps     = new List<StepData>();
     private int            stepIndex = 0;
@@ -76,8 +85,8 @@ public class RepeaterDemo : MonoBehaviour
     // Particle
     private List<GameObject> particles = new List<GameObject>();
     private float[]          particleT;
-    private bool             isRunning  = false;
-    private bool             failMode   = false;
+    private bool             isRunning = false;
+    private bool             failMode  = false;
 
     // path สำหรับ With Repeater
     private List<Transform> path           = new List<Transform>();
@@ -112,6 +121,9 @@ public class RepeaterDemo : MonoBehaviour
         btn_NoRepeater.onClick.AddListener(OnNoRepeaterPressed);
         btn_HasRepeater.onClick.AddListener(OnHasRepeaterPressed);
 
+        if (btn_EnterNextScene != null)
+            btn_EnterNextScene.onClick.AddListener(OnEnterNextScenePressed);
+
         SpawnParticles();
         ShowSelectScreen();
     }
@@ -139,6 +151,10 @@ public class RepeaterDemo : MonoBehaviour
         btn_HasRepeater.gameObject.SetActive(true);
         SetStatus("");
         SetParticlesVisible(false);
+
+        // ── แสดงปุ่ม Enter Next Scene เมื่อดูครบทั้งสอง mode ──
+        if (btn_EnterNextScene != null)
+            btn_EnterNextScene.gameObject.SetActive(seenNoRepeater && seenWithRepeater);
     }
 
     // ─────────────────────────────────────────
@@ -154,10 +170,10 @@ public class RepeaterDemo : MonoBehaviour
         // สร้าง steps
         steps.Clear();
         steps.Add(new StepData {
-            title       = "Alice Sends a Signal",
-            description = "Alice attempts to send a Qubit directly to Bob\n" +
-                          "over a long distance fiber optic cable.\n\n" +
-                          "Watch what happens to the signal...",
+            title        = "Alice Sends a Signal",
+            description  = "Alice attempts to send a Qubit directly to Bob\n" +
+                           "over a long distance fiber optic cable.\n\n" +
+                           "Watch what happens to the signal...",
             runAnimation = true,
             segment      = -1  // fail mode
         });
@@ -174,7 +190,6 @@ public class RepeaterDemo : MonoBehaviour
             title       = "Result: Failed",
             description = "Without a Quantum Repeater:\n\n" +
                           "• Signal cannot reach Bob\n" +
-                        //   "• Fidelity = 0%\n" +
                           "• Communication failed\n\n" +
                           "A solution is needed for long-distance\n" +
                           "quantum communication.",
@@ -187,6 +202,10 @@ public class RepeaterDemo : MonoBehaviour
         btn_NoRepeater.gameObject.SetActive(false);
         btn_HasRepeater.gameObject.SetActive(false);
         btn_Next.gameObject.SetActive(true);
+
+        // ซ่อน Enter Next Scene ขณะกำลังดู demo
+        if (btn_EnterNextScene != null)
+            btn_EnterNextScene.gameObject.SetActive(false);
 
         stepIndex = 0;
         ShowCurrentStep();
@@ -212,8 +231,7 @@ public class RepeaterDemo : MonoBehaviour
         {
             string from = GetNodeName(path[i]);
             string to   = GetNodeName(path[i + 1]);
-            bool   isRepeater = (i > 0 && i < path.Count - 2);
-            bool   isLast     = (i == path.Count - 2);
+            bool   isLast = (i == path.Count - 2);
 
             string desc;
             if (i == 0)
@@ -243,7 +261,6 @@ public class RepeaterDemo : MonoBehaviour
             title       = "Result: Success!",
             description = "With Quantum Repeaters:\n\n" +
                           "• Signal reached Bob\n" +
-                        //   "• Fidelity maintained at 85%+\n" +
                           "• Entanglement Swapping worked\n\n" +
                           "Quantum Repeaters make long-distance\n" +
                           "quantum communication possible!",
@@ -257,6 +274,10 @@ public class RepeaterDemo : MonoBehaviour
         btn_HasRepeater.gameObject.SetActive(false);
         btn_Next.gameObject.SetActive(true);
 
+        // ซ่อน Enter Next Scene ขณะกำลังดู demo
+        if (btn_EnterNextScene != null)
+            btn_EnterNextScene.gameObject.SetActive(false);
+
         stepIndex = 0;
         ShowCurrentStep();
     }
@@ -265,22 +286,26 @@ public class RepeaterDemo : MonoBehaviour
     //  Step Navigation
     // ─────────────────────────────────────────
     void OnNextPressed()
-{
-    // รอเฉพาะ With Repeater เท่านั้น
-    if (isRunning && mode == DemoMode.WithRepeater)
     {
-        SetStatus("Please wait for the signal to finish...");
-        return;
-    }
+        // รอเฉพาะ With Repeater เท่านั้น
+        if (isRunning && mode == DemoMode.WithRepeater)
+        {
+            SetStatus("Please wait for the signal to finish...");
+            return;
+        }
 
-    stepIndex++;
-    if (stepIndex >= steps.Count)
-    {
-        ShowSelectScreen();
-        return;
+        stepIndex++;
+        if (stepIndex >= steps.Count)
+        {
+            // ── mark ว่าดู mode นี้ครบแล้ว ──
+            if (mode == DemoMode.NoRepeater)  seenNoRepeater   = true;
+            if (mode == DemoMode.WithRepeater) seenWithRepeater = true;
+
+            ShowSelectScreen();
+            return;
+        }
+        ShowCurrentStep();
     }
-    ShowCurrentStep();
-}
 
     void ShowCurrentStep()
     {
@@ -296,7 +321,7 @@ public class RepeaterDemo : MonoBehaviour
 
         bool isLast = (stepIndex == steps.Count - 1);
         if (btn_Next_Label != null)
-            btn_Next_Label.text = isLast ? "Try Again" : "Next →";
+            btn_Next_Label.text = isLast ? "Finish" : "Next";
 
         if (s.runAnimation)
         {
@@ -321,26 +346,40 @@ public class RepeaterDemo : MonoBehaviour
     }
 
     // ─────────────────────────────────────────
+    //  Enter Next Scene
+    // ─────────────────────────────────────────
+    [Header("Next Scene Settings")]
+    public string nextSceneName = "";   // ← ใส่ชื่อ scene ใน Inspector ได้เลย
+
+    void OnEnterNextScenePressed()
+    {
+        if (!string.IsNullOrEmpty(nextSceneName))
+            SceneManager.LoadScene(nextSceneName);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
+    // ─────────────────────────────────────────
     //  Update: Fail (No Repeater)
     // ─────────────────────────────────────────
     void UpdateFail()
-{
-    if (aliceTransform == null || bobTransform == null) return;
-    float step = particleSpeed * Time.deltaTime;
-
-    for (int i = 0; i < particleCount; i++)
     {
-        particleT[i] = Mathf.Repeat(particleT[i] + step, 1f);
-        float   t   = particleT[i];
-        Vector3 pos = Vector3.Lerp(aliceTransform.position, bobTransform.position, t);
-        particles[i].transform.position = pos;
+        if (aliceTransform == null || bobTransform == null) return;
+        float step = particleSpeed * Time.deltaTime;
 
-        float alpha = t < 0.4f  ? 1f
-                    : t < 0.75f ? Mathf.Lerp(1f, 0f, (t - 0.4f) / 0.35f)
-                    : 0f;
-        SetParticleAlpha(i, alpha);
+        for (int i = 0; i < particleCount; i++)
+        {
+            particleT[i] = Mathf.Repeat(particleT[i] + step, 1f);
+            float   t   = particleT[i];
+            Vector3 pos = Vector3.Lerp(aliceTransform.position, bobTransform.position, t);
+            particles[i].transform.position = pos;
+
+            float alpha = t < 0.4f  ? 1f
+                        : t < 0.75f ? Mathf.Lerp(1f, 0f, (t - 0.4f) / 0.35f)
+                        : 0f;
+            SetParticleAlpha(i, alpha);
+        }
     }
-}
 
     // ─────────────────────────────────────────
     //  Update: Segment (With Repeater)

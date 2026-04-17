@@ -7,6 +7,14 @@ public class UIController : MonoBehaviour
     [Header("Topology Buttons")]
     public Button btnLinear, btnStar, btnMesh, btnTree, btnRing;
 
+    [Header("Distance Fine-Tune Buttons")]
+    public Button btnDistMinus;
+    public Button btnDistPlus;
+
+    [Header("Tutorial")]
+    public Button btnHelp;
+    public TutorialManager tutorialManager;
+
     [Header("Sliders")]
     public Slider sliderNodes;
     public Slider sliderDist;
@@ -30,11 +38,8 @@ public class UIController : MonoBehaviour
     public UISwitcher.UISwitcher togDegrade;
     public UISwitcher.UISwitcher togCascade;
 
-    // รายชื่อ Situation toggles ทั้งหมด สำหรับทำ exclusive (radio group)
     private UISwitcher.UISwitcher[] _sitToggles;
 
-    // ปิด Situation toggles ทุกอันยกเว้น active
-    // เรียกก่อน update GraphManager เพื่อให้ listener ของแต่ละ toggle ดับ sim state ที่ค้างอยู่
     void ExcludeSituation(UISwitcher.UISwitcher active)
     {
         foreach (var tog in _sitToggles)
@@ -56,19 +61,28 @@ public class UIController : MonoBehaviour
             GraphManager.Instance.SetNodeCount((int)v);
             lblNodes.text = ((int)v).ToString();
         });
+
         sliderDist.onValueChanged.AddListener(v => {
-            GraphManager.Instance.SetDistKm(v);
-            lblDist.text = (int)v + " km";
+            float snapped = Mathf.Round(v);
+            if (!Mathf.Approximately(sliderDist.value, snapped))
+                sliderDist.SetValueWithoutNotify(snapped);
+            GraphManager.Instance.SetDistKm(snapped);
+            lblDist.text = (int)snapped + " km";
         });
+
         sliderFidelity.onValueChanged.AddListener(v => {
             GraphManager.Instance.SetFidelity(v);
             lblFidelity.text = (int)v + "%";
         });
 
         // ค่า default sliders
-        sliderNodes.minValue = 3; sliderNodes.maxValue = 10; sliderNodes.value = 3;
-        sliderDist.minValue  = 50; sliderDist.maxValue = 500; sliderDist.value = 50;
+        sliderNodes.minValue   = 3;  sliderNodes.maxValue   = 10;  sliderNodes.value   = 3;
+        sliderDist.minValue    = 50; sliderDist.maxValue    = 500; sliderDist.value    = 50;
         sliderFidelity.minValue = 50; sliderFidelity.maxValue = 99; sliderFidelity.value = 95;
+
+        // ─── Tutorial Help Button ──────────────────────────
+        if (btnHelp != null && tutorialManager != null)
+            btnHelp.onClick.AddListener(() => tutorialManager.ResetTutorial());
 
         // ─── Overlay Toggles ──────────────────────────────
         if (togLabel != null)
@@ -92,18 +106,17 @@ public class UIController : MonoBehaviour
             togFlow.onValueChanged.AddListener(v => GraphManager.Instance.SetOvFlow(v));
         }
 
-        // ─── Situation Toggles (exclusive / radio group) ─────────────────
+        // ─── Situation Toggles ────────────────────────────
         _sitToggles = new[] { togNodeFail, togNoise, togHeavy, togDegrade, togCascade };
 
         if (togNodeFail != null)
         {
             togNodeFail.isOn = false;
             togNodeFail.onValueChanged.AddListener(v => {
-                if (v) ExcludeSituation(togNodeFail);   // เปิด → ปิดอันอื่น
+                if (v) ExcludeSituation(togNodeFail);
                 if (v != GraphManager.Instance.simFail)
                     GraphManager.Instance.ToggleFail();
             });
-            // sync toggle เมื่อ GraphManager ปิด simFail อัตโนมัติ
             GraphManager.Instance.onSimFailChanged += v => {
                 if (togNodeFail.isOn != v) togNodeFail.isOn = v;
             };
@@ -112,7 +125,7 @@ public class UIController : MonoBehaviour
         {
             togNoise.isOn = false;
             togNoise.onValueChanged.AddListener(v => {
-                if (v) ExcludeSituation(togNoise);      // เปิด → ปิดอันอื่น
+                if (v) ExcludeSituation(togNoise);
                 if (v != GraphManager.Instance.simJam)
                     GraphManager.Instance.ToggleJam();
             });
@@ -124,7 +137,7 @@ public class UIController : MonoBehaviour
         {
             togHeavy.isOn = false;
             togHeavy.onValueChanged.AddListener(v => {
-                if (v) ExcludeSituation(togHeavy);      // เปิด → ปิดอันอื่น
+                if (v) ExcludeSituation(togHeavy);
                 if (v != GraphManager.Instance.simHeavy)
                     GraphManager.Instance.ToggleHeavy();
             });
@@ -133,7 +146,7 @@ public class UIController : MonoBehaviour
         {
             togDegrade.isOn = false;
             togDegrade.onValueChanged.AddListener(v => {
-                if (v) ExcludeSituation(togDegrade);    // เปิด → ปิดอันอื่น
+                if (v) ExcludeSituation(togDegrade);
                 if (v != GraphManager.Instance.simDegrade)
                     GraphManager.Instance.ToggleDegrade();
             });
@@ -142,14 +155,26 @@ public class UIController : MonoBehaviour
         {
             togCascade.isOn = false;
             togCascade.onValueChanged.AddListener(v => {
-                if (v) ExcludeSituation(togCascade);    // เปิด → ปิดอันอื่น
+                if (v) ExcludeSituation(togCascade);
                 if (v != GraphManager.Instance.simCascade)
                     GraphManager.Instance.ToggleCascade();
             });
-            // sync toggle เมื่อ GraphManager ปิด simCascade อัตโนมัติ
             GraphManager.Instance.onSimCascadeChanged += v => {
                 if (togCascade.isOn != v) togCascade.isOn = v;
             };
         }
+
+        // ─── Distance Fine-Tune Buttons ───────────────────
+        if (btnDistMinus != null)
+            btnDistMinus.onClick.AddListener(() => {
+                float next = Mathf.Max(sliderDist.value - 1f, sliderDist.minValue);
+                sliderDist.value = Mathf.Round(next);
+            });
+
+        if (btnDistPlus != null)
+            btnDistPlus.onClick.AddListener(() => {
+                float next = Mathf.Min(sliderDist.value + 1f, sliderDist.maxValue);
+                sliderDist.value = Mathf.Round(next);
+            });
     }
 }
