@@ -4,14 +4,12 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using Unity.Mathematics;
-using System.Linq;
 using QubitStat = FileManager.QubitStat;
 
 public class QuantumUiStatManager : MonoBehaviour
 {
     [Header("UI Option")]
-    [SerializeField]    private bool isBlochSphere = true;
+    [SerializeField]    public bool isBlochSphere = true;
 
     [Header("RequireScript")]
     [SerializeField] private ProbHistogram hist;
@@ -20,13 +18,12 @@ public class QuantumUiStatManager : MonoBehaviour
     [SerializeField]    private Canvas canvas = null;
     [SerializeField]    private RectTransform backgroundImage = null;
 
-    [Header("Bloch UI")]
-    [SerializeField]    private TMP_Text ket0_real_Text = null;
-    [SerializeField]    private TMP_Text ket0_imag_Text = null;
-    [SerializeField]    private TMP_Text ket1_real_Text = null;
-    [SerializeField]    private TMP_Text ket1_imag_Text = null;
+    [Header("Statevector result UI")]
+    [SerializeField]    private StateVectorDisplay stateVectorDisplay = null;
 
     private FileManager fileManager = new FileManager();
+
+    public int seqIndex = -1;
 
     //[Header("Background Image")]
 
@@ -38,67 +35,41 @@ public class QuantumUiStatManager : MonoBehaviour
     // have list of bar: (val, image)
     // update: same amount-change val, diff amount-empty and re-edit
     // **when destroy -> we need to destroy GameObject (Image)
-
-    public bool isBlochTextMeshReady()
-    {
-        bool flag = (ket0_real_Text is not null) && (ket0_imag_Text is not null) && 
-                    (ket1_real_Text is not null) && (ket1_imag_Text is not null);
-        return flag;
-    }
-
-    // ui: 1 space for real, 2 spaces for imag
-    private void AssignBlochValueToTextMesh(List<QubitStat> blochStat)
-    {
-        if(blochStat is null)
-        {
-            Debug.LogWarning("Warning: Error occur when process json object.");
-            return;
-        }
-        var ket0 = blochStat.FirstOrDefault(s => s.val == 0);
-        var ket1 = blochStat.FirstOrDefault(s => s.val == 1);
-
-        double ket0_real = ket0.realPart;
-        string ket0_real_str = ((ket0_real < 0) ? "- " : "") + math.abs(ket0_real).ToString("F3");
-        ket0_real_Text.SetText(ket0_real_str);
-
-        double ket0_imag = ket0.imagPart;
-        string ket0_imag_str = ((ket0_imag < 0) ? "-  " : "+  ") + math.abs(ket0_imag).ToString("F3");
-        ket0_imag_Text.SetText(ket0_imag_str);
-
-        double ket1_real = ket1.realPart;
-        string ket1_real_str = ((ket1_real < 0) ? "- " : "") + math.abs(ket1_real).ToString("F3");
-        ket1_real_Text.SetText(ket1_real_str);
-
-        double ket1_imag = ket1.imagPart;
-        string ket1_imag_str = ((ket1_imag < 0) ? "-  " : "+  ") + math.abs(ket1_imag).ToString("F3");
-        ket1_imag_Text.SetText(ket1_imag_str);
-    } 
-
+    
     public void ShowBlochResult(bool blochSphereFlag)
     {
-        if (blochSphereFlag)
+        
+        List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag);
+        if(stat is null || stat.Count == 0)
         {
-            List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag);
-            if(stat is null || stat.Count == 0)
-            {
-                Debug.LogWarning("Error: Cannot get data from json file!");
-                return;
-            }
-            //Debug.Log("Stat Not null");
-            if (!isBlochTextMeshReady())
-            {
-                Debug.LogWarning("Error: Some TextMesh for Bloch Sphere is missing!");
-                return;
-            }
-
-            AssignBlochValueToTextMesh(stat);
-
-            Debug.Log("Updating Histrogram");
-            hist.UpdateHist(stat);
-            //adjust histogram
+            Debug.LogWarning("Error: Cannot get data from json file!");
+            return;
         }
 
+        Debug.Log("Updating Histrogram");
+        hist.UpdateHist(stat);
+        //adjust histogram
+        
         return;
+    }
+
+    public void CloseStateVector()
+    {
+        stateVectorDisplay.gameObject.SetActive(false);
+    }
+
+    public void DisplayStateVectorByValue(int value)
+    {
+        if (stateVectorDisplay == null)
+        {
+            Debug.LogWarning("Warning: State vector display is missing.");
+            return;
+        }
+
+        //get stat of statevector by its value
+        QubitStat stat = fileManager.GetStatFromJsonByValue(isBlochSphere, value, seqIndex);
+        stateVectorDisplay.AssignInfomation(stat.realPart, stat.imagPart, stat.val, stat.prob, stat.phase);
+        stateVectorDisplay.gameObject.SetActive(true);
     }
 
     public void ShowBlochResultByIndex(bool blochSphereFlag, int index)
@@ -110,14 +81,7 @@ public class QuantumUiStatManager : MonoBehaviour
             Debug.LogWarning("Error: Cannot get data from json file!");
             return;
         }
-        //Debug.Log("Stat Not null");
-        if (!isBlochTextMeshReady())
-        {
-            Debug.LogWarning("Error: Some TextMesh for Bloch Sphere is missing!");
-            return;
-        
-        }
-        AssignBlochValueToTextMesh(stat);
+        seqIndex = index;
         hist.UpdateHist(stat);
     }
 
@@ -127,7 +91,7 @@ public class QuantumUiStatManager : MonoBehaviour
         {
             string jsonString = File.ReadAllText(jsonSequenceOutputPath);
             JObject jsondata = JObject.Parse(jsonString);
-            int seqAmount = (int)jsondata["gateAmount"] + 1;
+            int seqAmount = (int)jsondata["stepAmount"] + 1;
             return seqAmount;
         }
         catch (FileNotFoundException)
@@ -140,9 +104,4 @@ public class QuantumUiStatManager : MonoBehaviour
         }
         return 0;
     }
-
-    // 0 1
-    // 00 01 10 11
-    // 000 001 010 011 100 101 110 111
-    // 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111
 }

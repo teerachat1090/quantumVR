@@ -6,7 +6,6 @@ using TMPro;
 
 public class IOClassical : MonoBehaviour
 {
-    // IT WORK!!!!!!!!!!!!!!! HOW!!!!!!!!!!!!!!
     [Header("Input Settings")]
     [SerializeField] private InputActionReference thumbstickAction;
     [SerializeField] private float threshold = 0.5f;

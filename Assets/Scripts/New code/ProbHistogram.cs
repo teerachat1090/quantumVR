@@ -10,7 +10,7 @@ public class ProbHistogram : MonoBehaviour
     [SerializeField]    private RectTransform backgroundImage = null;
     [SerializeField]    private GameObject histPrefab = null;
 
-
+    private QuantumUiStatManager uiStatManager = null;
     private GameObject histParent;
     private string histParentName = "Histograms";
 
@@ -18,6 +18,11 @@ public class ProbHistogram : MonoBehaviour
     private List<GameObject> histList = new List<GameObject>();
     private List<double> probStateList = new List<double>();
 
+
+    void Awake()
+    {
+        uiStatManager = GetComponent<QuantumUiStatManager>();
+    }
 
     void Start()
     {
@@ -53,6 +58,7 @@ public class ProbHistogram : MonoBehaviour
                 Debug.LogWarning("Warning: editor script is missing from histogram prefab!");
                 continue;
             }
+            editor.uiStatManager = uiStatManager;
             editor.setHist(lengthCount, unitRatio*2);
             editor.setState(i);
             
@@ -100,6 +106,7 @@ public class ProbHistogram : MonoBehaviour
         int statCount = stats.Count;
         bool rebuildFlag = probStateList.Count != statCount;
 
+        Debug.Log($"createing histogram ({statCount})");
         UpdateProbList(stats);
 
         if(rebuildFlag)

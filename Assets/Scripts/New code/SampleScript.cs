@@ -1,37 +1,21 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class SampleScript : MonoBehaviour
+public class SampleScript : MonoBehaviour, 
+    IPointerEnterHandler, 
+    IPointerExitHandler
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        Renderer renderer = GetComponent<Renderer>();
-
-        if(renderer is null)
-        {
-            Debug.LogWarning("can't find renderer");
-            return;
-        }
-        renderer.material.color = Color.red;
-        Debug.Log("change success");
-
-        if(renderer.material.color == Color.red) Debug.Log("color correct");
-        else Debug.LogWarning("color incorrect");
+        Debug.Log("Controller hovering over: " + gameObject.name);
+        // Add your hover logic here (e.g., scale up, highlight)
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnPointerExit(PointerEventData eventData)
     {
-        
+        Debug.Log("Controller stopped hovering: " + gameObject.name);
+        // Reset hover effects here
     }
 
-    public void func()
-    {
-        Debug.Log("*************************************");
-        Debug.Log("FROM NEW SCRIPT");
-        Debug.Log("====================================");
-        Debug.Log("Button has pressed");
-        Debug.Log("====================================");
-        Debug.Log("*************************************");
-    }
+    public void wjenClick() => Debug.Log("button has clicked");
 }

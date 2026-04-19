@@ -67,8 +67,12 @@ public class CircuitManager : MonoBehaviour
             if(qSphere is null)     Debug.LogWarning("Warning: Sphere model is missing!");          
         }
 
-        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
-        else                    Debug.Log("UI stat checking sucessful.");
+        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing!");
+        else                    
+        {
+            uiManager.isBlochSphere = isBlochSphere;
+            Debug.Log("UI stat checking sucessful.");
+        }
         
         sqManager = GetComponent<SequenceManager>();
         if(sqManager is null) Debug.LogWarning("Warning: Sequence manager component is missing!");
@@ -125,7 +129,7 @@ public class CircuitManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        if(uiManager is not null)   uiManager.ShowBlochResult(blochSphereFlag: true);
+        if(uiManager is not null)   uiManager.ShowBlochResult(isBlochSphere);
         else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
 
         if(!isBlochSphere) qSphere.UpdateFromJson();
@@ -138,7 +142,7 @@ public class CircuitManager : MonoBehaviour
     }
 
 
-    // recalculate everytinm the circuit change
+    // recalculate everytimำ the circuit change
     public void updateOverallCircuit(string circuitJson)
     {
         fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);

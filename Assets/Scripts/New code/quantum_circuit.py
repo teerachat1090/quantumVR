@@ -39,10 +39,6 @@ multi_input_gate = {
     "CNOT": lambda qc, control, target : qc.cx(*control, *target)
 }
 
-classical_bit_storage = {
-
-}
-
 # get json data
 def load_circuit_from_json(json_path: str):
     """ Load string from json file given its data path"""
@@ -113,15 +109,15 @@ def create_circuit(circuit_data: str):
     return qc
 
 # New issue: make new case for Q-Sphere
-def build_result_json(qc : QuantumCircuit):
+def build_result_json(qc : QuantumCircuit, use_date: bool = True):
     """Get output of the circuit and put result to dictionary """
 
     current_datetime = datetime.datetime.now()
     formatted_time = current_datetime.strftime("%H:%M:%S")
     formatted_date = current_datetime.strftime("%b %d, %Y")
     data = {
-        "date": formatted_time,
-        "time": formatted_date,
+        **({"date": formatted_time} if use_date else {}),
+        **({"time": formatted_date} if use_date else {}),
         "state" : []}
 
     states = Statevector.from_instruction(qc)

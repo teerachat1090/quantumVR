@@ -131,6 +131,27 @@ public class FileManager
         //get data
     }
 
+    private QubitStat StatToObject(JObject item)
+    {
+        try
+        {
+            QubitStat qStat = new QubitStat(
+                    (int)item["value"],
+                    (double)item["real_part"],
+                    (double)item["imag_part"],
+                    (double)item["prob"],
+                    (double)item["phase"]
+                );
+            return qStat;
+        } 
+        catch(Exception ex)
+        {
+            Debug.LogWarning($"Error occurred: {ex.Message}");
+            return null;
+        }
+
+    }
+
     private List<QubitStat> GetDataFromStat(JArray stats)
     {
         if(stats is null)
@@ -146,14 +167,8 @@ public class FileManager
 
             foreach (JObject item in stats)
             {
-                QubitStat qStat = new QubitStat(
-                    (int)item["value"],
-                    (double)item["real_part"],
-                    (double)item["imag_part"],
-                    (double)item["prob"],
-                    (double)item["phase"]
-                );
-
+                QubitStat qStat = StatToObject(item);
+                if(qStat == null) continue;
                 statList.Add(qStat);
             }
 
@@ -176,6 +191,41 @@ public class FileManager
         return GetDataFromStat(stats);
     }
 
+    public QubitStat GetStatFromJsonByValue(bool blochSphereFlag, int value, int index)
+    {
+        GetJsonSphereIOPath(blochSphereFlag, out _, out string jsonOutPutPath, out string jsonSequenceOutputPath);
+        try
+        {
+            JArray stats;
+            if (index >= 0)
+            {
+                string jsonString = File.ReadAllText(jsonSequenceOutputPath);
+                JObject jsondata = JObject.Parse(jsonString);
+                JArray statsList = (JArray)jsondata["resultList"];
+                JToken statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == index);
+
+                stats = (JArray) statSequence["state"];
+            } else
+            {
+                string jsonString = File.ReadAllText(jsonOutPutPath);
+                JObject jsondata = JObject.Parse(jsonString);
+                stats = (JArray) jsondata["state"];
+            }
+
+            JObject targetStat = stats.Children<JObject>().FirstOrDefault(item => item.Value<int>("value") == value);
+            QubitStat qubitStat = StatToObject(targetStat);
+            return qubitStat;
+        }catch (FileNotFoundException)
+        {
+            Debug.LogError($"Error: The file was not found.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Other Error occurred: {ex.Message}");
+        }
+        return null;
+    }
+
     // read json sequence file
     public List<QubitStat> GetStatFromJsonByIndex(bool blochSphereFlag, int index)
     {
@@ -186,7 +236,7 @@ public class FileManager
             string jsonString = File.ReadAllText(jsonSequenceOutputPath);
             JObject jsondata = JObject.Parse(jsonString);
             JArray statsList = (JArray)jsondata["resultList"];
-            var statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == index);
+            JToken statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == index);
 
             // get data from stat
             JArray stats = (JArray) statSequence["state"];
@@ -194,15 +244,17 @@ public class FileManager
         }
         catch (FileNotFoundException)
         {
-            Debug.LogWarning($"Error: The file '{jsonSequenceOutputPath}' was not found.");
+            Debug.LogError($"Error: The file '{jsonSequenceOutputPath}' was not found.");
         }
         catch (Exception ex)
         {
-            Debug.LogWarning($"Error occurred: {ex.Message}");
+            Debug.LogError($"Other Error occurred: {ex.Message}");
         }
 
         return null;
     }
+
+    
 
     public class QubitStat
     {

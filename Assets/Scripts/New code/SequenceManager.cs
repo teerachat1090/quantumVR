@@ -103,6 +103,11 @@ public class SequenceManager : MonoBehaviour
         componentCheck();
     }
 
+    public void ReScaleMarker(int columnSize)
+    {
+        marker.transform.localScale = new Vector3(1.0f,1.0f,1.0f);
+    }
+
     private void toggleAnimateButton(bool isShow)
     {
         prevButton.SetActive(isShow);
@@ -144,6 +149,7 @@ public class SequenceManager : MonoBehaviour
     {
         toggleAnimateButton(false);
         uiManager.ShowBlochResultByIndex(isBlochSphere, seqAmount-1);
+        uiManager.seqIndex = -1;
         marker.SetActive(false);
         Debug.Log("Reset to Normal mode");
     }
