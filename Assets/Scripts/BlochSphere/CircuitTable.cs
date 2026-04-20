@@ -34,7 +34,6 @@ public class CircuitTable : MonoBehaviour
 
     // Preview cursor (0..GateCount) points into history.states
     private int previewStateIndex = -1;
-    private string sample = null;
   
     void Start()
     {

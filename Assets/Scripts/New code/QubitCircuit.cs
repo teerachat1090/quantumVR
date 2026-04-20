@@ -9,24 +9,86 @@ public class QubitCircuit : MonoBehaviour
 {
     private bool isEnabled = true;
     public int circuitIndex = 0; //0 by default
-    public InteractionLayerMask defaultInteractionLayer;
-    private GateSocket[] gateSockets; 
-    private CircuitManager parentManager;
+    public int socketAmount = -1;
+    [SerializeField] private InteractionLayerMask defaultInteractionLayer;
+    [SerializeField] private GameObject socketPrefab = null;
+    [SerializeField] private float space = 0.25f;
+    public GateSocket[] gateSockets; 
+    private SocketsManager socketsManager;
     private List<QuantumGate> gatesForUnfreeze = new List<QuantumGate>();
-    void Awake()
+    
+    private void SetSocketPrefab(int amount)
     {
-        parentManager = GetComponentInParent<CircuitManager>();
-        gateSockets = GetComponentsInChildren<GateSocket>();
-        Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
+        if(amount < 1)
+        {
+            Debug.LogWarning("Warning: integer error. Value less than 1.");
+            return;
+        }
+        if(socketPrefab == null)
+        {
+            Debug.LogWarning("Warning: No socket prefab to use.");
+            return;
+        }
 
-        Debug.Log("Start function finished");
+        float startZ;
+        if(amount == 1) startZ = 0f;
+        else            startZ = (amount/2 + (amount%2==0? - 0.5f: 0f)) * space;
+
+        Vector3 position = new Vector3(0f, 0f, startZ);
+        
+        for(int i=0; i<amount; i++)
+        {
+            GameObject spawn = Instantiate(socketPrefab, gameObject.transform);
+            spawn.transform.localPosition = position;
+            //spawn.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
+            spawn.name = $"SC{i}";
+
+            var socket = spawn.GetComponent<GateSocket>();
+            if(socket is null) {
+                Debug.LogWarning("Warning: This missing GateSocket Component!");
+                continue;
+            }
+
+            socket.qubitIndex = circuitIndex;
+            socket.socketIndex = i;
+
+            position.z -= space;
+        }
     }
 
-    // Update is called once per frame
+    private void InitSockets()
+    {
+        SetSocketPrefab(socketAmount);
+        gateSockets = GetComponentsInChildren<GateSocket>();
+        if(gateSockets is null || gateSockets.Length == 0)
+        {
+            Debug.LogWarning("Warning: Can't access children gateSocket.");
+            return;
+        }
+        Array.Sort(gateSockets, (a, b) => a.socketIndex.CompareTo(b.socketIndex));
+    }
+
+    void Awake()
+    {
+        socketsManager = GetComponentInParent<SocketsManager>();
+        InitSockets();
+    }
+
+    void Start()
+    {
+        
+    }
+
+    public SocketsManager GetSocketsManager()
+    {
+        return socketsManager;
+    }
+
     public void updateStatus(string gateName, int socketIndex, bool isPlaced)
     {
         if(!isEnabled) return;
-        parentManager.updateOverallCircuit(gateName, socketIndex, circuitIndex, isPlaced);
+
+        socketsManager.updateCircuitByJson(gateName, socketIndex, circuitIndex, isPlaced);
     }
 
     void toggleCircuit()
@@ -34,14 +96,15 @@ public class QubitCircuit : MonoBehaviour
         isEnabled = !isEnabled;
     }
 
-    public int getNumberOfGates()
-    {
-        return gateSockets.Length;
-    }
-
     public List<QuantumGate> getListOfGate()
     {
         List<QuantumGate> gateList = new List<QuantumGate>();
+        if(gateSockets is null)
+        {
+            Debug.LogWarning("Warning: gateSockets is empty!");
+            return null;
+        }
+
         foreach(GateSocket gateSocket in gateSockets)
         {
             gateList.Add(gateSocket.getCurrentGate());
@@ -67,6 +130,7 @@ public class QubitCircuit : MonoBehaviour
         return Vector3.zero;
     }
 
+    // prevent player from grabbing placed gates
     public void FreezeGateBlock(bool flag)
     {
         toggleCircuit();

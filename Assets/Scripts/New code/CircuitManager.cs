@@ -20,7 +20,10 @@ public class CircuitManager : MonoBehaviour
     [Header("Sphere setting")]
     [SerializeField] private SphereType sphereType = SphereType.BlochSphere;
     [SerializeField] private GameObject sphere = null; //check later: bloch / Q - sphere
-    [SerializeField] private int multipleQubitAmount = 1;
+
+    [Header("Qubit Setting")]
+    [SerializeField] private int qubitAmount = 3;
+    [SerializeField] private int socketAmount = 11;
 
     [Header("Display setting")]
     [SerializeField] private QuantumUiStatManager uiManager = null; //showing result
@@ -33,21 +36,25 @@ public class CircuitManager : MonoBehaviour
     private XRGrabInteractable[] sourceGates;
 
     // Folder and file name
-    private string pythonScriptFolder = "New code",pythonScriptName = "sample.py", pythonAnimateName = "QuantumSequence.py";
+    private string pythonScriptFolder = "New code",pythonScriptName = "quantum_circuit.py", pythonAnimateName = "quantum_sequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
     
     // can check each one if enable
-    private List<QubitCircuit> qubitCircuits;
     private bool isBlochSphere;
     private BlochSphere blochSphere = null;
+    private QSphere qSphere = null;
     //private QSphere qSphere = null;
     private SequenceManager sqManager = null;
-
     private CircuitExecutor executor = new CircuitExecutor();
     private FileManager fileManager = new FileManager();
 
-    private void ComponentCheck()
+    public bool isItBlochSphere()
+    {
+        return (sphereType == SphereType.BlochSphere) ? true : false;;
+    }
+
+    private void CheckComponent()
     {
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
         if(isBlochSphere)   
@@ -56,21 +63,26 @@ public class CircuitManager : MonoBehaviour
             if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
         } else
         {
-            //try to get Q-sphere
+            qSphere = sphere.GetComponent<QSphere>();
+            if(qSphere is null)     Debug.LogWarning("Warning: Sphere model is missing!");          
         }
 
-        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
-        else                    Debug.Log("UI stat checking sucessful.");
+        if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing!");
+        else                    
+        {
+            uiManager.isBlochSphere = isBlochSphere;
+            Debug.Log("UI stat checking sucessful.");
+        }
         
-
         sqManager = GetComponent<SequenceManager>();
         if(sqManager is null) Debug.LogWarning("Warning: Sequence manager component is missing!");
 
         if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
 
-        if(socketsManager is null) Debug.LogWarning("Warning: Socket manager is missing!");
+        if(socketsManager is null)  Debug.LogWarning("Warning: Socket manager is missing!");
+        
 
-        if(storage is null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
+        if(storage == null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
         else
         {
             sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
@@ -78,16 +90,21 @@ public class CircuitManager : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        CheckComponent();
+        
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        ComponentCheck();
-
-        if(socketsManager is null) Debug.LogError("socketsManager is missing");
-
-        qubitCircuits = socketsManager.initSocketPrefabSpawn(isBlochSphere ? 1: multipleQubitAmount);
-
-        updateOverallCircuit(null, -1, -1, true);
+        if(isBlochSphere is false && qSphere is not null)
+        {
+            qSphere.ChangeQubitAmount(qubitAmount);
+        }
+        socketsManager.InitSocketPrefabSpawn(qubitAmount, socketAmount);
+        //socketsManager.updateCircuitByJson(null, -1, -1, true);
     }
 
     private void updateBlochVectorInstant()
@@ -112,25 +129,32 @@ public class CircuitManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        if(uiManager is not null)   uiManager.ShowBlochResult(outputPath);
+        if(uiManager is not null)   uiManager.ShowBlochResult(isBlochSphere);
         else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
+
+        if(!isBlochSphere) qSphere.UpdateFromJson();
     }
 
-    // recalculate everytinm the circuit change
-    public void updateOverallCircuit(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
+    //temp function for new file structure
+    public void updateOverallCircuit_temp(string circuitJson)
     {
-        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
-        string jsonExport = socketsManager.circuitToExportInit(isBlochSphere);
+        fileManager.updateJsonToFile_temp(circuitJson, isBlochSphere);
+    }
 
-        fileManager.updateJsonInputToFile(jsonExport, isBlochSphere);
-        updateBlochVectorInstant();
+
+    // recalculate everytimำ the circuit change
+    public void updateOverallCircuit(string circuitJson)
+    {
+        fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);
+
+        if (isBlochSphere)  updateBlochVectorInstant();
         
         // calculate value
+        Debug.Log("Start calculate and update circuit...");
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
-
-        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
-
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath, out _);
         _ = calculateAndUpdateUi(inputPath, outputPath);
+        Debug.Log("Calculate and update finished");
     }
 
     // assigned to button
@@ -149,9 +173,9 @@ public class CircuitManager : MonoBehaviour
 
         pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
 
-        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath);
+        fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out _, out string sequenceOutputPath);
                      
-        _ = sqManager.prepareSequence(pythonScriptPath, inputPath, outputPath);
+        _ = sqManager.prepareSequence(pythonScriptPath, inputPath, sequenceOutputPath);
     }
 
     // assigned to button
@@ -167,6 +191,7 @@ public class CircuitManager : MonoBehaviour
 
     public Vector3 GetNthGatePosInQubit(int qubit, int rank)
     {
+        List<QubitCircuit> qubitCircuits = socketsManager.GetOverallCircuit();
         if (isBlochSphere)  return qubitCircuits[qubit].GetNthGatePos(rank);
         
         return Vector3.zero;

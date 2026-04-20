@@ -38,13 +38,14 @@ public class SequenceManager : MonoBehaviour
     private Vector3 currVector = Vector3.up;
     private List<string> gateList = new List<string>();
     private GameObject marker = null;
+    private FileManager fileManager = new FileManager();
 
     private void componentCheck()
     {
         headManager = GetComponent<CircuitManager>();
         if(headManager is null)  Debug.LogWarning("Warning: Manager script is missing!");
 
-        if(modeButton is null)
+        if(modeButton == null)
             Debug.LogWarning("Warning: mode button is missing!" + 
             "This will make mode button accessable during processing which error can occured."); 
         else
@@ -56,29 +57,38 @@ public class SequenceManager : MonoBehaviour
         }
             
 
-        if(prevButton is null || nextButton is null)
+        if(prevButton == null || nextButton == null)
             Debug.LogWarning("Warning: Button for next and/or previous sequence is missing!");
         else
             toggleAnimateButton(false);
 
 
         isBlochSphere = (sphereType == SphereType.BlochSphere) ? true : false;
-        if(isBlochSphere)   
+
+        string str = (sphere == null) ? "missing" : "present";
+        Debug.Log($"sphere object is "+str);
+        if(sphere == null)
         {
-            blochSphere = sphere.GetComponent<BlochSphere>();
-            if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+            Debug.LogWarning("Warning: There's no sphere object.");
         }
-        else    
+        else
         {
-            //try to get Q-sphere
+            if(isBlochSphere)   
+            {
+                blochSphere = sphere.GetComponent<BlochSphere>();
+                if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+            }
+            else    
+            {
+                //try to get Q-sphere
+            }
         }
-        
         
         if(uiManager is null)   Debug.LogWarning("Initialize Warning: UI script is missing is missing!");
         else                    Debug.Log("UI stat checking sucessful.");
         
 
-        if(markerPrefab is null) Debug.LogWarning("Warning: Marker is missing!");
+        if(markerPrefab == null) Debug.LogWarning("Warning: Marker is missing!");
         else
         {
             marker = Instantiate(markerPrefab);
@@ -91,6 +101,11 @@ public class SequenceManager : MonoBehaviour
     void Start()
     {
         componentCheck();
+    }
+
+    public void ReScaleMarker(int columnSize)
+    {
+        marker.transform.localScale = new Vector3(1.0f,1.0f,1.0f);
     }
 
     private void toggleAnimateButton(bool isShow)
@@ -112,7 +127,7 @@ public class SequenceManager : MonoBehaviour
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
         
         sequencefile = outputPath;
-        uiManager.ShowBlochResultByIndex(outputPath, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         seqAmount = uiManager.getSequenceAmount(outputPath);
         blochSphere.AnimateToStateDirectly(currVector);
 
@@ -133,7 +148,8 @@ public class SequenceManager : MonoBehaviour
     public void backtoNormal()
     {
         toggleAnimateButton(false);
-        uiManager.ShowBlochResultByIndex(sequencefile, seqAmount-1);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqAmount-1);
+        uiManager.seqIndex = -1;
         marker.SetActive(false);
         Debug.Log("Reset to Normal mode");
     }
@@ -169,7 +185,7 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == 0) return;
         seqIndex--;
-        uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         updateVector(true);
         blochSphere.AnimateToStateDirectly(currVector);
         UpdateMarker();
@@ -179,7 +195,7 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == seqAmount - 1) return;
         seqIndex++;
-        uiManager.ShowBlochResultByIndex(sequencefile, seqIndex);
+        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
         updateVector(false);
         blochSphere.AnimateToStateDirectly(currVector);
         UpdateMarker();

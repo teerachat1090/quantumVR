@@ -40,8 +40,8 @@ MonoBehaviour:
   - 
   - 
   - 
-  - 
-  - 
+  - If_Condition
+  - Lock_Socket
   - button
-  - Grabbable
+  - Quantum_Gate
   - Teleport

@@ -8,6 +8,7 @@ public class Spawner : MonoBehaviour
 {
     // INPUT:
     //------------------------------------------------------------------------
+
     [Header("Spawn Settings")]
     [Tooltip("Use itself as spawn prefab")]
     [SerializeField] private bool usePrefab = false;
@@ -27,7 +28,7 @@ public class Spawner : MonoBehaviour
     [SerializeField] private bool destroyOnFloorHit = true;
     
     [Tooltip("Despawn height (meters)")]
-    [SerializeField] private float despawnHeight = 0.1f;
+    [SerializeField] private float despawnHeight = -1.0f;
     
     [Tooltip("Spawn Cooldown (seconds)")]
     [SerializeField] private float spawnCooldown = 0.5f;
@@ -55,6 +56,7 @@ public class Spawner : MonoBehaviour
         }
 
         grabManager = grabInteractable.interactionManager;
+        if(grabManager is null) Debug.LogWarning("Can't found interaction manager.");
         
         if (spawnCooldown < 0.01f) spawnCooldown = 0.01f; //cooldown minimun at 10ms
 
@@ -127,6 +129,17 @@ public class Spawner : MonoBehaviour
         if (spawnedRb == null)      spawnedRb = spawnedObject.AddComponent<Rigidbody>();
         spawnedRb.isKinematic = false;
         spawnedRb.useGravity = true;
+
+        if(usePrefab) {
+            var quantumgate = spawnedObject.GetComponent<QuantumGate>();
+            string name = spawnedObject.name;
+            int sepIndex = name.IndexOf("_");
+            quantumgate.name = name.Remove(sepIndex);
+            return;
+        }
+
+        QuantumGate quantumGate = spawnedObject.GetComponent<QuantumGate>();
+        quantumGate.setConditionSocket(true);
 
         // Edit spawn script (if has one): Prefab must not spawn another
         Spawner spawnedScript = spawnedObject.GetComponent<Spawner>();

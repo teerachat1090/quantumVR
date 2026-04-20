@@ -150,7 +150,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.75, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 0.025, y: 0.025, z: 0.025}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8018468541237226849}
@@ -210,6 +210,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &7890923795652396237
 GameObject:
@@ -220,6 +221,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8018468541237226849}
+  - component: {fileID: 7277125785642426292}
   m_Layer: 0
   m_Name: StateVector
   m_TagString: Untagged
@@ -240,11 +242,27 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2979252767870280500}
-  - {fileID: 9164695490084000943}
   - {fileID: 1532378250138903252}
+  - {fileID: 9164695490084000943}
+  - {fileID: 2979252767870280500}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7277125785642426292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7890923795652396237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9386db18ffa1cb419dec020800eb705, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StateVector
+  nodeTransform: {fileID: 9164695490084000943}
+  nodeRenderer: {fileID: 4588348992582258159}
+  lineRenderer: {fileID: 1476149888158142328}
+  canvas: {fileID: 2313443071229035151}
 --- !u!1 &8062524429887855069
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,7 +291,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.375, z: 0}
-  m_LocalScale: {x: 0.01, y: 0.375, z: 0.01}
+  m_LocalScale: {x: 0.005, y: 0.375, z: 0.005}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8018468541237226849}
@@ -333,6 +351,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &8840028204560644665
 GameObject:
@@ -361,7 +380,7 @@ RectTransform:
   m_GameObject: {fileID: 8840028204560644665}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1532378250138903252}
@@ -369,7 +388,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 50, y: 10}
+  m_SizeDelta: {x: 100, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3612454525376672911
 CanvasRenderer:
@@ -438,6 +457,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

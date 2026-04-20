@@ -1,17 +1,20 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
-using Unity.VisualScripting;
+using System.Collections.Generic;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class GateSocket : MonoBehaviour
 {
     public int socketIndex = 0; //0 by default
+    public int qubitIndex = -1;
     public QuantumGate currentGate = null;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
+    public bool beLazy = false; 
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    void CheckComponent()
     {
         parentCircuit = GetComponentInParent<QubitCircuit>();
 
@@ -20,32 +23,131 @@ public class GateSocket : MonoBehaviour
         {
             socketInteractor.selectEntered.AddListener(OnGatePlaced);
             socketInteractor.selectExited.AddListener(OnGateRemoved);
+        } else
+        {
+            Debug.LogWarning("Warning: there's no socket interactor here!");
         }
+    }
+
+    void Awake()
+    {
+        CheckComponent();
+    }
+
+    private XRGrabInteractable GetGrabInteractable(QuantumGate gate)
+    {
+        var grabInteractable = gate.GetComponent<XRGrabInteractable>();
+        if(grabInteractable == null){
+            Debug.LogWarning("Warning: component is missing (XRGrabInteractable).");   
+            return null;
+        }
+
+        return grabInteractable;
+    }
+
+    public bool RegistClassicalRelated(GameObject baseObject)
+    {
+        var socketsManager = parentCircuit.GetSocketsManager();
+        Debug.Log("checking about measurement");
+        bool pathAvailible = socketsManager.CheckPathToClassicalBit(baseObject, qubitIndex, socketIndex);
+        if (!pathAvailible)
+        {
+            Debug.LogWarning("There gate block path downward.");
+            return false;
+        }
+        return true;
     }
 
     void OnGatePlaced(SelectEnterEventArgs args)
     {
-        Debug.Log("📊 Qubit placed!");
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();
 
-        if(gate != null) currentGate = gate;
-        
-        //update circuit table
+        if(gate == null) return;
 
-        if(gate.getGateType() != QuantumGate.inputType.Single)
-        {
-            //remove additional gates if not single input
-            socketInteractor.interactionManager.SelectExit(socketInteractor, args.interactableObject);
+        currentGate = gate;
+        gate.socket = this;
+        Debug.Log("asigning socket...");
+
+        if(beLazy)
+        { 
+            beLazy = false;
             return;
         }
-        updateCircuit(true);
+
+        var inputType = gate.getGateType();
+        if(inputType == QuantumGate.inputType.Single)
+        {
+            updateCircuit(true);
+            return;
+        }
+        
+        //------------------------ Classical bit related --------------------
+        var socketsManager = parentCircuit.GetSocketsManager();
+        if(inputType == QuantumGate.inputType.measure)
+        {
+            bool completed = RegistClassicalRelated(gate.gameObject);
+            if(!completed) Destroy(gate.gameObject);
+            return;
+        }
+        //---------------------------------------------------------------------
+
+        //----------------------- multiple input gate -------------------------
+        Debug.Log("checking about multi-input gate");
+        if (gate.friendExist) //unlock layer of placed gate
+        {
+            var grabInteractable = GetGrabInteractable(gate);
+            if(grabInteractable == null) return;
+            grabInteractable.interactionLayers = socketsManager.GetQuantumGateLayer();
+
+            //disable socket inbetween
+            gate.connect.ToggleCurrentColumn(doLock: false);
+            gate.connect.SetSocketInBetween(doEnable: false);
+        }
+        else //introduce new gate to socket manager
+        {
+            bool spaceAvailible = socketsManager.ChecksocketSpace(gate.gameObject, qubitIndex, socketIndex);
+            if (!spaceAvailible)
+            {
+                Debug.LogWarning("Space Not Availible.");
+                Destroy(gate.gameObject);
+            }
+        }
     }
 
     void OnGateRemoved(SelectExitEventArgs args)
-    {
+    {   
+        QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();        
         currentGate = null;
-        updateCircuit(false);
-        //update circuit table
+        gate.socket = null;
+
+        if(gate.getGateType() == QuantumGate.inputType.Single)
+        {
+            updateCircuit(false);
+            return;
+        } 
+
+        // enable socket inbetween
+        gate.connect.SetSocketInBetween(useTempVal: true);
+
+        // Remove assigned multi-input gate
+        if(gate.friendExist && !gate.beingDestroyed)
+        {
+            var socketsManager = parentCircuit.GetSocketsManager();
+
+            if(gate.connect == null)
+            {
+                Debug.LogWarning("Warning: Can't find connector between multi-input gates.");
+                return;
+            }
+
+            var grabInteractable = GetGrabInteractable(gate);
+            if(grabInteractable == null) return;
+            grabInteractable.interactionLayers = socketsManager.GetLockLayer();
+
+            gate.connect.ToggleCurrentColumn();
+        }
+        
+        //case gate.beingDestroyed = true -> gate will manage that
     }
 
     void OnDestroy()
@@ -65,10 +167,5 @@ public class GateSocket : MonoBehaviour
     public QuantumGate getCurrentGate()
     {
         return currentGate;
-    }
-
-    public void setQubitIndex(int index)
-    {
-        socketIndex = index;
     }
 }
