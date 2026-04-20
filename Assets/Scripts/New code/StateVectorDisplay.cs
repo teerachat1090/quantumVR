@@ -39,35 +39,8 @@ public class StateVectorDisplay : MonoBehaviour
         probText.text = $"Prob. : {prob:F3}";
         phaseText.text = $"Phase: {phase:F1}\u00B0";
 
-        float hue = PhaseToColor((float) phase);
+        float hue = PhaseColoring.PhaseToColor((float) phase);
         Color newColor = Color.HSVToRGB(hue, 1.0f, 1.0f);
         phaseColor.color = newColor;
-    }
-
-    private float[] hueBoundRange = {
-        35f, 25f, 15f, 20f,  10f,  55f,
-        30f, 15f, 10f, 55f, 100f,   0f
-        };
-
-    private float[] hueLowerBound = {
-        235f, 270f, 295f, 310f, 330f, 340f,
-        355f, 025f, 040f, 050f, 105f, 205f
-    };
-
-    private float angleRef = 30f;
-
-    private float PhaseToColor(float phase)
-    {
-        int angleOffSet = (int) phase % (int) angleRef;
-        int boundindex = (int) (phase/angleRef);
-        float hueRange = hueBoundRange[boundindex];
-        float lowerBound = hueLowerBound[boundindex];
-
-        float offset =  hueRange * angleOffSet / angleRef;
-
-        float newHue = (lowerBound + offset)/360f;
-        if (newHue > 1) newHue-=1f;
-
-        return newHue;
     }
 }

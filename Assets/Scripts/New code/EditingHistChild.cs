@@ -14,7 +14,6 @@ public class EditingHistChild : MonoBehaviour
 
     public void OnHoverExit()
     {
-        Debug.Log($"Histogram exit hovered ({state.text})");
         if(uiStatManager == null)
         {
             Debug.LogWarning("Warning: this script doesn't connect to ui manager.");
@@ -25,7 +24,6 @@ public class EditingHistChild : MonoBehaviour
 
     public void OnHoverEnter()
     {
-        Debug.Log($"Histogram enter hovered ({state.text})");
         if(uiStatManager == null)
         {
             Debug.LogWarning("Warning: this script doesn't connect to ui manager.");
@@ -48,7 +46,7 @@ public class EditingHistChild : MonoBehaviour
         state.SetText($"|{val}\u27e9");
     }
 
-    public void setProb(double probVal)
+    public void setProb(double probVal, double phaseVal)
     {
         string probStr = probVal.ToString("F3");
         prob.SetText($"{probStr}");
@@ -71,6 +69,10 @@ public class EditingHistChild : MonoBehaviour
         float barWidth = imageRect.rect.width;
         imageRect.sizeDelta = new Vector2(barWidth, resultHeight);
         triggerRect.sizeDelta = new Vector2(barWidth, maxHeight);
+
+        float hue = PhaseColoring.PhaseToColor((float) phaseVal);
+        Color newColor = Color.HSVToRGB(hue, 1.0f, 1.0f);
+        image.color = newColor;
 
         if(probRect is null)
         {

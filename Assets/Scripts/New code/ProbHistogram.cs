@@ -17,6 +17,7 @@ public class ProbHistogram : MonoBehaviour
     // child name in prefab
     private List<GameObject> histList = new List<GameObject>();
     private List<double> probStateList = new List<double>();
+    private List<double> phaseStateList = new List<double>();
 
 
     void Awake()
@@ -72,9 +73,11 @@ public class ProbHistogram : MonoBehaviour
     {
         // update prob list
         probStateList.Clear();
+        phaseStateList.Clear();
         foreach(QubitStat qubitStat in stats)
         {
             probStateList.Add(qubitStat.prob);
+            phaseStateList.Add(qubitStat.phase);
         }
     }
 
@@ -90,7 +93,7 @@ public class ProbHistogram : MonoBehaviour
                 continue;
             }
 
-            editor.setProb(probStateList[i]);
+            editor.setProb(probStateList[i], phaseStateList[i]);
         }
     }
 
