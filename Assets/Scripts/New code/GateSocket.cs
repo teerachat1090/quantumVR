@@ -102,6 +102,8 @@ public class GateSocket : MonoBehaviour
             //disable socket inbetween
             gate.connect.ToggleCurrentColumn(doLock: false);
             gate.connect.SetSocketInBetween(doEnable: false);
+            updateCircuit(true);
+            return;
         }
         else //introduce new gate to socket manager
         {

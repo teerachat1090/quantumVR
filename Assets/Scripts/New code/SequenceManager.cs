@@ -7,15 +7,13 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Newtonsoft.Json.Linq;
 using TMPro;
+using SphereType = CircuitManager.SphereType;
+using Unity.Mathematics;
 
 public class SequenceManager : MonoBehaviour
 {
     private CircuitManager headManager = null;
 
-    private enum SphereType
-    {
-        BlochSphere, QSphere
-    }
     [Header("Sphere setting")]
     [SerializeField]    private SphereType sphereType = SphereType.BlochSphere;
     [SerializeField]    private GameObject sphere = null; //check later: bloch / Q - sphere
@@ -33,17 +31,21 @@ public class SequenceManager : MonoBehaviour
     private XRGrabInteractable press = null;
     private bool isBlochSphere;
     private BlochSphere blochSphere = null;
+    private QSphere qSphere = null;
     private int seqIndex = 0, seqAmount = 0;
-    private string sequencefile = null;
-    private Vector3 currVector = Vector3.up;
-    private List<string> gateList = new List<string>();
+    private Vector3 currBlochVector = Vector3.up;
+    private List<string> blochGateList = new List<string>();
+    private List<int> columnList = new List<int>();
     private GameObject marker = null;
+    private float markerYScale = 0.0f; 
     private FileManager fileManager = new FileManager();
+    private SocketsManager socketsManager = null;
 
     private void componentCheck()
     {
         headManager = GetComponent<CircuitManager>();
         if(headManager is null)  Debug.LogWarning("Warning: Manager script is missing!");
+        else socketsManager = headManager.GetSocketsManager();
 
         if(modeButton == null)
             Debug.LogWarning("Warning: mode button is missing!" + 
@@ -76,11 +78,12 @@ public class SequenceManager : MonoBehaviour
             if(isBlochSphere)   
             {
                 blochSphere = sphere.GetComponent<BlochSphere>();
-                if(blochSphere is null) Debug.LogWarning("Warning: Sphere model is missing!");
+                if(blochSphere is null) Debug.LogWarning("Warning: Sphere is missing BlochSphere component!");
             }
             else    
             {
-                //try to get Q-sphere
+                qSphere = sphere.GetComponent<QSphere>();
+                if(qSphere is null) Debug.LogWarning("Warning: Sphere is missing QSphere component!");
             }
         }
         
@@ -91,9 +94,10 @@ public class SequenceManager : MonoBehaviour
         if(markerPrefab == null) Debug.LogWarning("Warning: Marker is missing!");
         else
         {
-            marker = Instantiate(markerPrefab);
+            marker = Instantiate(markerPrefab, socketsManager.transform.position, quaternion.identity);
             marker.transform.Rotate(new Vector3(60.0f, 90.0f, 0.0f));
             marker.SetActive(false);
+            markerYScale = marker.transform.localScale.y;
             Debug.Log("Marker deployed!");
         }
     }
@@ -103,9 +107,10 @@ public class SequenceManager : MonoBehaviour
         componentCheck();
     }
 
-    public void ReScaleMarker(int columnSize)
+    public void ReScaleMarker(float columnSize)
     {
-        marker.transform.localScale = new Vector3(1.0f,1.0f,1.0f);
+        Vector3 markerScale = marker.transform.localScale;
+        marker.transform.localScale = new Vector3(markerScale.x,markerYScale*columnSize,markerScale.z);
     }
 
     private void toggleAnimateButton(bool isShow)
@@ -126,20 +131,20 @@ public class SequenceManager : MonoBehaviour
         //await for script
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
         
-        sequencefile = outputPath;
-        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
+        uiManager.ShowResultByIndex(isBlochSphere, seqIndex);
         seqAmount = uiManager.getSequenceAmount(outputPath);
-        blochSphere.AnimateToStateDirectly(currVector);
 
-        // REMINDER: only for bloch sphere (index = 0)
-        gateList = headManager.GetGateAsStringList(0);
-        int i=0;
-        foreach(string gate in gateList)
+        if(isBlochSphere)   {
+            blochSphere.AnimateToStateDirectly(currBlochVector);
+            blochGateList = socketsManager.GetGateAsStringList(0);
+        }
+        else
         {
-            Debug.Log($"{i}: {gate}");
-            i++;
+            qSphere.UpdateFromJson(isSequence: true);
         }
 
+        columnList = fileManager.GetColumnListFromJson(isBlochSphere);
+        ReScaleMarker(socketsManager.GetColumnSize());
         press.enabled = true;
         toggleAnimateButton(true);
         Debug.Log("Initialize finished!");
@@ -148,23 +153,23 @@ public class SequenceManager : MonoBehaviour
     public void backtoNormal()
     {
         toggleAnimateButton(false);
-        uiManager.ShowBlochResultByIndex(isBlochSphere, seqAmount-1);
+        uiManager.ShowResultByIndex(isBlochSphere, seqAmount-1);
         uiManager.seqIndex = -1;
         marker.SetActive(false);
         Debug.Log("Reset to Normal mode");
     }
 
-    private void updateVector(bool isInverse)
+    private void updateBlochVector(bool isInverse)
     {
         if(seqIndex == 0)
         {
-            currVector = Vector3.up;
+            currBlochVector = Vector3.up;
             return;
         }
         CircuitExecutor executor = new CircuitExecutor();
-        string targetGate = gateList[(seqIndex - 1) + (isInverse ? 1: 0)];
+        string targetGate = blochGateList[(seqIndex - 1) + (isInverse ? 1: 0)];
         Debug.Log($"At {seqIndex} do gate: {targetGate}");
-        currVector = executor.DoRotate(currVector, targetGate, isInverse);
+        currBlochVector = executor.DoRotate(currBlochVector, targetGate, isInverse);
     }
 
     private void UpdateMarker()
@@ -175,9 +180,10 @@ public class SequenceManager : MonoBehaviour
             return;
         }
 
-        Vector3 targetPosition = headManager.GetNthGatePosInQubit(0, seqIndex);
-
-        marker.transform.position = targetPosition;
+        int targetColumn = columnList[seqIndex-1];
+        float columnPos = socketsManager.GetColumnPosition(targetColumn);
+        Vector3 markerPos = marker.transform.position;
+        marker.transform.position = new Vector3(markerPos.x, markerPos.y, columnPos);
         marker.SetActive(true);
     }
 
@@ -185,9 +191,17 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == 0) return;
         seqIndex--;
-        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
-        updateVector(true);
-        blochSphere.AnimateToStateDirectly(currVector);
+        uiManager.ShowResultByIndex(isBlochSphere, seqIndex);
+
+        if(isBlochSphere) {
+            updateBlochVector(true);
+            blochSphere.AnimateToStateDirectly(currBlochVector);
+        }
+        else
+        {
+            qSphere.UpdateFromJson(true, seqIndex);
+        }
+
         UpdateMarker();
     }
 
@@ -195,9 +209,18 @@ public class SequenceManager : MonoBehaviour
     {
         if(seqIndex == seqAmount - 1) return;
         seqIndex++;
-        uiManager.ShowBlochResultByIndex(isBlochSphere, seqIndex);
-        updateVector(false);
-        blochSphere.AnimateToStateDirectly(currVector);
+        uiManager.ShowResultByIndex(isBlochSphere, seqIndex);
+        
+        if(isBlochSphere) {
+            updateBlochVector(false);
+            blochSphere.AnimateToStateDirectly(currBlochVector);
+        }
+        else
+        {
+            //update Q-sphere by index
+            qSphere.UpdateFromJson(true, seqIndex);
+        }
+
         UpdateMarker();
     }
 }

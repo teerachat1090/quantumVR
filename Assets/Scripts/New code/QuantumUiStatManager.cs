@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 using System;
@@ -36,10 +35,10 @@ public class QuantumUiStatManager : MonoBehaviour
     // update: same amount-change val, diff amount-empty and re-edit
     // **when destroy -> we need to destroy GameObject (Image)
     
-    public void ShowBlochResult(bool blochSphereFlag)
+    public void DisplayResult(bool blochSphereFlag)
     {
         
-        List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag);
+        List<QubitStat> stat = fileManager.GetStatFromJsonData(blochSphereFlag);
         if(stat is null || stat.Count == 0)
         {
             Debug.LogWarning("Error: Cannot get data from json file!");
@@ -72,7 +71,7 @@ public class QuantumUiStatManager : MonoBehaviour
         stateVectorDisplay.gameObject.SetActive(true);
     }
 
-    public void ShowBlochResultByIndex(bool blochSphereFlag, int index)
+    public void ShowResultByIndex(bool blochSphereFlag, int index)
     {
         List<QubitStat> stat = fileManager.GetStatFromJsonByIndex(blochSphereFlag, index);
 

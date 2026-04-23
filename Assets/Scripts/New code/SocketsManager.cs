@@ -32,7 +32,6 @@ public class SocketsManager : MonoBehaviour
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
     private ClassicalBitManager CBManager = null;
-    private List<int> exportIndex = new List<int>();
     private List<GameObject> multiGateList = new List<GameObject>();
     private List<List<GateSocket>> socketMap = new List<List<GateSocket>>();
     
@@ -59,24 +58,6 @@ public class SocketsManager : MonoBehaviour
     void Awake()
     {
         CheckComponent();
-    }
-
-    private void getAvailibleQubit()
-    {
-        exportIndex.Clear();
-        if(totalQubits == 0) {
-            Debug.LogWarning("Warning: No qubit represent!");
-            return;
-        }
-        
-        //qubitCircuits already sorted by circuitIndex
-        foreach (QubitCircuit qubit in qubitCircuits)
-        {
-            if(!qubit.enabled) continue;
-
-            exportIndex.Add(qubit.circuitIndex);
-            //Debug.Log($"get qubit no. {qubit.circuitIndex} in index: {exportIndex.IndexOf(qubit.circuitIndex)}"); 
-        }
     }
 
     private bool IsPrefabValid()
@@ -112,6 +93,11 @@ public class SocketsManager : MonoBehaviour
             eachRow.Sort((a,b) => a.socketIndex.CompareTo(b.socketIndex));
             socketMap.Add(eachRow);
         }
+    }
+
+    public float GetColumnSize()
+    {
+        return totalQubits + (useClassical ? .5f : 0);
     }
 
     // position 0.5 to -0.5, offset 0.1, space 0.2
@@ -162,7 +148,6 @@ public class SocketsManager : MonoBehaviour
         }
 
         totalQubits = qubitAmount;
-        getAvailibleQubit();
         initSocketMap();
         updateCircuitByJson(null, -1, -1, true);
     }
@@ -374,36 +359,14 @@ public class SocketsManager : MonoBehaviour
             else Debug.LogWarning("XRSocketInteractor is missing?");
         }
     }
-
-    // Try to remove this function (use socketMap instead)
-    public List<QubitCircuit> GetOverallCircuit()
-    {
-        return qubitCircuits;
-    }
-
-    // get list of gate in specific rows
-    public List<QuantumGate> GetGateListByQubitIndex(int qubitIndex)
-    {
-        int targetIndex = qubitCircuits.FindIndex( q => q.circuitIndex == qubitIndex);
-        if(targetIndex == -1) return null;
-
-        QubitCircuit targetQubit = qubitCircuits[targetIndex];
-        List<QuantumGate> gateList = targetQubit.getListOfGate();
-        if(gateList is null)
-        {
-            Debug.LogWarning("Warning: list is empty");
-        }
-        return gateList;
-    }
     
     public List<string> GetGateAsStringList(int index)
     {
-        List<QuantumGate> gates = GetGateListByQubitIndex(index);
-
         List<string> gateList = new List<string>();
-        foreach(QuantumGate gate in gates)
+        foreach (GateSocket socket in socketMap[index])
         {
-            if (gate == null) continue;
+            if (socket.getCurrentGate() == null) continue;
+            QuantumGate gate = socket.getCurrentGate();
             gateList.Add(gate.getGateName());
         }
 
@@ -513,6 +476,17 @@ public class SocketsManager : MonoBehaviour
         {
             xrGrab.enabled = !doDisable;
         }
+    }
+
+    public float GetColumnPosition(int column)
+    {
+        if(column < 0 || column >= totalSocketEach ) {
+            Debug.LogError("Error: column is out of bound.");
+            return 0;
+        }
+        float columnPos = socketMap[0][column].gameObject.transform.position.z;
+
+        return columnPos;
     }
 }
 
