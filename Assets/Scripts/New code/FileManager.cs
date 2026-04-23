@@ -62,21 +62,6 @@ public class FileManager
         sequencePath = tempSequencePath;
     }
 
-
-    public void updateJsonToFile_temp(string jsonExport, bool isBlochSphere)
-    {
-        string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
-        createFolderIfNotExist(dataFolderPath);
-
-        string inputFolderPath = Path.Combine(dataFolderPath, inputFolder);
-        createFolderIfNotExist(inputFolderPath);
-        
-        string wantedJsonFile = isBlochSphere ? "bloch_input_temp.json" : "q_input_temp.json";
-        string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
-
-        File.WriteAllText(inputPath, jsonExport);
-    }
-
     public void updateJsonInputToFile(string jsonExport, bool isBlochSphere)
     {
         string dataFolderPath = Path.Combine(Application.persistentDataPath, dataFolder);
@@ -89,7 +74,6 @@ public class FileManager
         string inputPath = Path.Combine(inputFolderPath, wantedJsonFile);
 
         File.WriteAllText(inputPath, jsonExport);
-        //Debug.Log($"-----UPDATE-----\nUpdate json input: {inputPath}\n Result:{jsonExport}");
     }
 
     //---------------------------------Json quantum file operation---------------------------------------------
@@ -124,13 +108,6 @@ public class FileManager
         return null;
     }
 
-    public void sample()
-    {
-        //get state -> result / by index
-
-        //get data
-    }
-
     private QubitStat StatToObject(JObject item)
     {
         try
@@ -149,7 +126,32 @@ public class FileManager
             Debug.LogWarning($"Error occurred: {ex.Message}");
             return null;
         }
+    }
 
+    public List<int> GetColumnListFromJson(bool isBlochSphere)
+    {
+        GetJsonSphereIOPath(isBlochSphere, out _, out _, out string jsonSequenceOutputPath);
+
+        try
+        {
+            string jsonString = File.ReadAllText(jsonSequenceOutputPath);
+            JObject jsondata = JObject.Parse(jsonString);
+            JArray jsonColumnList = (JArray)jsondata["columnList"];
+
+            if(jsonColumnList == null)
+            {
+                Debug.LogWarning($"Warning: {jsonSequenceOutputPath} has no attribute \"columnList\"");
+                return null;
+            }
+
+            List<int> columnList = jsonColumnList.ToObject<List<int>>();
+            return columnList;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Error occurred: {ex.Message}");
+        }
+        return null;
     }
 
     private List<QubitStat> GetDataFromStat(JArray stats)
@@ -182,7 +184,7 @@ public class FileManager
         return null;
     }
 
-    public List<QubitStat> GetJsonData(bool blochSphereFlag)
+    public List<QubitStat> GetStatFromJsonData(bool blochSphereFlag)
     {
         GetJsonSphereIOPath(blochSphereFlag, out _, out string jsonOutputPath, out string _);
 

@@ -47,11 +47,13 @@ def qubit_sequence(circuit_data: dict):
         "date" : formatted_datetime,
         "time" : formatted_string,
         "stepAmount" : 0,
+        "columnList" : [],
         "resultList" : []
     }
 
     column_list = circuit_data.get("columnList", [])
     column_list.sort()
+    sequence_list["columnList"] = column_list
 
     index = 0
     circuit_result = quantum_circuit.build_result_json(qc, use_date=False)
@@ -114,24 +116,19 @@ def main():
 
     try:
         circuit_data = quantum_circuit.load_circuit_from_json(json_input_path)
-        is_bloch_sphere = circuit_data.get("blochSphere", True)
-        if is_bloch_sphere is None :
-            print("Json file error: no field name (blochSphere - bool)!")
-            sys.exit(1)
 
-        if is_bloch_sphere is True :
-            result_sequencs_json = qubit_sequence(circuit_data)
+        result_sequencs_json = qubit_sequence(circuit_data)
 
-            with open(json_output_path, "w", encoding="utf-8") as file:
-                json.dump(result_sequencs_json, file, indent=4)
-
-        else:
-            #for Q-sphere
-            print("for Q-sphere")
+        with open(json_output_path, "w", encoding="utf-8") as file:
+            json.dump(result_sequencs_json, file, indent=4)
 
         return
     except FileNotFoundError:
         traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+    except Exception as exception: # pylint: disable=broad-except
+        error_explain = type(exception).__name__
+        print(f"Other Error: {error_explain}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

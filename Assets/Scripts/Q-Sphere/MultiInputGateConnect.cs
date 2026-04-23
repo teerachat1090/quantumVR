@@ -199,6 +199,7 @@ public class MultiInputGateConnect : MonoBehaviour
 
     public void deleteItself()
     {
+        if(!Application.isPlaying) return;
         ToggleCurrentColumn(doLock: false);
         foreach(GameObject gate in gateMember)
         {

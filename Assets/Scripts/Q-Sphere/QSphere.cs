@@ -143,12 +143,15 @@ public class QSphere : MonoBehaviour
     }
 
 
-    public void UpdateFromJson()
+    public void UpdateFromJson(bool isSequence = false, int index = 0)
     {
         Debug.Log("QSphere updating...");
         var fileManager = new FileManager();
 
-        List<QubitStat> stat = fileManager.GetJsonData(blochSphereFlag: false);
+        List<QubitStat> stat;
+
+        if(isSequence) stat = fileManager.GetStatFromJsonByIndex(false, index);
+        else stat = fileManager.GetStatFromJsonData(blochSphereFlag: false);
 
         // take data from each list and update each vector
         foreach(QubitStat q in stat)

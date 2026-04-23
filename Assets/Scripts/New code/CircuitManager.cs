@@ -13,7 +13,7 @@ public class CircuitManager : MonoBehaviour
     // use component.getComponentsInChildren<thatComponent>(false, thatList);
     //      to store as List instead of array (no reallocate !) - false = not count inactive child
 
-    private enum SphereType
+    public enum SphereType
     {
         BlochSphere, QSphere
     }
@@ -119,30 +119,18 @@ public class CircuitManager : MonoBehaviour
         blochSphere.AnimateToStateDirectly(resultVector);
     }
 
-    public List<string> GetGateAsStringList(int index)
-    {
-        return socketsManager.GetGateAsStringList(index);
-    }
-
     private async Task calculateAndUpdateUi(string inputPath, string outputPath)
     {
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
-        if(uiManager is not null)   uiManager.ShowBlochResult(isBlochSphere);
+        if(uiManager is not null)   uiManager.DisplayResult(isBlochSphere);
         else                        Debug.LogWarning("Warning: ui script is missing. Unable to show stat!");
 
         if(!isBlochSphere) qSphere.UpdateFromJson();
     }
 
-    //temp function for new file structure
-    public void updateOverallCircuit_temp(string circuitJson)
-    {
-        fileManager.updateJsonToFile_temp(circuitJson, isBlochSphere);
-    }
-
-
-    // recalculate everytimำ the circuit change
+    // recalculate everytime the circuit change
     public void updateOverallCircuit(string circuitJson)
     {
         fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);
@@ -157,7 +145,7 @@ public class CircuitManager : MonoBehaviour
         Debug.Log("Calculate and update finished");
     }
 
-    // assigned to button
+    // assigned to button: Mode Button
     public void PrepareForAnimation()
     {
         if(sqManager is null)
@@ -189,11 +177,8 @@ public class CircuitManager : MonoBehaviour
         updateBlochVectorInstant();
     }
 
-    public Vector3 GetNthGatePosInQubit(int qubit, int rank)
+    public SocketsManager GetSocketsManager()
     {
-        List<QubitCircuit> qubitCircuits = socketsManager.GetOverallCircuit();
-        if (isBlochSphere)  return qubitCircuits[qubit].GetNthGatePos(rank);
-        
-        return Vector3.zero;
+        return socketsManager;
     }
 }
