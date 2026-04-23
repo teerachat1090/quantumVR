@@ -5,20 +5,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 using QubitStat = FileManager.QubitStat;
+using Unity.VisualScripting;
 
 public class QSphere : MonoBehaviour
 {
     [SerializeField] GameObject stateParent = null;
 
     [SerializeField] GameObject stateVectorPrefab = null;
+    [SerializeField] float offsetDist = 0f;
+    [SerializeField] GameObject centerObject = null;
 
     private int qubitAmount = 0;
 
     private List<StateVector> vectorList = new List<StateVector>();
 
+    public Vector3 pointToLookAt = Vector3.zero;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if(centerObject is null) centerObject = gameObject;
+        pointToLookAt = gameObject.transform.position + offsetDist*gameObject.transform.forward;
         if(stateParent is null)
         {
             stateParent = new GameObject("StateVectors");
@@ -113,12 +120,14 @@ public class QSphere : MonoBehaviour
             GameObject spawned = Instantiate(stateVectorPrefab, stateParent.transform);
             spawned.name = $"Statevector {num}";
             StateVector vector = spawned.GetComponent<StateVector>();
+            vector.pointToSee = pointToLookAt;
             vector.SetStateValue(num, qubitAmount);
 
             // lower node (opposited)
             GameObject spawnedCounter = Instantiate(stateVectorPrefab, stateParent.transform);
             spawnedCounter.name = $"Statevector <flip> {flipNum}";
             StateVector vectorCounter = spawnedCounter.GetComponent<StateVector>();
+            vectorCounter.pointToSee = pointToLookAt;
             vectorCounter.SetStateValue(flipNum, qubitAmount);
 
             float y = (float) - (float) (trackFromEnd ? endAmount[ones] : startAmount[ones]) / maxAmount[ones] * 360.0f;
@@ -132,6 +141,9 @@ public class QSphere : MonoBehaviour
 
             vectorList.Add(vector);
             vectorList.Add(vectorCounter);
+
+            vector.gameObject.SetActive(true);
+            vectorCounter.gameObject.SetActive(true);
 
             if(trackFromEnd)    endAmount[ones]--;
             else                startAmount[ones]++;
