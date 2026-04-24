@@ -17,6 +17,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Chapter1_Inverse.unity
     guid: afe7d5ab37cb5be45a7f9fb8ce5f0a40
+    path: Assets/Scenes/Chapter4.2.unity
+    guid: 2aa016b9b83c12349868044357c3cbe7
+  - enabled: 1
+    path: Assets/Scenes/Chapter4.1.unity
+    guid: ed4ffa1f629474a4a91bbaa11f03ddd1
+  - enabled: 1
+    path: Assets/Scenes/Chapter4.unity
+    guid: 4b9899f44c26bb54c87ea5b1157d424a
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: a0bfae5ad55ec514288a37362a0dbd93,
       type: 2}

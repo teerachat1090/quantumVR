@@ -54,6 +54,7 @@ public class QuantumWaveConnection : MonoBehaviour
     void SetupLineRenderer()
     {
         lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.useWorldSpace = true;
         lineRenderer.positionCount = waveResolution;
         lineRenderer.startWidth = lineWidth;
         lineRenderer.endWidth = lineWidth;
@@ -296,6 +297,8 @@ public class QuantumWaveConnection : MonoBehaviour
         particle.startColor = particleColor;
         particle.velocity = Random.insideUnitSphere * particleSpeed * 0.5f;
     }
+
+    public LineRenderer GetLineRenderer() => lineRenderer;
 
     void AnimateGlow()
     {
