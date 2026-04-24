@@ -9,7 +9,7 @@ from qiskit import QuantumCircuit
 import quantum_circuit #custom python script: needed rename
 
 # cd "Assets/Scripts/New code"
-# py ./QuantumSequence.py "<json_input_path>" "<json_output_path>"
+# py ./Quantum_Sequence.py "<json_input_path>" "<json_output_path>"
 
 single_input_gate = quantum_circuit.single_input_gate
 multi_input_gate = quantum_circuit.multi_input_gate
@@ -56,7 +56,7 @@ def qubit_sequence(circuit_data: dict):
     sequence_list["columnList"] = column_list
 
     index = 0
-    circuit_result = quantum_circuit.build_result_json(qc, use_date=False)
+    circuit_result = quantum_circuit.build_result_json(qc, cbit_arr=cbit_arr, use_date=False)
     step_result = {"sequenceIndex": index}
     step_result = {**step_result, **circuit_result}
     result_list.append(step_result)
@@ -92,7 +92,7 @@ def qubit_sequence(circuit_data: dict):
                 single_input_gate[gate_type](qc,control_list[0])
 
         #assign new step
-        circuit_result = quantum_circuit.build_result_json(qc, use_date=False)
+        circuit_result = quantum_circuit.build_result_json(qc, cbit_arr=cbit_arr, use_date=False)
         step_result = {"sequenceIndex": index}
         step_result = {**step_result, **circuit_result}
         result_list.append(step_result)

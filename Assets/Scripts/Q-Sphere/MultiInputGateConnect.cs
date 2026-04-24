@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class MultiInputGateConnect : MonoBehaviour
 {
@@ -63,11 +60,14 @@ public class MultiInputGateConnect : MonoBehaviour
     {
         // iterate through member and get most high-low index
         int highTemp = -1, lowTemp = -1;
-
+        Debug.Log($"gateMember({gateMember.Count})");
         foreach(GameObject gate in gateMember)
         {
+            Debug.Log($"Look at {gate.name}");
             var QuantumGate = gate.GetComponent<QuantumGate>();
-            if(QuantumGate == null) continue;
+            if(QuantumGate == null) {
+                Debug.Log($"This memeber has no QuantumGate");
+                continue;}
 
             var grabInteractable = gate.gameObject.GetComponent<XRGrabInteractable>();
 
@@ -77,28 +77,27 @@ public class MultiInputGateConnect : MonoBehaviour
                 continue;
             }
 
-            if(classicalRelated && QuantumGate.getGateType() != QuantumGate.inputType.measure) continue;
-
             GateSocket gateSocket = QuantumGate.socket;
             if(gateSocket == null) {
-                Debug.LogWarning("socket is empty");
-                continue;}
+                Debug.Log("This member has no socket to be.");
+                continue;
+            }
 
-            
             int val = gateSocket.qubitIndex;
-            Debug.Log($"high-low value assigned: {val}");
             if(highTemp < 0)        highTemp = lowTemp = val;
             else if(val > highTemp) highTemp = val;
             else if(val < lowTemp)  lowTemp = val;
             Debug.Log($"Value change: high->{highTemp}, low->{lowTemp}");
         }
 
+        if(classicalRelated) highTemp = socketsManager.totalQubits;
         highNote = highTemp; lowNote = lowTemp;
 
         highQ = highTemp; lowQ = lowTemp;
         col = column;
     }
 
+    //enable/disable socket inBetween gate
     public void SetSocketInBetween(bool useTempVal = false, bool doEnable = true)
     {
         if(socketsManager == null)

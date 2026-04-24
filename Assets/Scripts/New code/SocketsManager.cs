@@ -20,7 +20,7 @@ public class SocketsManager : MonoBehaviour
     [Header("CNOT Gate Setting")]
     [SerializeField] private GameObject controlPrefab = null;
     [SerializeField] private GameObject targetPrefab = null;
-    [SerializeField] private bool useClassical = true;
+    public bool useClassical = false;
     [SerializeField] InteractionLayerMask lockLayer;
     [SerializeField] InteractionLayerMask gateLayer;
 
@@ -162,7 +162,7 @@ public class SocketsManager : MonoBehaviour
         else       socketInteractor.interactionLayers &= ~GetLockLayer();   //remove layer
     }
 
-    // change xr layer to "lock" given
+    // change xr layer to unlock/lock given
     public void ToggleMultiGateColumn(int highQubit, int lowQubit, int column, bool doLock = true, bool spread = true)
     {
         if(highQubit < 0 || lowQubit < 0 || column < 0)
@@ -178,6 +178,7 @@ public class SocketsManager : MonoBehaviour
         //inside range
         for(int i = lowQubit; i<=highQubit; i++)
         {
+            if(i==totalQubits) break;
             if(socketMap[i][column].getCurrentGate() != null) continue; //found same group
             ToggleEmptySocket(i, column, doLock);
         }
@@ -317,6 +318,7 @@ public class SocketsManager : MonoBehaviour
         connect.AddMember(classicalConnect);
 
         connect.RunLineConnect();
+        connect.SetSocketInBetween(doEnable: false);
         Debug.Log("Add <measurement> to multiGateList");
         multiGateList.Add(groupParent);
 
@@ -348,7 +350,7 @@ public class SocketsManager : MonoBehaviour
     public void SetColumnSocketBetween(int highIndex, int lowIndex, int col, bool isEnable = false)
     {
         // 0 <= low < high < totalQ
-        if(!(0 <= lowIndex && lowIndex < highIndex && highIndex < totalQubits)) return;
+        if(!(0 <= lowIndex && lowIndex < highIndex && highIndex <= totalQubits)) return;
         
         for(int i=lowIndex+1; i<highIndex; i++)
         {
@@ -375,7 +377,7 @@ public class SocketsManager : MonoBehaviour
 
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
-        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+        //Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
 
         string circuitJson = circuitToExportInit();
         headManager.updateOverallCircuit(circuitJson);
@@ -383,7 +385,6 @@ public class SocketsManager : MonoBehaviour
 
     public string circuitToExportInit()
     {
-        Debug.Log("Creating json circuit...");
         var circuitInfo = new CircuitInfo
         {
             qubitAmount = totalQubits,
@@ -455,13 +456,13 @@ public class SocketsManager : MonoBehaviour
 
         // gather to convert to json string
         string json = JsonUtility.ToJson(circuitInfo, true);
-        Debug.Log("Creating json finished");
         return json;
     }
 
     // prevent player from grabbing quantum gates both on circuit and storage
     public void FreezeGateBlock(bool doDisable)
     {
+        if(!Application.isPlaying) return;
         foreach(QubitCircuit circuit in qubitCircuits)
         {
             circuit.FreezeGateBlock(doDisable);

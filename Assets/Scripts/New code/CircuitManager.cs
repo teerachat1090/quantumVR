@@ -26,6 +26,7 @@ public class CircuitManager : MonoBehaviour
     [SerializeField] private int socketAmount = 11;
 
     [Header("Display setting")]
+    [SerializeField] private bool useClassical = false;
     [SerializeField] private QuantumUiStatManager uiManager = null; //showing result
     [SerializeField] private TMP_Text modeText = null; //display mode
 
@@ -34,11 +35,6 @@ public class CircuitManager : MonoBehaviour
     [SerializeField] private InteractionLayerMask interactionLayer;
 
     private XRGrabInteractable[] sourceGates;
-
-    // Folder and file name
-    private string pythonScriptFolder = "New code",pythonScriptName = "quantum_circuit.py", pythonAnimateName = "quantum_sequence.py";
-    private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
-    private string pythonScriptPath;
     
     // can check each one if enable
     private bool isBlochSphere;
@@ -71,6 +67,7 @@ public class CircuitManager : MonoBehaviour
         else                    
         {
             uiManager.isBlochSphere = isBlochSphere;
+            uiManager.useClassical = useClassical;
             Debug.Log("UI stat checking sucessful.");
         }
         
@@ -80,6 +77,7 @@ public class CircuitManager : MonoBehaviour
         if(modeText is null) Debug.LogWarning("Warning: Text for showing mode is missing!");
 
         if(socketsManager is null)  Debug.LogWarning("Warning: Socket manager is missing!");
+        else socketsManager.useClassical = useClassical;
         
 
         if(storage == null) Debug.LogWarning("Warning: storage object is missing! Unable to set gate grabbable state!");
@@ -121,6 +119,7 @@ public class CircuitManager : MonoBehaviour
 
     private async Task calculateAndUpdateUi(string inputPath, string outputPath)
     {
+        string pythonScriptPath = fileManager.GetPythonQuantumScript();
         await Task.Run(() => executor.PrepareThenRunQiskit(pythonScriptPath, inputPath, outputPath));
 
         // show value
@@ -137,12 +136,8 @@ public class CircuitManager : MonoBehaviour
 
         if (isBlochSphere)  updateBlochVectorInstant();
         
-        // calculate value
-        Debug.Log("Start calculate and update circuit...");
-        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonScriptName);
         fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out string outputPath, out _);
         _ = calculateAndUpdateUi(inputPath, outputPath);
-        Debug.Log("Calculate and update finished");
     }
 
     // assigned to button: Mode Button
@@ -159,7 +154,7 @@ public class CircuitManager : MonoBehaviour
 
         socketsManager.FreezeGateBlock(true);
 
-        pythonScriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, pythonAnimateName);
+        string pythonScriptPath = fileManager.GetPythonQuantumScript(isSequence: true);
 
         fileManager.GetJsonSphereIOPath(isBlochSphere, out string inputPath, out _, out string sequenceOutputPath);
                      

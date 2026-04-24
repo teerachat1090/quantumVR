@@ -16,7 +16,7 @@ from qiskit.quantum_info import Statevector
 
 # at esic: py->python, lenovo->esicl
 # cd "Assets/Scripts/New code"
-# py ./quantum_circuit.py <json input path>
+# py ./quantum_circuit.py <json input path> <json output path>
 
 # single_input_gate[<key>](qc)(qubit_amount)
 # qc = QuantumCircuit(n)
@@ -77,7 +77,7 @@ def create_circuit(circuit_data: str):
 
     column_list = circuit_data.get("columnList", None)
     if not column_list:
-        return qc
+        return qc, cbit_arr
 
     gate_list = circuit_data.get("gateList", None)
 
@@ -106,11 +106,13 @@ def create_circuit(circuit_data: str):
 
             elif gate_type in single_input_gate:
                 single_input_gate[gate_type](qc,control_list[0])
-    return qc
+    return qc, cbit_arr
 
 # New issue: make new case for Q-Sphere
-def build_result_json(qc : QuantumCircuit, use_date: bool = True):
+def build_result_json(qc : QuantumCircuit, cbit_arr : list[int] = None, use_date : bool = True):
     """Get output of the circuit and put result to dictionary """
+    if cbit_arr is None:
+        cbit_arr = []
 
     current_datetime = datetime.datetime.now()
     formatted_time = current_datetime.strftime("%H:%M:%S")
@@ -118,6 +120,7 @@ def build_result_json(qc : QuantumCircuit, use_date: bool = True):
     data = {
         **({"date": formatted_time} if use_date else {}),
         **({"time": formatted_date} if use_date else {}),
+        "cBits" : cbit_arr,
         "state" : []}
 
     states = Statevector.from_instruction(qc)
@@ -149,8 +152,8 @@ def main():
         #json data type
         circuit_data = load_circuit_from_json(json_input_path)
 
-        qc = create_circuit(circuit_data)
-        result_json = build_result_json(qc)
+        qc, cbit_arr = create_circuit(circuit_data)
+        result_json = build_result_json(qc, cbit_arr=cbit_arr)
 
         with open(json_output_path, "w", encoding="utf-8") as file:
             json.dump(result_json, file, indent=4)

@@ -12,6 +12,7 @@ public class QuantumUiStatManager : MonoBehaviour
 
     [Header("RequireScript")]
     [SerializeField] private ProbHistogram hist;
+    [SerializeField] private CBitUiManager cBitUiManager;
 
     [Header("Canvas")]
     [SerializeField]    private Canvas canvas = null;
@@ -21,6 +22,7 @@ public class QuantumUiStatManager : MonoBehaviour
     [SerializeField]    private StateVectorDisplay stateVectorDisplay = null;
 
     private FileManager fileManager = new FileManager();
+    public bool useClassical = false;
 
     public int seqIndex = -1;
 
@@ -34,11 +36,16 @@ public class QuantumUiStatManager : MonoBehaviour
     // have list of bar: (val, image)
     // update: same amount-change val, diff amount-empty and re-edit
     // **when destroy -> we need to destroy GameObject (Image)
+    void Start()
+    {
+        if(!useClassical && cBitUiManager != null) cBitUiManager.gameObject.SetActive(false);
+    }
     
     public void DisplayResult(bool blochSphereFlag)
     {
         
         List<QubitStat> stat = fileManager.GetStatFromJsonData(blochSphereFlag);
+        List<int> cBitList = fileManager.GetBitmeasuredList(blochSphereFlag);
         if(stat is null || stat.Count == 0)
         {
             Debug.LogWarning("Error: Cannot get data from json file!");
@@ -47,6 +54,7 @@ public class QuantumUiStatManager : MonoBehaviour
 
         Debug.Log("Updating Histrogram");
         hist.UpdateHist(stat);
+        if(useClassical && cBitUiManager != null) cBitUiManager.UpdateUi(cBitList);
         //adjust histogram
         
         return;
@@ -74,6 +82,7 @@ public class QuantumUiStatManager : MonoBehaviour
     public void ShowResultByIndex(bool blochSphereFlag, int index)
     {
         List<QubitStat> stat = fileManager.GetStatFromJsonByIndex(blochSphereFlag, index);
+        List<int> cBitList = fileManager.GetBitmeasuredList(blochSphereFlag, seqIndex = index);
 
         if(stat is null || stat.Count == 0)
         {
@@ -82,6 +91,7 @@ public class QuantumUiStatManager : MonoBehaviour
         }
         seqIndex = index;
         hist.UpdateHist(stat);
+        if(useClassical && cBitUiManager != null) cBitUiManager.UpdateUi(cBitList);
     }
 
     public int getSequenceAmount(string jsonSequenceOutputPath)

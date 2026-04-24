@@ -38,7 +38,6 @@ public class StateVector : MonoBehaviour
     void LateUpdate()
     {
         canvas.transform.LookAt(pointToSee);
-        Debug.Log($"look at {pointToSee}");
     }
 
     public void adjustText(Quaternion direction)
