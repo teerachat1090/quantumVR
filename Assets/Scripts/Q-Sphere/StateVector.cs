@@ -9,6 +9,7 @@ public class StateVector : MonoBehaviour
     [SerializeField] Renderer lineRenderer;
     [SerializeField] Canvas canvas;
 
+    public Vector3 pointToSee = Vector3.zero;
     private TMP_Text valueText;
     private int stateVal;
 
@@ -32,6 +33,11 @@ public class StateVector : MonoBehaviour
     void Awake()
     {
         CheckInput();
+    }
+
+    void LateUpdate()
+    {
+        canvas.transform.LookAt(pointToSee);
     }
 
     public void adjustText(Quaternion direction)

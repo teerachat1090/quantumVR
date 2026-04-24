@@ -6,9 +6,9 @@ using QubitStat = FileManager.QubitStat;
 public class ProbHistogram : MonoBehaviour
 {
     [Header("Canvas")]
-    [SerializeField]    private Canvas canvas = null;
-    [SerializeField]    private RectTransform backgroundImage = null;
-    [SerializeField]    private GameObject histPrefab = null;
+    [SerializeField] private Canvas canvas = null;
+    [SerializeField] private RectTransform backgroundImage = null;
+    [SerializeField] private GameObject histPrefab = null;
 
     private QuantumUiStatManager uiStatManager = null;
     private GameObject histParent;

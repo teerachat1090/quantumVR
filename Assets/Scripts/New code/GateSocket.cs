@@ -3,6 +3,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using Unity.VisualScripting;
 
 public class GateSocket : MonoBehaviour
 {
@@ -50,6 +51,8 @@ public class GateSocket : MonoBehaviour
     public bool RegistClassicalRelated(GameObject baseObject)
     {
         var socketsManager = parentCircuit.GetSocketsManager();
+        if(!socketsManager.useClassical) return false;
+
         Debug.Log("checking about measurement");
         bool pathAvailible = socketsManager.CheckPathToClassicalBit(baseObject, qubitIndex, socketIndex);
         if (!pathAvailible)
@@ -68,6 +71,7 @@ public class GateSocket : MonoBehaviour
 
         currentGate = gate;
         gate.socket = this;
+
         OnAnyGatePlaced?.Invoke(gate.getGateName()); // เพิ่มบรรทัดนี้
         Debug.Log("asigning socket...");
 
@@ -87,10 +91,11 @@ public class GateSocket : MonoBehaviour
             updateCircuit(true);
             return;
         }
-        
-        //------------------------ Classical bit related --------------------
+
         var socketsManager = parentCircuit.GetSocketsManager();
-        if(inputType == QuantumGate.inputType.measure)
+
+        //------------------------ Classical bit related --------------------
+        if(inputType == QuantumGate.inputType.measure && gate.connect == null)
         {
             bool completed = RegistClassicalRelated(gate.gameObject);
             if(!completed) Destroy(gate.gameObject);
@@ -125,6 +130,7 @@ public class GateSocket : MonoBehaviour
 
     void OnGateRemoved(SelectExitEventArgs args)
     {   
+        if(!Application.isPlaying) return;
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();        
         currentGate = null;
         gate.socket = null;

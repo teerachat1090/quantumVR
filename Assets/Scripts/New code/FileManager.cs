@@ -13,9 +13,16 @@ public class FileManager
     private string jsonBlochinputFileNameName = "bloch_circuit_input.json", jsonQinputFileNameName = "q_circuit_input.json";
     private string jsonBlochoutputFileNameName = "bloch_circuit_output.json", jsonQoutputFileNameName = "q_circuit_output.json";
     private string jsonBlochSequenceFileName = "bloch_circuit_sequence.json", jsonQSequenceFileName = "q_circuit_sequence.json";
-    private string pythonScriptFolder = "New code",pythonScriptName = "quantum_circuit.py", pythonAnimateName = "quantum_sequence.py";
+    private string pythonScriptFolder = "Python File", pythonCircuitExecuteName = "quantum_circuit.py", pythonAnimateName = "quantum_sequence.py";
     private string mainSciptsPath = Path.Combine(Application.dataPath, "Scripts");
     private string pythonScriptPath;
+
+    public string GetPythonQuantumScript(bool isSequence = false)
+    {
+        string scriptPath = Path.Combine(mainSciptsPath, pythonScriptFolder, 
+            isSequence? pythonAnimateName : pythonCircuitExecuteName);
+        return scriptPath;
+    }
 
     public void createEmptyJsonIfNotExist(string jsonPath)
     {
@@ -81,7 +88,6 @@ public class FileManager
     // Get JArray of state from result json file
     public JArray GetQuantumStatFromJson(string jsonOutputPath)
     {
-        Debug.Log($"Json file path: {jsonOutputPath}");
 
         try
         {
@@ -162,7 +168,6 @@ public class FileManager
             return null;
         }
 
-        Debug.Log($"Input type: {stats.Type}");
         try
         {
             List<QubitStat> statList = new List<QubitStat>();
@@ -193,7 +198,7 @@ public class FileManager
         return GetDataFromStat(stats);
     }
 
-    public QubitStat GetStatFromJsonByValue(bool blochSphereFlag, int value, int index)
+    public QubitStat GetStatFromJsonByValue(bool blochSphereFlag, int value, int index = -1)
     {
         GetJsonSphereIOPath(blochSphereFlag, out _, out string jsonOutPutPath, out string jsonSequenceOutputPath);
         try
@@ -256,7 +261,41 @@ public class FileManager
         return null;
     }
 
-    
+    public List<int> GetBitmeasuredList(bool blochSphereFlag, int seqIndex = -1)
+    {
+        GetJsonSphereIOPath(blochSphereFlag, out _, out string jsonOutPutPath, out string jsonSequenceOutputPath);
+        try
+        {
+            List<int> cBitList;
+            if (seqIndex >= 0)
+            {
+                string jsonString = File.ReadAllText(jsonSequenceOutputPath);
+                JObject jsondata = JObject.Parse(jsonString);
+                JArray statsList = (JArray)jsondata["resultList"];
+                JToken statSequence = statsList.FirstOrDefault(item => item.Value<int>("sequenceIndex") == seqIndex);
+
+                var tempList = statSequence["cBits"].ToObject<List<int>>();
+                cBitList = tempList;
+            } else
+            {
+                string jsonString = File.ReadAllText(jsonOutPutPath);
+                JObject jsondata = JObject.Parse(jsonString);
+                var tempList = jsondata["cBits"].ToObject<List<int>>();
+                cBitList = tempList;
+            }
+            
+            return cBitList;
+        }
+        catch (FileNotFoundException)
+        {
+            Debug.LogError($"Error: The file was not found.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Other Error occurred: {ex.Message}");
+        }
+        return null;
+    }
 
     public class QubitStat
     {
@@ -267,7 +306,7 @@ public class FileManager
 
         public QubitStat(int Val, double Real, double Imag, double Prob, double Phase)
         {
-            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;  phase = Phase;
+            val = Val;  realPart = Real;    imagPart = Imag;    prob = Prob;  phase = Phase; 
         }
     }
 }
