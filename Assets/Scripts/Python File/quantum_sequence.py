@@ -8,7 +8,7 @@ import json
 from qiskit import QuantumCircuit
 import quantum_circuit #custom python script: needed rename
 
-# cd "Assets/Scripts/New code"
+# cd "Assets/Scripts/Python File"
 # py ./Quantum_Sequence.py "<json_input_path>" "<json_output_path>"
 
 single_input_gate = quantum_circuit.single_input_gate
@@ -56,13 +56,18 @@ def qubit_sequence(circuit_data: dict):
     sequence_list["columnList"] = column_list
 
     index = 0
+    #print(cbit_arr)
     circuit_result = quantum_circuit.build_result_json(qc, cbit_arr=cbit_arr, use_date=False)
+    # print(circuit_result)
+    # print("\n\n")
     step_result = {"sequenceIndex": index}
     step_result = {**step_result, **circuit_result}
     result_list.append(step_result)
+    # print("Step result", step_result)
+    # print("\n\n")
     index+=1
 
-    gate_list = circuit_data.get("gateList", None)
+    gate_list = circuit_data.get("gateList", [])
 
     for column in column_list:
         gates_in_column = [gate for gate in gate_list if gate["column"] == column]
@@ -94,21 +99,30 @@ def qubit_sequence(circuit_data: dict):
         #assign new step
         circuit_result = quantum_circuit.build_result_json(qc, cbit_arr=cbit_arr, use_date=False)
         step_result = {"sequenceIndex": index}
-        step_result = {**step_result, **circuit_result}
+        step_result = {**step_result, **(circuit_result.copy())}
         result_list.append(step_result)
+        
+        # print("Step result",f"({index}): ", step_result)
+        # print("\n\n")
+        # print("Overall Sequence:", result_list, "\n------------------------------------------------------------------")
+        del step_result
         index+=1
 
+    # print(result_list)
+    # print("\n\n")
     sequence_list["resultList"] = result_list
     sequence_list["stepAmount"] = index-1
 
+    # print(sequence_list)
+    # print("\n\n")
     return sequence_list
 
 def main():
     """Main function: Start the script here"""
     script_name = sys.argv[0]
     if len(sys.argv) < 3:
-        print(f"Usage: python {script_name} <arg1> <arg2>")
-        print("Invalid arguments provided.")
+        # print(f"Usage: python {script_name} <arg1> <arg2>")
+        # print("Invalid arguments provided.")
         sys.exit(1)
 
     json_input_path = sys.argv[1]   # input
@@ -117,7 +131,9 @@ def main():
     try:
         circuit_data = quantum_circuit.load_circuit_from_json(json_input_path)
 
+        
         result_sequencs_json = qubit_sequence(circuit_data)
+        # print(result_sequencs_json)
 
         with open(json_output_path, "w", encoding="utf-8") as file:
             json.dump(result_sequencs_json, file, indent=4)

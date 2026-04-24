@@ -132,6 +132,7 @@ public class CircuitManager : MonoBehaviour
     // recalculate everytime the circuit change
     public void updateOverallCircuit(string circuitJson)
     {
+        if(!Application.isPlaying) return;
         fileManager.updateJsonInputToFile(circuitJson, isBlochSphere);
 
         if (isBlochSphere)  updateBlochVectorInstant();

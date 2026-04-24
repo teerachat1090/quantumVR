@@ -15,7 +15,7 @@ from qiskit.quantum_info import Statevector
 # no need to create more input to indicate it
 
 # at esic: py->python, lenovo->esicl
-# cd "Assets/Scripts/New code"
+# cd "Assets/Scripts/Python File"
 # py ./quantum_circuit.py <json input path> <json output path>
 
 # single_input_gate[<key>](qc)(qubit_amount)
@@ -54,7 +54,7 @@ def do_measurement_on(qc, qubit_measured: int):
     qc_new.initialize(collapsed_sv.data)
     return int(outcome[0]), qc_new
 
-def create_circuit(circuit_data: str):
+def create_circuit(circuit_data):
     """A method to extract data from new json format"""
     qubit_amount = circuit_data.get("qubitAmount", None)
     socket_amount = circuit_data.get("socketAmount", None)
@@ -109,8 +109,9 @@ def create_circuit(circuit_data: str):
     return qc, cbit_arr
 
 # New issue: make new case for Q-Sphere
-def build_result_json(qc : QuantumCircuit, cbit_arr : list[int] = None, use_date : bool = True):
+def build_result_json(qc : QuantumCircuit, cbit_arr : list[int], use_date : bool = True):
     """Get output of the circuit and put result to dictionary """
+
     if cbit_arr is None:
         cbit_arr = []
 
