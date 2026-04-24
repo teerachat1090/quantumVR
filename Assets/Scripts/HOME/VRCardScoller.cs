@@ -73,9 +73,7 @@ public class VRCardScroller : MonoBehaviour
     void RefreshController()
     {
         if (!controller.isValid)
-        {
             controller = InputDevices.GetDeviceAtXRNode(controllerNode);
-        }
     }
     
     void InitializeCards()
@@ -85,28 +83,20 @@ public class VRCardScroller : MonoBehaviour
             if (cards[i].cardObject != null)
             {
                 cards[i].cardImage = cards[i].cardObject.GetComponent<Image>();
-                
                 cards[i].canvasGroup = cards[i].cardObject.GetComponent<CanvasGroup>();
                 if (cards[i].canvasGroup == null)
-                {
                     cards[i].canvasGroup = cards[i].cardObject.AddComponent<CanvasGroup>();
-                }
                 
                 if (cards[i].cardImage != null && cards[i].normalSprite != null)
-                {
                     cards[i].cardImage.sprite = cards[i].normalSprite;
-                }
             }
         }
     }
     
     void HandleInput()
     {
-        if (Time.time - lastInputTime < inputCooldown)
-            return;
-        
-        if (!controller.isValid)
-            return;
+        if (Time.time - lastInputTime < inputCooldown) return;
+        if (!controller.isValid) return;
         
         Vector2 thumbstick = Vector2.zero;
         controller.TryGetFeatureValue(CommonUsages.primary2DAxis, out thumbstick);
@@ -121,29 +111,12 @@ public class VRCardScroller : MonoBehaviour
             ScrollRight();
             lastInputTime = Time.time;
         }
-        
-        bool triggerPressed = false;
-        controller.TryGetFeatureValue(CommonUsages.triggerButton, out triggerPressed);
-        
-        if (triggerPressed && enableSceneTransition)
-        {
-            ConfirmSelection();
-            lastInputTime = Time.time;
-        }
+
+        // ลบ trigger check ออกจากตรงนี้แล้ว — ให้ VRCardSelector จัดการแทน
         
         #if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            ScrollLeft();
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            ScrollRight();
-        }
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
-        {
-            ConfirmSelection();
-        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) ScrollLeft();
+        if (Input.GetKeyDown(KeyCode.RightArrow)) ScrollRight();
         #endif
     }
     
@@ -154,7 +127,6 @@ public class VRCardScroller : MonoBehaviour
             currentIndex--;
             UpdateCardPosition();
             PlayHaptic();
-            Debug.Log("Scrolled left to card " + (currentIndex + 1));
         }
     }
     
@@ -165,7 +137,6 @@ public class VRCardScroller : MonoBehaviour
             currentIndex++;
             UpdateCardPosition();
             PlayHaptic();
-            Debug.Log("Scrolled right to card " + (currentIndex + 1));
         }
     }
     
@@ -190,9 +161,7 @@ public class VRCardScroller : MonoBehaviour
         for (int i = 0; i < cards.Count; i++)
         {
             if (cards[i].cardObject == null) continue;
-            
             bool isSelected = (i == currentIndex);
-            
             ChangeCardImage(i, isSelected);
             ChangeCardScale(i, isSelected);
             ChangeCardAlpha(i, isSelected);
@@ -202,30 +171,24 @@ public class VRCardScroller : MonoBehaviour
     void ChangeCardImage(int index, bool isSelected)
     {
         if (cards[index].cardImage == null) return;
-        
         Sprite targetSprite = isSelected ? cards[index].selectedSprite : cards[index].normalSprite;
-        
         if (targetSprite != null)
-        {
             cards[index].cardImage.sprite = targetSprite;
-        }
     }
     
     void ChangeCardScale(int index, bool isSelected)
     {
         float targetScale = isSelected ? selectedScale : normalScale;
-        Vector3 newScale = Vector3.Lerp(
+        cards[index].cardObject.transform.localScale = Vector3.Lerp(
             cards[index].cardObject.transform.localScale,
             Vector3.one * targetScale,
             Time.deltaTime * 10f
         );
-        cards[index].cardObject.transform.localScale = newScale;
     }
     
     void ChangeCardAlpha(int index, bool isSelected)
     {
         if (cards[index].canvasGroup == null) return;
-        
         float targetAlpha = isSelected ? 1f : unselectedAlpha;
         cards[index].canvasGroup.alpha = Mathf.Lerp(
             cards[index].canvasGroup.alpha,
@@ -234,55 +197,46 @@ public class VRCardScroller : MonoBehaviour
         );
     }
     
-        void PlayHaptic()
+    void PlayHaptic()
     {
         if (controller.isValid)
-        {
             controller.SendHapticImpulse(0, 0.3f, 0.1f);
-        }
         
         if (audioSource != null && scrollSound != null)
-        {
             audioSource.PlayOneShot(scrollSound);
-        }
-}
+    }
     
-        void ConfirmSelection()
+    public void ConfirmSelection()
+    {
+        CardData selectedCard = GetCurrentCard();
+        
+        if (selectedCard == null || string.IsNullOrEmpty(selectedCard.sceneName))
         {
-            CardData selectedCard = GetCurrentCard();
-            
-            if (selectedCard == null || string.IsNullOrEmpty(selectedCard.sceneName))
-            {
-                Debug.LogWarning("No scene name assigned to this card!");
-                return;
-            }
-            
-            Debug.Log("Loading scene: " + selectedCard.sceneName);
-            PlayHaptic();
-            
-            if (audioSource != null && confirmSound != null)
-                audioSource.PlayOneShot(confirmSound);
-            
-            LoadScene(selectedCard.sceneName);  // ← โหลดครั้งเดียว
+            Debug.LogWarning("No scene name assigned to this card!");
+            return;
         }
+        
+        Debug.Log("Loading scene: " + selectedCard.sceneName);
+        PlayHaptic();
+        
+        if (audioSource != null && confirmSound != null)
+            audioSource.PlayOneShot(confirmSound);
+        
+        LoadScene(selectedCard.sceneName);
+    }
+
     void LoadScene(string sceneName)
     {
         if (Application.CanStreamedLevelBeLoaded(sceneName))
-        {
             SceneManager.LoadScene(sceneName);
-        }
         else
-        {
             Debug.LogError("Scene '" + sceneName + "' not found in Build Settings!");
-        }
     }
     
     public CardData GetCurrentCard()
     {
         if (currentIndex >= 0 && currentIndex < cards.Count)
-        {
             return cards[currentIndex];
-        }
         return null;
     }
     

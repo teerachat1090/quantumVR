@@ -19,11 +19,13 @@ public class ButtonAction : MonoBehaviour
     private float funcDelay = 1f;
     private XRGrabInteractable grabInteractable;
 
+    public static event System.Action OnMeasureButtonPressed;
+
     void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
     }
-    
+
     private void OnEnable()
     {
         if(grabInteractable == null)
@@ -63,7 +65,7 @@ public class ButtonAction : MonoBehaviour
 
             if(elapsedTime < time/2) transform.position = Vector3.Lerp(startPos, endPos, t);
             else transform.position = Vector3.Lerp(endPos, startPos, t);
-            
+
             elapsedTime += Time.deltaTime;
 
             yield return null;
@@ -80,14 +82,14 @@ public class ButtonAction : MonoBehaviour
         else funcIndex = 0;
     }
 
-    // routine
     private IEnumerator PressingButton()
     {
         pressed = true;
         yield return MoveButton(pressDepth, pressTime);
 
         whenOnPressed[funcIndex].Invoke();
-        if(whenOnPressed.Count != 1)CycleIndex();
+        OnMeasureButtonPressed?.Invoke();
+        if(whenOnPressed.Count != 1) CycleIndex();
 
         pressed = false;
         yield return new WaitForSeconds(funcDelay);

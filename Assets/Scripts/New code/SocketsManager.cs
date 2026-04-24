@@ -103,54 +103,57 @@ public class SocketsManager : MonoBehaviour
     // position 0.5 to -0.5, offset 0.1, space 0.2
     // Limit to 5 qubits for now
     public void InitSocketPrefabSpawn(int qubitAmount, int totalSocket)
+{
+    totalQubits = qubitAmount;
+    totalSocketEach = totalSocket;
+    if(!IsPrefabValid()) return;
+
+    if(qubitAmount > 5)
     {
-        totalQubits = qubitAmount;
-        totalSocketEach = totalSocket;
-        if(!IsPrefabValid()) return;
-
-        if(qubitAmount > 5)
-        {
-            Debug.LogWarning("Warning number of qubit is exceeding the limit (5 qubits). \nSetting to 5 qubits.");
-            qubitAmount = 5;
-        } else if(qubitAmount < 1)
-        {
-            Debug.LogWarning("Warning number of qubit is exceeding the limit (1 qubits). \nSet to 1 qubits.");
-            qubitAmount = 1;
-        }
-
-        float xPos = 0.1f*(qubitAmount - (useClassical ? 0: 1)) + socketOffset;
-
-        for(int i=0; i<qubitAmount; i++)
-        {
-            GameObject spawned = Instantiate(qubitSocketPrefab, gameObject.transform, false);
-            spawned.transform.Translate(xPos*Vector3.right);
-            spawned.name = qubitSocketPrefab.name + i;
-
-            var qubitCircuit = spawned.GetComponent<QubitCircuit>();
-            qubitCircuit.socketAmount = totalSocket;
-            qubitCircuit.circuitIndex = i;
-            spawned.SetActive(true);
-            qubitCircuits.Add(qubitCircuit);
-            
-            xPos-=0.2f;
-        }
-        qubitCircuits.Sort((a,b) => a.circuitIndex.CompareTo(b.circuitIndex));
-
-        if(useClassical){
-            GameObject classicalRow = Instantiate(classicalSocketPrefab, gameObject.transform, false);
-            classicalRow.transform.Translate(xPos*Vector3.right);
-            classicalRow.name = classicalSocketPrefab.name;
-
-            CBManager = classicalRow.GetComponent<ClassicalBitManager>();
-            CBManager.socketAmount = totalSocket;
-            CBManager.maxBitPosition = totalQubits;
-            classicalRow.SetActive(true);
-        }
-
-        totalQubits = qubitAmount;
-        initSocketMap();
-        updateCircuitByJson(null, -1, -1, true);
+        Debug.LogWarning("Warning number of qubit is exceeding the limit (5 qubits). \nSetting to 5 qubits.");
+        qubitAmount = 5;
+    } else if(qubitAmount < 1)
+    {
+        Debug.LogWarning("Warning number of qubit is exceeding the limit (1 qubits). \nSet to 1 qubits.");
+        qubitAmount = 1;
     }
+
+    float startX = Mathf.Round((0.1f * (qubitAmount - (useClassical ? 0 : 1)) + socketOffset) * 1000f) / 1000f;
+
+    for(int i = 0; i < qubitAmount; i++)
+    {
+        GameObject spawned = Instantiate(qubitSocketPrefab, gameObject.transform, false);
+        
+        float xPos = Mathf.Round((startX - 0.2f * i) * 1000f) / 1000f;
+        spawned.transform.localPosition = new Vector3(xPos, 0f, 0f);
+        spawned.name = qubitSocketPrefab.name + i;
+
+        var qubitCircuit = spawned.GetComponent<QubitCircuit>();
+        qubitCircuit.socketAmount = totalSocket;
+        qubitCircuit.circuitIndex = i;
+        spawned.SetActive(true);
+        qubitCircuits.Add(qubitCircuit);
+    }
+    qubitCircuits.Sort((a,b) => a.circuitIndex.CompareTo(b.circuitIndex));
+
+    if(useClassical)
+    {
+        float classicalX = Mathf.Round((startX - 0.2f * qubitAmount) * 1000f) / 1000f;
+
+        GameObject classicalRow = Instantiate(classicalSocketPrefab, gameObject.transform, false);
+        classicalRow.transform.localPosition = new Vector3(classicalX, 0f, 0f);
+        classicalRow.name = classicalSocketPrefab.name;
+
+        CBManager = classicalRow.GetComponent<ClassicalBitManager>();
+        CBManager.socketAmount = totalSocket;
+        CBManager.maxBitPosition = totalQubits;
+        classicalRow.SetActive(true);
+    }
+
+    totalQubits = qubitAmount;
+    initSocketMap();
+    updateCircuitByJson(null, -1, -1, true);
+}
 
     private void ToggleEmptySocket(int row, int col, bool isLock)
     {

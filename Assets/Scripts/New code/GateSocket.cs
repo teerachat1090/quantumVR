@@ -11,6 +11,8 @@ public class GateSocket : MonoBehaviour
     public QuantumGate currentGate = null;
     private XRSocketInteractor socketInteractor;
     private QubitCircuit parentCircuit;
+    public static event System.Action<string> OnAnyGatePlaced;
+    public static event System.Action OnMeasurePlaced;
     public bool beLazy = false; 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -66,7 +68,12 @@ public class GateSocket : MonoBehaviour
 
         currentGate = gate;
         gate.socket = this;
+        OnAnyGatePlaced?.Invoke(gate.getGateName()); // เพิ่มบรรทัดนี้
         Debug.Log("asigning socket...");
+
+         if(gate.getGateType() == QuantumGate.inputType.measure)
+            OnMeasurePlaced?.Invoke();
+
 
         if(beLazy)
         { 

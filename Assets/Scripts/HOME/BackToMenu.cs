@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
 using UnityEngine.UI;
+using System.Collections;
 
 public class BackToMenu : MonoBehaviour
 {
@@ -80,10 +81,21 @@ public class BackToMenu : MonoBehaviour
     }
 
     public void ConfirmExit()
+{
+    if (audioSource != null && confirmSound != null)
     {
-        if (audioSource != null && confirmSound != null)
-            audioSource.PlayOneShot(confirmSound);
+        audioSource.PlayOneShot(confirmSound);
+        StartCoroutine(LoadAfterSound(confirmSound.length));
+    }
+    else
+    {
+        SceneManager.LoadScene(menuSceneName);
+    }
+}
 
+    private IEnumerator LoadAfterSound(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         SceneManager.LoadScene(menuSceneName);
     }
 }

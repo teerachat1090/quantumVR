@@ -1425,7 +1425,7 @@ MonoBehaviour:
   - cardObject: {fileID: 2071410815}
     normalSprite: {fileID: 21300000, guid: ffbf5af237fb279488e9e292f1cffa55, type: 3}
     selectedSprite: {fileID: 21300000, guid: 82c295689af360a468b27689d95b2bc9, type: 3}
-    sceneName: Chapter1
+    sceneName: Q-Sphere scene
     cardImage: {fileID: 0}
     canvasGroup: {fileID: 0}
     canvas: {fileID: 0}
@@ -1439,11 +1439,11 @@ MonoBehaviour:
   - cardObject: {fileID: 2020359537}
     normalSprite: {fileID: 21300000, guid: 28b2b021c4906ce43a566305fda053cc, type: 3}
     selectedSprite: {fileID: 21300000, guid: 19a44c79b45e19348af2f01db648d875, type: 3}
-    sceneName: Chapter4
+    sceneName: Chapter4.2
     cardImage: {fileID: 0}
     canvasGroup: {fileID: 0}
     canvas: {fileID: 0}
-  enableSceneTransition: 1
+  enableSceneTransition: 0
   cardSpacing: 410
   smoothTime: 0.3
   centerOffset: 0
