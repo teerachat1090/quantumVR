@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
+/// <summary>
+///     This is sample class for testing some function.
+/// </summary>
 public class SampleScript_2 : MonoBehaviour
 {
     void Update()

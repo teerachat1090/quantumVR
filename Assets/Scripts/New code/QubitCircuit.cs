@@ -74,11 +74,6 @@ public class QubitCircuit : MonoBehaviour
         InitSockets();
     }
 
-    void Start()
-    {
-        
-    }
-
     public SocketsManager GetSocketsManager()
     {
         return socketsManager;
@@ -94,40 +89,6 @@ public class QubitCircuit : MonoBehaviour
     void toggleCircuit()
     {
         isEnabled = !isEnabled;
-    }
-
-    public List<QuantumGate> getListOfGate()
-    {
-        List<QuantumGate> gateList = new List<QuantumGate>();
-        if(gateSockets is null)
-        {
-            Debug.LogWarning("Warning: gateSockets is empty!");
-            return null;
-        }
-
-        foreach(GateSocket gateSocket in gateSockets)
-        {
-            gateList.Add(gateSocket.getCurrentGate());
-        }
-        return gateList;
-    }
-
-    // get position of Nth gate
-    public Vector3 GetNthGatePos(int rank)
-    {
-        int count = 0;
-        foreach(GateSocket socket in gateSockets)
-        {
-            if(socket.getCurrentGate() is null) continue;
-
-            count++;
-            if(count == rank)
-            {
-                return socket.transform.position;
-            }
-        }
-
-        return Vector3.zero;
     }
 
     // prevent player from grabbing placed gates
@@ -160,6 +121,4 @@ public class QubitCircuit : MonoBehaviour
         
         toggleCircuit();
     }
-
-
 }

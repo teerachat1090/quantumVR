@@ -2529,6 +2529,11 @@ PrefabInstance:
       propertyPath: gateMaterial
       value: 
       objectReference: {fileID: 2100000, guid: abeef51af7185c44997292978846191e, type: 2}
+    - target: {fileID: 5753421367971574584, guid: 208d995876aa8284897ae807e0ade42f,
+        type: 3}
+      propertyPath: isController
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5781556152720213442, guid: 208d995876aa8284897ae807e0ade42f,
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

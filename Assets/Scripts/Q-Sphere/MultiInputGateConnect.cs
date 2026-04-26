@@ -10,27 +10,11 @@ public class MultiInputGateConnect : MonoBehaviour
     private bool memberSet = false;
     public int column = -1;
     public string gateName = "";
-    public bool classicalRelated = false;
-    public bool conditionRelated = false;
+    public bool classicalRelated = false, conditionRelated = false;
     public Material classicalMaterial = null;
     private int highNote = -1, lowNote = -1;
 
-    public List<int> GetIndexOneGate()
-    {
-        var control = new List<int>();
-        foreach(GameObject gate in gateMember)
-        {
-            var quantumGate = gate.GetComponent<QuantumGate>();
-            if(quantumGate == null) continue;
-            GateSocket gateSocket = quantumGate.socket;
-            if(gateSocket == null) continue;
-
-            control.Add(gateSocket.qubitIndex);
-            break;
-        }
-        return control;
-    }
-
+    // get list of control and target gate in the group
     public void GetGateListByType(out List<int> controlsRow, out List<int> targetsRow)
     {
         var control_temp = new List<int>();
@@ -38,8 +22,10 @@ public class MultiInputGateConnect : MonoBehaviour
 
         foreach(GameObject gate in gateMember)
         {
+            Debug.Log($"GameObject: {gate.name}");
             var quantumGate = gate.GetComponent<QuantumGate>();
-            if(quantumGate == null) continue;
+            if(quantumGate == null) {
+                continue;}
 
             GateSocket gateSocket = quantumGate.socket;
             if(gateSocket == null) {
@@ -48,14 +34,16 @@ public class MultiInputGateConnect : MonoBehaviour
             }
 
             int row = gateSocket.qubitIndex;
-            if (quantumGate.isController)  control_temp.Add(row);
-            else target_temp.Add(row);
+            if (quantumGate.isController)  {control_temp.Add(row);}
+            else{ target_temp.Add(row);}
         }
 
         controlsRow = control_temp;
         targetsRow = target_temp;
     }
 
+    // get lowest and highest row of member in group
+    //  **if realted to classical bit, it will cover all the way down (lowQ = qubitAmount)
     public void getHighLow(out int highQ, out int lowQ, out int col)
     {
         // iterate through member and get most high-low index
@@ -97,7 +85,7 @@ public class MultiInputGateConnect : MonoBehaviour
         col = column;
     }
 
-    //enable/disable socket inBetween gate
+    // enable/disable sockets between members 
     public void SetSocketInBetween(bool useTempVal = false, bool doEnable = true)
     {
         if(socketsManager == null)
@@ -120,7 +108,7 @@ public class MultiInputGateConnect : MonoBehaviour
         }
     }
 
-    //apply exclusive gate to column
+    // apply exclusive gate to column
     public void ToggleCurrentColumn(bool doLock = true)
     {
         if(!Application.isPlaying) return;
