@@ -42,8 +42,7 @@ public class GateRotation
     public float angle;
     public GateRotation(Vector3 Axis, float Angle)
     {
-        axis = Axis;
-        angle = Angle;
+        axis = Axis;    angle = Angle;
     }
 }
 

@@ -315,6 +315,7 @@ public class SocketsManager : MonoBehaviour
         baseObject_quantumGate.friendExist = true;
         baseObject_quantumGate.socket = socketMap[row][col];
         connect.gateName = baseObject_quantumGate.getGateName();
+        baseObject_quantumGate.enabled = true;
         
         GameObject classicalConnect = CBManager.GetSocketByCol(col);
         CBManager.ShowPointByCol(col);
@@ -441,7 +442,9 @@ public class SocketsManager : MonoBehaviour
             };
             if (connect.classicalRelated)
             {
-                gateInfo.controlRow = connect.GetIndexOneGate();
+                Debug.Log("classical related...");
+                connect.GetGateListByType(out List<int> controlRow, out _);
+                gateInfo.controlRow = controlRow;
                 var targetList = new List<int>() {CBManager.GetTargetClassicalBit(gateInfo.column)};
                 gateInfo.targetRow = targetList;
                 gateInfo.classical = true;

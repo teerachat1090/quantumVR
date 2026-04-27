@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+///     This is sample class for testing some function.
+/// </summary>
 public class SampleScript : MonoBehaviour, 
     IPointerEnterHandler, 
     IPointerExitHandler
@@ -17,5 +20,5 @@ public class SampleScript : MonoBehaviour,
         // Reset hover effects here
     }
 
-    public void wjenClick() => Debug.Log("button has clicked");
+    public void whenClick() => Debug.Log("button has clicked");
 }
