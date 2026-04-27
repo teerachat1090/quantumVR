@@ -10,16 +10,19 @@ public class ButtonAction : MonoBehaviour
 {
     [SerializeField] private float pressDepth = 1f;
     [SerializeField] private float pressTime = .25f;
-
     [SerializeField] private List<UnityEvent> whenOnPressed = new List<UnityEvent>();
-
     [SerializeField] private int funcIndex = 0;
+
+    public enum ButtonType { Measure, Next, Prev }
+    [SerializeField] private ButtonType buttonType = ButtonType.Measure;
 
     private bool pressed = false;
     private float funcDelay = 1f;
     private XRGrabInteractable grabInteractable;
 
-    public static event System.Action OnMeasureButtonPressed;
+    public static event Action OnMeasureButtonPressed;
+    public static event Action OnNextButtonPressed;
+    public static event Action OnPrevButtonPressed;
 
     void Awake()
     {
@@ -28,7 +31,7 @@ public class ButtonAction : MonoBehaviour
 
     private void OnEnable()
     {
-        if(grabInteractable == null)
+        if (grabInteractable == null)
         {
             Debug.LogWarning("XRGrabInteractable component is missing!");
             return;
@@ -38,7 +41,7 @@ public class ButtonAction : MonoBehaviour
 
     private void OnDisable()
     {
-        if(grabInteractable == null)
+        if (grabInteractable == null)
         {
             Debug.LogWarning("XRGrabInteractable component is missing!");
             return;
@@ -48,26 +51,25 @@ public class ButtonAction : MonoBehaviour
 
     private void OnSelectedEntered(SelectEnterEventArgs args)
     {
-        if(pressed) return;
+        if (pressed) return;
         StartCoroutine(PressingButton());
     }
 
     private IEnumerator MoveButton(float depth, float time)
     {
         Vector3 startPos = transform.position;
-        Vector3 endPos = startPos - depth*Vector3.up;
+        Vector3 endPos = startPos - depth * Vector3.up;
         float elapsedTime = 0f;
 
-        while(elapsedTime < time)
+        while (elapsedTime < time)
         {
-            float t = elapsedTime/(time/2);
-            if (elapsedTime > time/2) t -= 1;
+            float t = elapsedTime / (time / 2);
+            if (elapsedTime > time / 2) t -= 1;
 
-            if(elapsedTime < time/2) transform.position = Vector3.Lerp(startPos, endPos, t);
+            if (elapsedTime < time / 2) transform.position = Vector3.Lerp(startPos, endPos, t);
             else transform.position = Vector3.Lerp(endPos, startPos, t);
 
             elapsedTime += Time.deltaTime;
-
             yield return null;
         }
 
@@ -78,7 +80,7 @@ public class ButtonAction : MonoBehaviour
     {
         int functionAmount = whenOnPressed.Count;
         Debug.Log($"amount function: {functionAmount}");
-        if(funcIndex != functionAmount - 1) funcIndex++;
+        if (funcIndex != functionAmount - 1) funcIndex++;
         else funcIndex = 0;
     }
 
@@ -88,8 +90,15 @@ public class ButtonAction : MonoBehaviour
         yield return MoveButton(pressDepth, pressTime);
 
         whenOnPressed[funcIndex].Invoke();
-        OnMeasureButtonPressed?.Invoke();
-        if(whenOnPressed.Count != 1) CycleIndex();
+
+        switch (buttonType)
+        {
+            case ButtonType.Measure: OnMeasureButtonPressed?.Invoke(); break;
+            case ButtonType.Next:    OnNextButtonPressed?.Invoke();    break;
+            case ButtonType.Prev:    OnPrevButtonPressed?.Invoke();    break;
+        }
+
+        if (whenOnPressed.Count != 1) CycleIndex();
 
         pressed = false;
         yield return new WaitForSeconds(funcDelay);

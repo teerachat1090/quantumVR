@@ -8,6 +8,8 @@ public class TutorialManager_Chap1 : MonoBehaviour
     [SerializeField] private GameObject start;
     [SerializeField] private RectTransform tutorialRect;
     [SerializeField] private GameObject next;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip dialogueSound;
 
     private int currentStep = 0;
     private Vector3 startPos = new Vector3(3f, 1.8f, 0f);
@@ -20,19 +22,25 @@ public class TutorialManager_Chap1 : MonoBehaviour
         tutorialRect.localPosition = startPos;
         tutorialRect.localEulerAngles = startRot;
         dialogueImage.sprite = dialogueSprites[0];
-        next.SetActive(false); // ซ่อนไว้ก่อน
+        next.SetActive(false);
     }
 
     void OnEnable()
     {
         GateSocket.OnAnyGatePlaced += OnGatePlaced;
-        ButtonAction.OnMeasureButtonPressed += OnMeasured; 
+        GateSocket.OnAnyGateRemoved += OnGateRemoved;
+        ButtonAction.OnMeasureButtonPressed += OnMeasured;
+        ButtonAction.OnNextButtonPressed += OnNextPressed;
+        ButtonAction.OnPrevButtonPressed += OnPrevPressed;
     }
 
     void OnDisable()
     {
         GateSocket.OnAnyGatePlaced -= OnGatePlaced;
+        GateSocket.OnAnyGateRemoved -= OnGateRemoved;
         ButtonAction.OnMeasureButtonPressed -= OnMeasured;
+        ButtonAction.OnNextButtonPressed -= OnNextPressed;
+        ButtonAction.OnPrevButtonPressed -= OnPrevPressed;
     }
 
     public void OnStartClicked()
@@ -43,13 +51,21 @@ public class TutorialManager_Chap1 : MonoBehaviour
         NextStep();
     }
 
-        public void OnNextClicked()
+    public void OnNextClicked()
     {
         NextStep();
     }
+
     private void OnGatePlaced(string gateName)
     {
         if (currentStep == 1 && gateName == "X")
+            NextStep();
+    }
+
+    private void OnGateRemoved(string gateName)
+    {
+        Debug.Log($"OnGateRemoved fired: gate={gateName}, currentStep={currentStep}");
+        if (currentStep == 7 && gateName == "X")
             NextStep();
     }
 
@@ -59,14 +75,40 @@ public class TutorialManager_Chap1 : MonoBehaviour
             NextStep();
     }
 
+    private void OnNextPressed()
+    {
+        if (currentStep == 3)
+            NextStep();
+    }
+
+    private void OnPrevPressed()
+    {
+        if (currentStep == 4)
+            NextStep();
+    }
+
+    public void OnCloseClicked()
+    {
+        gameObject.SetActive(false);
+    }
+        public void OnGuideClicked()
+    {
+        currentStep = 0;
+        dialogueImage.sprite = dialogueSprites[0];
+        tutorialRect.localPosition = startPos;
+        tutorialRect.localEulerAngles = startRot;
+        start.SetActive(true);
+        next.SetActive(false);
+        gameObject.SetActive(true);
+    }    
         public void NextStep()
     {
         currentStep++;
         if (currentStep < dialogueSprites.Length)
         {
             dialogueImage.sprite = dialogueSprites[currentStep];
-            // แสดงปุ่ม next เฉพาะ step 3, 4 (Watch Bloch Sphere, See result)
-            next.SetActive(currentStep == 3 || currentStep == 4);
+            next.SetActive(currentStep == 5 || currentStep == 6);
+            audioSource.PlayOneShot(dialogueSound); // เพิ่มตรงนี้
         }
         else
             gameObject.SetActive(false);

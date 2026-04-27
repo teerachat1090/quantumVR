@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Unity.VisualScripting;
 
+
 public class GateSocket : MonoBehaviour
 {
     public int socketIndex = 0; //0 by default
+    public static event System.Action<string> OnAnyGateRemoved;
     public int qubitIndex = -1;
     public QuantumGate currentGate = null;
     private XRSocketInteractor socketInteractor;
@@ -134,6 +136,8 @@ public class GateSocket : MonoBehaviour
         QuantumGate gate = args.interactableObject.transform.GetComponent<QuantumGate>();        
         currentGate = null;
         gate.socket = null;
+        OnAnyGateRemoved?.Invoke(gate.getGateName()); // เพิ่มตรงนี้
+
 
         if(gate.getGateType() == QuantumGate.inputType.Single)
         {
