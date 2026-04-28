@@ -5,16 +5,23 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 public class MultiInputGateConnect : MonoBehaviour
 {
     public SocketsManager socketsManager = null;
-    private List<GameObject> gateMember = new List<GameObject>();
-    private List<LineConnecting> targetConnect = new List<LineConnecting>();
-    private bool memberSet = false;
+    public Material classicalMaterial = null;
     public int column = -1;
     public string gateName = "";
     public bool classicalRelated = false, conditionRelated = false;
-    public Material classicalMaterial = null;
+
+    private bool memberSet = false;
+    private List<GameObject> gateMember = new List<GameObject>();
+    private List<LineConnecting> targetConnect = new List<LineConnecting>();
     private int highNote = -1, lowNote = -1;
 
-    // get list of control and target gate in the group
+    /// <summary>
+    ///     Get list of control gate and target gate for json converting
+    /// </summary>
+    /// <remarks>
+    ///     list of target row will be empty if this is measure group (classical bit is target)<br/><br/>
+    ///     list of control row will be empty if this is condition group (classical bit is controller)
+    /// </remarks>
     public void GetGateListByType(out List<int> controlsRow, out List<int> targetsRow)
     {
         var control_temp = new List<int>();
@@ -42,8 +49,12 @@ public class MultiInputGateConnect : MonoBehaviour
         targetsRow = target_temp;
     }
 
-    // get lowest and highest row of member in group
-    //  **if realted to classical bit, it will cover all the way down (lowQ = qubitAmount)
+    /// <summary>
+    ///     หาแถวที่สูงสุด และต่ำสุดภายในกลุ่ม
+    /// </summary>
+    /// <remarks>
+    ///     ถ้ากลุ่มนี้มีความเกี่ยวข้องกับ classical bit ค่า row สูงสุดจะครอบคลุมทั้งหมด (จำนวน qubits ทั้งหมด)
+    /// </remarks>
     public void getHighLow(out int highQ, out int lowQ, out int col)
     {
         // iterate through member and get most high-low index
@@ -85,7 +96,15 @@ public class MultiInputGateConnect : MonoBehaviour
         col = column;
     }
 
-    // enable/disable sockets between members 
+    /// <summary>
+    ///     เปิด/ปิด socket ที่อยู่ระหว่าง gate สมาชิก
+    /// </summary>
+    /// <param name="useTempVal"></param>
+    /// <param name="doEnable"></param>
+    /// <remarks>
+    ///     ในกรณีที่ต้องการจะ เปิด/ปิด socket แล้วสมาชิกอยู่นอก socket ไปแล้ว ให้ใข้ <c>useTempVal = true</c>
+    ///     เพื่อใช้ค่าที่เก็บไว้
+    /// </remarks>
     public void SetSocketInBetween(bool useTempVal = false, bool doEnable = true)
     {
         if(socketsManager == null)
@@ -108,7 +127,12 @@ public class MultiInputGateConnect : MonoBehaviour
         }
     }
 
-    // apply exclusive gate to column
+    /// <summary>
+    ///     เปลี่ยน socket ในคอลัมให้อยู่ใน layer พิเศษ/ปกติ
+    /// </summary>
+    /// <remarks>
+    ///     layer พิเศษ จะใช้กับสมาชิกที่ออกจาก socket ไปแล้ว เพื่อบังคับให้ต้องวางสมาชิกได้ที่คอลัมนี้เท่านั้น
+    /// </remarks>
     public void ToggleCurrentColumn(bool doLock = true)
     {
         if(!Application.isPlaying) return;
@@ -144,6 +168,9 @@ public class MultiInputGateConnect : MonoBehaviour
         if(quantumGate.getGateType() == QuantumGate.inputType.condition) conditionRelated = true;
     }
 
+    /// <summary>
+    ///     เตรียมสมาชิกใช้พร้อม (สมาชิกต้องมี pointer เชื่อมถึง script นี้)
+    /// </summary>
     public void RunLineConnect()
     {
         foreach(GameObject gate in gateMember)
@@ -158,6 +185,9 @@ public class MultiInputGateConnect : MonoBehaviour
         memberSet = true;
     }
 
+    /// <summary>
+    ///     สร้างเส้นเชื่อมระหว่างสมาชิกภายในกลุ่ม
+    /// </summary>
     void ConnectLine()
     {
         // pair each child to create line
@@ -184,6 +214,9 @@ public class MultiInputGateConnect : MonoBehaviour
         }
     }
 
+    /// <summary>
+    ///     จัดการลบสมาชิกและกลุ่มด้วยตัวเอง เมื่อสมาชิกตัวใดตัวหนึ่งถูกสั่งให้ทำลายตัวเอง
+    /// </summary>
     public void deleteItself()
     {
         if(!Application.isPlaying) return;
@@ -207,6 +240,9 @@ public class MultiInputGateConnect : MonoBehaviour
         Destroy(gameObject);
     }
 
+    /// <summary>
+    ///     ใช้สำหรับการจัดการและอัพเดทเส้นเชื่อม
+    /// </summary>
     public class LineConnecting
     {
         GameObject line = null;
@@ -233,7 +269,6 @@ public class MultiInputGateConnect : MonoBehaviour
             {
                 lineRen.material = classicalMat;
             }
-            
             
             UpdateLine();
         }

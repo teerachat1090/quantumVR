@@ -29,22 +29,31 @@ public class StateVector : MonoBehaviour
         }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
         CheckInput();
     }
 
+    /// <summary>
+    ///     บังคับให้ text บน statevector หันไปทางทิศเดียวกันตลอดเวลา
+    /// </summary>
     void LateUpdate()
     {
         canvas.transform.LookAt(pointToSee);
     }
 
+    /// <summary>
+    ///     บังคับให้ text บน statevector หันไปในมุมที่ต้องการ <br/>
+    ///     (อาจไม่ต้องใช้แล้ว เพราะมีฟังก์ชันบังคับ text ตลอดเวลาอยู่แล้ว)
+    /// </summary>
     public void adjustText(Quaternion direction)
     {
         canvas.transform.rotation = direction;
     }
 
+    /// <summary>
+    ///     ตั้งค่า text บน statevector ให้อยู่ในรูป |...>
+    /// </summary>
     private void SetStateDisplay(string state)
     {
         if(valueText is null) 
@@ -56,6 +65,9 @@ public class StateVector : MonoBehaviour
         valueText.text = $"|{state}\u27E9";
     }
 
+    /// <summary>
+    ///     อัพเดทค่าของ statevector ทั้งค่าภายใน และการแสดงผล
+    /// </summary>
     public void SetStateValue(int value, int qubitAmount)
     {
         stateVal = value;
@@ -72,7 +84,12 @@ public class StateVector : MonoBehaviour
     private float textSlide = 0.1f;
     private bool slided = false;
 
-    //change node size and color
+    /// <summary>
+    ///     อัพเดท statevector จากความน่าจะเป็น และเฟส
+    /// </summary>
+    /// <remarks>
+    ///     ความน่าจะเป็นกำหนดขนาดของโหนด และเฟสกำหนดสีของ statevector
+    /// </remarks>
     public void UpdateStateVector(float prob, float phase)
     {
         if(prob < 0.00001f)

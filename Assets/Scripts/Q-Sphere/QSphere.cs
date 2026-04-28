@@ -1,27 +1,21 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json.Linq;
 using QubitStat = FileManager.QubitStat;
-using Unity.VisualScripting;
 
 public class QSphere : MonoBehaviour
 {
-    [SerializeField] GameObject stateParent = null;
-
+    [SerializeField] GameObject stateParent = null; //storage for spawned stateVectors
     [SerializeField] GameObject stateVectorPrefab = null;
-    [SerializeField] float offsetDist = 0f;
+    [SerializeField] float offsetDist = 0f; //distance from sphere
+    private Vector3 pointToLookAt = Vector3.zero;
     [SerializeField] GameObject centerObject = null;
 
     private int qubitAmount = 0;
 
     private List<StateVector> vectorList = new List<StateVector>();
 
-    public Vector3 pointToLookAt = Vector3.zero;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if(centerObject is null) centerObject = gameObject;
@@ -35,6 +29,10 @@ public class QSphere : MonoBehaviour
         if(stateVectorPrefab is null) Debug.LogWarning("Warning: Prefab for state vector is missing!");
     }
 
+    /// <summary>
+    ///     ปรับเปลี่ยนโครงสร้างของ q-sphere ตามจำนวน qubits <br/>
+    ///     ใช้เมื่อเริ่มสร้าง q-sphere ในตอนเริ่มโปรแกรม กับรวมถึงเมื่อจำนวน qubits เปลี่ยนไป (feature ในอนาคต)
+    /// </summary>
     public void ChangeQubitAmount(int newAmount)
     {
         if(newAmount == qubitAmount)
@@ -44,14 +42,15 @@ public class QSphere : MonoBehaviour
         }
 
         qubitAmount = newAmount;
-        setStateVector();
+        SetStateVector();
     }
 
-    // nCr = n!/(r! * (n-r)!)
-    //
-    //  n * (n-1) * ... * (n-r+1)
-    //  ---------------------------
-    //   r * (r-1) * ... * (1)
+    /// <summary>
+    ///     หา combination ของ <c>n</c> เลือก <c>r</c>
+    /// </summary>
+    /// <param name="n">จำนวนทั้งหมด</param>
+    /// <param name="r">จำนวนที่เลือก</param>
+    /// <returns> จำนวนวิธีในการเลือก </returns>
     private int Comb(int n, int r)
     {
         if (r < 0 || r > n) return 0; //invalid case
@@ -64,6 +63,11 @@ public class QSphere : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    ///     หา array ครึ่งหนึ่งของ <c>n</c> เลือก <c>i</c> เมื่อ <c>i</c> มีค่าตั้งแต่ 0-n
+    /// </summary>
+    /// <param name="n">จำนวนทั้งหมด</param>
+    /// <returns>array ครึ่งหนึ่งของ <c>n</c> เลือก <c>i</c></returns>
     private int[] GetHalfCombArray(int n)
     {
         if(n < 1) return null;
@@ -74,7 +78,27 @@ public class QSphere : MonoBehaviour
         return arr;
     }
 
-    private void setStateVector()
+    /// <summary>
+    ///     <b>สร้างและจัดสรรค์ statevector บน Q-Sphere</b>
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         ในวงจร n qubits จะสามารถมีผลลัพธ์ได้ 2^n รูปแบบ = 2^n statevector
+    ///         ซึ่งใน q-sphere จะแบ่งเป็น n ชั้น โดยจำแนกตาม Hamming Distance เมื่อเทียบกับ 00...0 (n ตัว)
+    ///         กล่าวคือ แต่ละชั้นจะจำแนกตามจำนวน 1's ใน statevector นั้นๆ เช่น 001110 มี Hamming Distance = 3 
+    ///     </para>
+    ///     <para>
+    ///         ในแต่ละชั้นของ q-sphere จึงจะมีจำนวนเท่ากับ combination ของ n เลือก r เมื่อ r = อันดับชั้น พอดี (ใน n bits เลือก r bits ให้เป็น 1's)
+    ///         เช่น ถ้ามี 3 qubits แต่ละชั้นใน q-sphere จะมี {1, 3, 3, 1} statevector โดย statevector ในแต่ละชั้นจะเรียงตัวกันเป็นวงครบ
+    ///         โดยเว้นระยะห่างด้วยมุมที่เท่ากัน
+    ///     </para>
+    ///     <para>
+    ///         นอกจากนี้แล้ว ใน q-sphere (อ้างอิงจาก IBM composer) statevector ที่มี bit ตรงข้ามกัน เช่น 00110 กับ 11001 จะต้องมีตำแหน่ง
+    ///         ที่อยู่ตรงข้ามกันอีกด้วย ดังนั้น เมื่อเรานำมาปรับใช้ในโปรเจคนี้ เราจึงเน้นไปที่การสร้าง statevector เพียงครึ่งเดียว (ครึ่งบน) 
+    ///         แล้วจึงค่อยสร้างอีกครึ่งโดยใช้ตำแหน่งตรงข้ามแทน
+    ///     </para>
+    /// </remarks>
+    private void SetStateVector()
     {
         Debug.Log("Setting state vector");
 
@@ -154,7 +178,11 @@ public class QSphere : MonoBehaviour
         Debug.Log("Setting finished.");
     }
 
-
+    /// <summary>
+    ///     อัพเดทสถานะของ statevector บน q-sphere โดยอ้างอิงจากไฟล์ json
+    /// </summary>
+    /// <param name="isSequence">flag เพื่อเช็คว่าต้องอ้างอิงจากไฟล์ json แบบใด (output/sequence)</param>
+    /// <param name="index">เลขอันดับผลลัพธ์ในไฟล์ json แบบ sequence (ใช้เมื่อ <c>isSequence = true</c>)</param>
     public void UpdateFromJson(bool isSequence = false, int index = 0)
     {
         Debug.Log("QSphere updating...");

@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class ClassicalBitManager : MonoBehaviour
 {
-    public int socketAmount = -1;
-    public int maxBitPosition = -1;
     [SerializeField] private GameObject ClassicalIOPrefab = null;
     [SerializeField] private float space = 0.25f;
 
+    public int socketAmount = -1;
+    public int maxBitPosition = -1;
+    
     private SocketsManager socketsManager = null;
     private List<IOClassical> classicalSocketList = new List<IOClassical>();
 

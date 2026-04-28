@@ -13,13 +13,12 @@ public class IOClassical : MonoBehaviour
     [Header("Text Display")]
     [SerializeField] private TMP_Text display = null;
 
+    public ClassicalBitManager CBManager = null;
+    public int maxPosition = 0;
     private XRBaseInteractable interactable;
     private bool isHovered = false;
     private int bitPosition = 0;
-    public int maxPosition = 0;
-
-    public ClassicalBitManager CBManager = null;
-
+    
     void Awake()
     {
         interactable = GetComponent<XRBaseInteractable>();
@@ -27,11 +26,11 @@ public class IOClassical : MonoBehaviour
 
     void OnEnable()
     {
-        // 1. Subscribe to Hover Events
+        //Subscribe to Hover Events
         interactable.hoverEntered.AddListener(OnHoverEnter);
         interactable.hoverExited.AddListener(OnHoverExit);
 
-        // 2. Subscribe to Input Events
+        //Subscribe to Input Events
         thumbstickAction.action.performed += OnThumbstickMove;
         thumbstickAction.action.canceled += OnThumbstickStop;
     }
@@ -48,21 +47,19 @@ public class IOClassical : MonoBehaviour
     private void OnHoverEnter(HoverEnterEventArgs args) => isHovered = true;
     private void OnHoverExit(HoverExitEventArgs args) => isHovered = false;
 
+    /// <summary>
+    ///     เปลี่ยน ค่า bit เมื่อชี้แล้วเลื่อน thumbstick ขึ้น/ลง
+    /// </summary>
     private void OnThumbstickMove(InputAction.CallbackContext context)
     {
-        // Only execute if the player is currently hovering over THIS object
         if (!isHovered) return;
 
         Vector2 input = context.ReadValue<Vector2>();
 
-        if (input.y >= threshold)
-        {
-            DoScrollUp();
-        }
-        else if (input.y <= -threshold)
-        {
-            DoScrollDown();
-        }
+        if (input.y >= threshold)       DoScrollUp();
+        
+        else if (input.y <= -threshold) DoScrollDown();
+        
     }
 
     private void OnThumbstickStop(InputAction.CallbackContext context)
@@ -70,6 +67,9 @@ public class IOClassical : MonoBehaviour
         // Handle logic for when the thumbstick returns to zero if needed
     }
 
+    /// <summary>
+    ///     เปลี่ยนจำนวนเต็ม เป็นเลขห้อยตัวแปร
+    /// </summary>
     private string IntToUnderscript(int val)
     {
         if(val == 0) return "\u2080";
