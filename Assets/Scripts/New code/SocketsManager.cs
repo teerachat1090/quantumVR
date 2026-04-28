@@ -379,9 +379,27 @@ public class SocketsManager : MonoBehaviour
         return gateList;
     }
 
+    public void UpdateClassicalBit(int column)
+    {
+        for(int row=0; row<totalQubits; row++)
+        {
+            QuantumGate gate = socketMap[row][column].getCurrentGate();
+            if(gate == null) continue;
+
+            if(gate.connect == null) continue;
+
+            if (gate.connect.classicalRelated)
+            {
+                updateCircuitByJson("classical bit", column, -1, false);
+                return;
+            }
+        }
+        Debug.Log($"No need to update because no one use classical bit at column {column}");
+    }
+
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
-        //Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
 
         string circuitJson = circuitToExportInit();
         headManager.updateOverallCircuit(circuitJson);

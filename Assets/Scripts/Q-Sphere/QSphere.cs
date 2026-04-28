@@ -14,10 +14,13 @@ public class QSphere : MonoBehaviour
 
     private int qubitAmount = 0;
 
+    private Quaternion originalRotation = Quaternion.identity;
     private List<StateVector> vectorList = new List<StateVector>();
 
     void Start()
     {
+        originalRotation = gameObject.transform.rotation;
+
         if(centerObject is null) centerObject = gameObject;
         pointToLookAt = gameObject.transform.position + offsetDist*gameObject.transform.forward;
         if(stateParent is null)
@@ -207,5 +210,10 @@ public class QSphere : MonoBehaviour
         }
 
         Debug.Log("QSphere update finished.");
+    }
+
+    public void ResetSphereRotation()
+    {
+        gameObject.transform.rotation = originalRotation;
     }
 }

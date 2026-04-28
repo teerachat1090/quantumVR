@@ -41,6 +41,7 @@ public class ClassicalBitManager : MonoBehaviour
 
             var IOBit = spawn.GetComponent<IOClassical>();
             if(IOBit!=null) {
+                IOBit.index = i;
                 IOBit.CBManager = this;
                 IOBit.maxPosition = maxBitPosition;
                 classicalSocketList.Add(IOBit);
@@ -80,7 +81,7 @@ public class ClassicalBitManager : MonoBehaviour
         return socket.GetBitPosition();
     }
 
-    public void UpdateBitPositionToCircuit()
+    public void UpdateBitPositionToCircuit(int cBitIndex)
     {
         if(socketsManager == null)
         {
@@ -88,6 +89,6 @@ public class ClassicalBitManager : MonoBehaviour
             return;
         }
 
-        socketsManager.updateCircuitByJson("classical bit", -1, -1, false);
+        socketsManager.UpdateClassicalBit(cBitIndex);
     }
 }

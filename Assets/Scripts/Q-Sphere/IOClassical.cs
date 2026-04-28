@@ -3,69 +3,125 @@ using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using TMPro;
+using Unity.VisualScripting;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class IOClassical : MonoBehaviour
 {
     [Header("Input Settings")]
-    [SerializeField] private InputActionReference thumbstickAction;
-    [SerializeField] private float threshold = 0.5f;
+    [SerializeField] private InputActionReference leftThumbstickAction;
+    [SerializeField] private InputActionReference rightThumbstickAction;
+    [SerializeField] private float threshold = 0.4f;
+    [SerializeField] private float cooldownTime = .3f;
+    private float lastTimeStamp = 0f;
+
+    private bool triggered = false;
+    private InputActionReference activeThumbstick;
 
     [Header("Text Display")]
     [SerializeField] private TMP_Text display = null;
 
     public ClassicalBitManager CBManager = null;
     public int maxPosition = 0;
+    public int index = 0;
     private XRBaseInteractable interactable;
-    private bool isHovered = false;
     private int bitPosition = 0;
     
     void Awake()
     {
         interactable = GetComponent<XRBaseInteractable>();
-    }
 
-    void OnEnable()
-    {
         //Subscribe to Hover Events
         interactable.hoverEntered.AddListener(OnHoverEnter);
         interactable.hoverExited.AddListener(OnHoverExit);
-
-        //Subscribe to Input Events
-        thumbstickAction.action.performed += OnThumbstickMove;
-        thumbstickAction.action.canceled += OnThumbstickStop;
     }
 
-    void OnDisable()
+     private bool IsLeftController(IXRInteractor interactor)
+    {
+        // Match by GameObject name (default XR Rig naming)
+        string name = interactor.transform.name.ToLower();
+        return name.Contains("left");
+    }
+
+    private void OnHoverEnter(HoverEnterEventArgs args)  
+    {
+        // Identify which controller is hovering
+        activeThumbstick = IsLeftController(args.interactorObject) 
+            ? leftThumbstickAction 
+            : rightThumbstickAction;
+
+        // Subscribe only that controller's thumbstick
+        activeThumbstick.action.performed += OnThumbstickMove;
+        //activeThumbstick.action.canceled  += OnThumbstickStop;
+    }
+    private void OnHoverExit(HoverExitEventArgs args) 
+    {
+        if (activeThumbstick != null)
+        {
+            activeThumbstick.action.performed -= OnThumbstickMove;
+            //activeThumbstick.action.canceled  -= OnThumbstickStop;
+            activeThumbstick = null;
+        }
+
+        triggered = false;
+        Debug.Log("Hover exited — thumbstick unsubscribed");
+    }
+
+    void OnDestroy()
     {
         interactable.hoverEntered.RemoveListener(OnHoverEnter);
         interactable.hoverExited.RemoveListener(OnHoverExit);
 
-        thumbstickAction.action.performed -= OnThumbstickMove;
-        thumbstickAction.action.canceled -= OnThumbstickStop;
+        if (activeThumbstick != null)
+        {
+            activeThumbstick.action.performed -= OnThumbstickMove;
+            //activeThumbstick.action.canceled  -= OnThumbstickStop;
+        }
     }
-
-    private void OnHoverEnter(HoverEnterEventArgs args) => isHovered = true;
-    private void OnHoverExit(HoverExitEventArgs args) => isHovered = false;
 
     /// <summary>
     ///     เปลี่ยน ค่า bit เมื่อชี้แล้วเลื่อน thumbstick ขึ้น/ลง
     /// </summary>
     private void OnThumbstickMove(InputAction.CallbackContext context)
     {
-        if (!isHovered) return;
+        if(Time.time - lastTimeStamp < cooldownTime) return;
 
         Vector2 input = context.ReadValue<Vector2>();
 
-        if (input.y >= threshold)       DoScrollUp();
-        
-        else if (input.y <= -threshold) DoScrollDown();
-        
+        if (input.y >= threshold)       {
+            lastTimeStamp = Time.time;
+            DoScrollUp();
+            }
+        else if (input.y <= -threshold) {
+            lastTimeStamp = Time.time;
+            DoScrollDown();
+            }
     }
 
     private void OnThumbstickStop(InputAction.CallbackContext context)
     {
-        // Handle logic for when the thumbstick returns to zero if needed
+        triggered = false;
     }
+
+    private void DoScrollUp(){
+        if(bitPosition == maxPosition) return;
+        Debug.Log($"DoScrollUp");
+        bitPosition++;
+        UpdateDisplay();
+        TellCBManagerToUpdate();
+        Debug.Log("Event: Thumbstick UP!");
+    }
+
+    private void DoScrollDown(){
+        if(bitPosition == 0) return;
+        Debug.Log($"DoScrollDown");
+        bitPosition--;
+        UpdateDisplay();
+        TellCBManagerToUpdate();
+        Debug.Log("Event: Thumbstick DOWN!");
+    }
+
+    
 
     /// <summary>
     ///     เปลี่ยนจำนวนเต็ม เป็นเลขห้อยตัวแปร
@@ -103,26 +159,10 @@ public class IOClassical : MonoBehaviour
             Debug.LogWarning("Warning: ClassicalBitManager Reference is missing in IOClassical.");
             return;
         }
-        CBManager.UpdateBitPositionToCircuit();
+        CBManager.UpdateBitPositionToCircuit(index);
     }
 
-    private void DoScrollUp(){
-        if(bitPosition == maxPosition) return;
-
-        bitPosition++;
-        UpdateDisplay();
-        TellCBManagerToUpdate();
-        Debug.Log("Event: Thumbstick UP!");
-    }
-
-    private void DoScrollDown(){
-        if(bitPosition == 0) return;
-
-        bitPosition--;
-        UpdateDisplay();
-        TellCBManagerToUpdate();
-        Debug.Log("Event: Thumbstick DOWN!");
-    }
+    
 
     public int GetBitPosition()
     {

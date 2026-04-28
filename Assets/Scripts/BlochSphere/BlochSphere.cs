@@ -5,7 +5,6 @@ using System.Collections;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-
 public class BlochSphere : MonoBehaviour
 {
     [Header("Sphere Settings")]
@@ -58,6 +57,22 @@ public class BlochSphere : MonoBehaviour
     [Header("Editor/Runtime Build")]
     [SerializeField] private bool rebuildOnPlay = true;
 
+    public enum VectorAxis {X, Y, Z}
+
+    public Dictionary<VectorAxis, Vector3> map = new Dictionary<VectorAxis, Vector3>
+    {
+        {VectorAxis.X, Vector3.right},
+        {VectorAxis.Y, Vector3.up},
+        {VectorAxis.Z, Vector3.forward}
+    };
+
+    [Header("Text Stabilizer")]
+    [SerializeField] float offsetDist = 0f; //distance from sphere
+    [SerializeField] List<TextMeshPro> textList = new List<TextMeshPro>();
+    [SerializeField] private VectorAxis axis = VectorAxis.Z;
+
+    private Vector3 PointtoLookAt = Vector3.zero;
+    private Quaternion originalRotation = Quaternion.identity;
     private Vector3 currentStatePosition = Vector3.up; // |0> = +Y
     private Coroutine currentAnimation;
     private Coroutine arcFadeCoroutine;
@@ -67,6 +82,30 @@ public class BlochSphere : MonoBehaviour
     private float lastRotationAngle = 0f;
     private bool useAxisRotation = false;
 
+    void Awake()
+    {
+        originalRotation = gameObject.transform.rotation;
+
+        Vector3 direction;
+        if(axis == VectorAxis.X) direction = gameObject.transform.right;
+        else if(axis == VectorAxis.Y) direction = gameObject.transform.up;
+        else direction = gameObject.transform.forward;
+
+        PointtoLookAt = gameObject.transform.position + offsetDist*direction;
+    }
+
+    void LateUpdate()
+    {
+        foreach(TextMeshPro text in textList)
+        {
+            text.transform.LookAt(PointtoLookAt);
+        }
+    }
+    
+    public void ResetSphereRotation()
+    {
+        gameObject.transform.rotation = originalRotation;
+    }
 
     void Start()
     {
@@ -721,5 +760,7 @@ public class BlochSphere : MonoBehaviour
         if (Application.isPlaying) Destroy(obj);
         else DestroyImmediate(obj);
     }
+
+    
 }
 
