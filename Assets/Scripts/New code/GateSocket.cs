@@ -145,6 +145,8 @@ public class GateSocket : MonoBehaviour
             return;
         } 
 
+        if(gate.connect == null) return;
+
         // enable socket inbetween
         gate.connect.SetSocketInBetween(useTempVal: true);
 
