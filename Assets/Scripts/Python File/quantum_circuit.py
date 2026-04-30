@@ -37,7 +37,10 @@ single_input_gate = {
 }
 
 input_related_gate = {
-    "P":lambda qc, qubit, phase : qc.p(phase, qubit)
+    "P":lambda qc, qubit, phase : qc.p(phase, qubit),
+    "RZ": lambda qc, qubit, phase : qc.rz(phase, qubit),
+    "RX": lambda qc, qubit, phase : qc.rx(phase, qubit),
+    "RY": lambda qc, qubit, phase : qc.ry(phase, qubit)
 }
 
 multi_input_gate = {

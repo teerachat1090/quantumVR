@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 using System.IO;
+using System;
 
 public static class PhaseColoring
 {
@@ -49,23 +50,32 @@ public class GateRotation
 public class CircuitExecutor
 {
     public static readonly Dictionary<string, GateRotation> rotationInfo;
+    public static readonly Dictionary<string, Func<float, GateRotation>> rotationInfoWithInput;
 
     // object initialization function
     static CircuitExecutor()
     {
         rotationInfo = new Dictionary<string, GateRotation>   // {key, value}
         {
-            { "H",  new GateRotation((Vector3.right + Vector3.up).normalized,     180.0f) }, 
-            { "X",  new GateRotation( Vector3.right,     180.0f)},
-            { "Y",  new GateRotation( Vector3.forward,   180.0f)},
-            { "Z",  new GateRotation( Vector3.up,        180.0f)},
-            { "I",  new GateRotation( Vector3.up,        0.0f)},
-            { "T",  new GateRotation( Vector3.up,        45.0f)},
-            { "S",  new GateRotation( Vector3.up,        90.0f)},
-            { "TT", new GateRotation( Vector3.up,        -45.0f)},
-            { "ST", new GateRotation( Vector3.up,        -90.0f)},
-            { "SQRTX",  new GateRotation( Vector3.right,  90.0f)},
+            { "H",      new GateRotation((Vector3.right + Vector3.up).normalized,     180.0f) }, 
+            { "X",      new GateRotation( Vector3.right,   180.0f)},
+            { "Y",      new GateRotation( Vector3.forward, 180.0f)},
+            { "Z",      new GateRotation( Vector3.up,      180.0f)},
+            { "I",      new GateRotation( Vector3.up,      0.0f)},
+            { "T",      new GateRotation( Vector3.up,      45.0f)},
+            { "S",      new GateRotation( Vector3.up,      90.0f)},
+            { "TT",     new GateRotation( Vector3.up,     -45.0f)},
+            { "ST",     new GateRotation( Vector3.up,     -90.0f)},
+            { "SQRTX",  new GateRotation( Vector3.right,   90.0f)},
             { "SQRTXT", new GateRotation( Vector3.right,  -90.0f)},
+            
+        };
+
+        rotationInfoWithInput = new Dictionary<string, Func<float, GateRotation>>
+        {
+            { "RZ",     p => new GateRotation( Vector3.up,      p)},
+            { "RX",     p => new GateRotation( Vector3.right,   p)},
+            { "RY",     p => new GateRotation( Vector3.forward, p)},
         };
     }
 
@@ -177,29 +187,55 @@ public class CircuitExecutor
         return null;
     }
 
+    public GateRotation GetRotationResultWithInput(string name, float phase)
+    {
+        return rotationInfoWithInput.TryGetValue(name, out var rotateFunc) ? rotateFunc(phase) : null;
+    }
+
     //find result vector given list of gate
-    public Vector3 GetResultBlochVector(List<string> gateList)
+    public Vector3 GetResultBlochVector(List<QuantumGate> gateList)
     {
         Vector3 resultVec = Vector3.up;
-        // input: list of gate name (string)
+
         if(gateList.Count == 0)
             return resultVec;
 
-        foreach(string gate in gateList)
+        foreach(QuantumGate gate in gateList)
         {
-            if(!rotationInfo.TryGetValue(gate, out GateRotation infoResult)) continue;
-            
-            Quaternion rotation = Quaternion.AngleAxis(infoResult.angle, infoResult.axis);
+            GateRotation infoResult = null;
+            Quaternion rotation = Quaternion.identity;
+            if (gate.DoesUseInput())
+            {
+                float phase = gate.GetInputData();
+                infoResult = GetRotationResultWithInput(gate.getGateName(), phase);
+                if(infoResult == null) continue;
+            } 
+            else
+            {
+                if(!rotationInfo.TryGetValue(gate.getGateName(), out infoResult)) continue;
+            }
+
+            rotation = Quaternion.AngleAxis(infoResult.angle, infoResult.axis);
             resultVec = rotation * resultVec;
         }
 
         return resultVec;
     }
 
-    public Vector3 DoRotate(Vector3 vector, string gate, bool isInverse)
+    public Vector3 DoRotate(Vector3 vector, QuantumGate gate, bool isInverse)
     {
-        if(!rotationInfo.TryGetValue(gate, out GateRotation infoResult)) return vector;
-            
+        GateRotation infoResult;
+        if (gate.DoesUseInput())
+        {
+            float phase = gate.GetInputData();
+            infoResult = GetRotationResultWithInput(gate.getGateName(), phase);
+            if(infoResult == null) return vector;
+        }
+        else
+        {
+            if(!rotationInfo.TryGetValue(gate.getGateName(), out infoResult)) return vector;
+        }
+    
         Quaternion rotation = Quaternion.AngleAxis(infoResult.angle * (isInverse ? -1 : 1), infoResult.axis);
         vector = rotation * vector;
         return vector;

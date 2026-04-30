@@ -112,7 +112,7 @@ public class CircuitManager : MonoBehaviour
             return;
         }
         
-        List<string> gateList = socketsManager.GetGateAsStringList(0);
+        List<QuantumGate> gateList = socketsManager.GetGateListByRow(0);
         Vector3 resultVector = executor.GetResultBlochVector(gateList);
         blochSphere.AnimateToStateDirectly(resultVector);
     }

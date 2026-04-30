@@ -366,6 +366,18 @@ public class SocketsManager : MonoBehaviour
         }
     }
     
+    public List<QuantumGate> GetGateListByRow(int row)
+    {
+        var gateList = new List<QuantumGate>();
+        foreach(GateSocket socket in socketMap[row])
+        {
+            QuantumGate gate = socket.getCurrentGate();
+            if(gate == null) continue;
+            gateList.Add(gate);
+        }
+        return gateList;
+    }
+
     public List<string> GetGateAsStringList(int index)
     {
         List<string> gateList = new List<string>();

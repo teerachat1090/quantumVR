@@ -34,7 +34,7 @@ public class SequenceManager : MonoBehaviour
     private QSphere qSphere = null;
     private int seqIndex = 0, seqAmount = 0;
     private Vector3 currBlochVector = Vector3.up;
-    private List<string> blochGateList = new List<string>();
+    private List<QuantumGate> blochGateList = new List<QuantumGate>();
     private List<int> columnList = new List<int>();
     private GameObject marker = null;
     private float markerYScale = 0.0f; 
@@ -136,7 +136,7 @@ public class SequenceManager : MonoBehaviour
 
         if(isBlochSphere)   {
             blochSphere.AnimateToStateDirectly(currBlochVector);
-            blochGateList = socketsManager.GetGateAsStringList(0);
+            blochGateList = socketsManager.GetGateListByRow(0);
         }
         else
         {
@@ -167,7 +167,7 @@ public class SequenceManager : MonoBehaviour
             return;
         }
         CircuitExecutor executor = new CircuitExecutor();
-        string targetGate = blochGateList[(seqIndex - 1) + (isInverse ? 1: 0)];
+        QuantumGate targetGate = blochGateList[(seqIndex - 1) + (isInverse ? 1: 0)];
         Debug.Log($"At {seqIndex} do gate: {targetGate}");
         currBlochVector = executor.DoRotate(currBlochVector, targetGate, isInverse);
     }
