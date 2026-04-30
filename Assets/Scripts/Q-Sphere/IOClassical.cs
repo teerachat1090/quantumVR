@@ -24,7 +24,7 @@ public class IOClassical : MonoBehaviour
     public ClassicalBitManager CBManager = null;
     public int maxPosition = 0;
     public int index = 0;
-    private XRBaseInteractable interactable;
+    private XRBaseInteractable interactable = null;
     private int bitPosition = 0;
     
     void Awake()
@@ -34,6 +34,13 @@ public class IOClassical : MonoBehaviour
         //Subscribe to Hover Events
         interactable.hoverEntered.AddListener(OnHoverEnter);
         interactable.hoverExited.AddListener(OnHoverExit);
+    }
+
+    public void SetInteractable(bool enable)
+    {
+        if(interactable == null) return;
+
+        interactable.enabled = enable;
     }
 
      private bool IsLeftController(IXRInteractor interactor)

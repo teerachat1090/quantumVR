@@ -501,6 +501,11 @@ public class SocketsManager : MonoBehaviour
         {
             xrGrab.enabled = !doDisable;
         }
+
+        if(CBManager != null)
+        {
+            CBManager.SetClassicalBit(!doDisable);
+        }
     }
 
     public float GetColumnPosition(int column)

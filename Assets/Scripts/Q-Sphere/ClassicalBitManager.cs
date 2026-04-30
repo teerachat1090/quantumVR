@@ -91,4 +91,12 @@ public class ClassicalBitManager : MonoBehaviour
 
         socketsManager.UpdateClassicalBit(cBitIndex);
     }
+
+    public void SetClassicalBit(bool enable)
+    {
+        foreach(IOClassical cBit in classicalSocketList)
+        {
+            cBit.SetInteractable(enable);
+        }
+    }
 }
