@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using Unity.VisualScripting;
+using System;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -14,7 +14,8 @@ public class QuantumGate : MonoBehaviour
     [SerializeField] private inputType gatetype;
     [SerializeField] private string gateDescription; // (Optional)
     
-    private CircuitSocket currentSocket;
+    private CircuitSocket currentSocket; // not used
+    private XRGrabInteractable grabInteractable;
     private XRSocketInteractor socketInteractor;
 
     [Header("Multi-input Gate Info")]
@@ -22,6 +23,19 @@ public class QuantumGate : MonoBehaviour
     public bool isController = false;
     public GateSocket socket = null;
     public MultiInputGateConnect connect = null;
+
+    [Header("Input Display")]
+    [SerializeField] private bool useInput = false;
+    [SerializeField] private TMP_Text nameText = null;
+    [SerializeField] private TMP_Text displayText = null;
+    [SerializeField] private InputActionReference leftThumbstickAction;
+    [SerializeField] private InputActionReference rightThumbstickAction;
+    [SerializeField] private float textSlideOffset = 5f;
+    [SerializeField] private float threshold = 0.4f;
+    [SerializeField] private float cooldownTime = .3f;
+    private InputActionReference activeThumbstick;
+    private int phaseAngle = 0, angleStep = 15; //degree
+    private float lastTimeStamp = 0f;
 
     public void setConditionSocket(bool state)
     {
@@ -36,8 +50,13 @@ public class QuantumGate : MonoBehaviour
         {
             socketInteractor.selectEntered.AddListener(OnGatePlaced);
         }
+        grabInteractable = GetComponent<XRGrabInteractable>();
     }
 
+    /// <summary>
+    ///     Change gate property to rely on classical bit (condition) 
+    /// </summary>
+    /// <param name="args"></param>
     void OnGatePlaced(SelectEnterEventArgs args)
     {
         GameObject trigger = args.interactableObject.transform.gameObject;
@@ -55,9 +74,27 @@ public class QuantumGate : MonoBehaviour
         socketInteractor.enabled = false;
     }
 
+    public void AdjustInputText()
+    {
+        if (!useInput) return;
+        if(nameText == null || displayText == null)
+        {
+            Debug.LogWarning("Warning: name text or display text is missing. Can't adjust text.");
+            return;
+        }
+
+        nameText.rectTransform.anchoredPosition += new Vector2(0f, textSlideOffset);
+        displayText.gameObject.SetActive(true);
+    }
+
     void Awake()
     {
         CheckComponent();
+
+        if(useInput && displayText == null)
+        {
+            Debug.LogWarning("Warning: This gate use input but not assign display text.");
+        }
     }
 
     void Start()
@@ -83,6 +120,105 @@ public class QuantumGate : MonoBehaviour
         Destroy(gameObject);
     }
 
+    //-----------------------------Input feature-------------------------------------
+    public bool DoesUseInput()
+    {
+        return useInput;
+    }
+
+    public int GetInputData()
+    {
+        return phaseAngle;
+    }
+
+    public void SetInputFeature(bool enable)
+    {
+        if(!useInput) return;
+
+        if(enable){
+            grabInteractable.hoverEntered.AddListener(OnHoverEnter);
+            grabInteractable.hoverExited.AddListener(OnHoverExit);
+        }
+    }
+
+    private bool IsLeftController(IXRInteractor interactor)
+    {
+        // Match by GameObject name (default XR Rig naming)
+        string name = interactor.transform.name.ToLower();
+        return name.Contains("left");
+    }
+
+    private void OnHoverEnter(HoverEnterEventArgs args)  
+    {
+        // Identify which controller is hovering
+        activeThumbstick = IsLeftController(args.interactorObject) 
+            ? leftThumbstickAction 
+            : rightThumbstickAction;
+
+        // Subscribe only that controller's thumbstick
+        activeThumbstick.action.performed += OnThumbstickMove;
+    }
+
+    private void OnHoverExit(HoverExitEventArgs args) 
+    {
+        if (activeThumbstick != null)
+        {
+            activeThumbstick.action.performed -= OnThumbstickMove;
+            activeThumbstick = null;
+        }
+
+        Debug.Log("Hover exited — thumbstick unsubscribed");
+    }
+
+    private void OnThumbstickMove(InputAction.CallbackContext context)
+    {
+        if(Time.time - lastTimeStamp < cooldownTime) return;
+
+        Vector2 input = context.ReadValue<Vector2>();
+
+        if (input.y >= threshold)       {
+            lastTimeStamp = Time.time;
+            UpdatePhase();
+            }
+        else if (input.y <= -threshold) {
+            lastTimeStamp = Time.time;
+            UpdatePhase(increase: false);
+            }
+    }
+
+    private void UpdatePhase(bool increase = true)
+    {
+        if (increase)
+        {
+            phaseAngle += angleStep;
+            if(phaseAngle >= 360) phaseAngle -= 360;
+        }
+        else
+        {
+            phaseAngle -= angleStep;
+            if(phaseAngle < 0) phaseAngle += 360;
+        }
+        UpdateInputText();
+
+        if(socket != null)
+        {
+            socket.updateCircuit(false);
+            Debug.Log("Updating when display changed.");
+        }
+    }
+
+    private void UpdateInputText()
+    {
+        if(displayText == null)
+        {
+            Debug.LogWarning("Warning: displaytext is missing. Unable to update text.");
+            return;
+        }
+  
+        displayText.text = phaseAngle.ToString() + "\u00B0";
+    }
+    //----------------------------------------------------------------------------------
+
     //-------------- Not used ---------------------------
     public void SetCurrentSocket(CircuitSocket socket)  {currentSocket = socket;}
     public CircuitSocket GetCurrentSocket() {return currentSocket;}
@@ -100,5 +236,11 @@ public class QuantumGate : MonoBehaviour
     {
         if(socketInteractor != null) socketInteractor.selectEntered.RemoveListener(OnGatePlaced);
         
+        grabInteractable.hoverEntered.RemoveListener(OnHoverEnter);
+        grabInteractable.hoverExited.RemoveListener(OnHoverExit);
+        if (activeThumbstick != null)
+        {
+            activeThumbstick.action.performed -= OnThumbstickMove;
+        }
     }
 }

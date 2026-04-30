@@ -80,6 +80,10 @@ public class GateSocket : MonoBehaviour
          if(gate.getGateType() == QuantumGate.inputType.measure)
             OnMeasurePlaced?.Invoke();
 
+        if (gate.DoesUseInput())
+        {
+            gate.SetInputFeature(true);
+        }
 
         if(beLazy)
         { 
@@ -138,6 +142,10 @@ public class GateSocket : MonoBehaviour
         gate.socket = null;
         OnAnyGateRemoved?.Invoke(gate.getGateName()); // เพิ่มตรงนี้
 
+        if (gate.DoesUseInput())
+        {
+            gate.SetInputFeature(false);
+        }
 
         if(gate.getGateType() == QuantumGate.inputType.Single)
         {
@@ -180,7 +188,7 @@ public class GateSocket : MonoBehaviour
         }
     }
 
-    void updateCircuit(bool isPlaced)
+    public void updateCircuit(bool isPlaced)
     {
         parentCircuit.updateStatus((currentGate != null) ? currentGate.getGateName(): null, socketIndex, isPlaced);
     }

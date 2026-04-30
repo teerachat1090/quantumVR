@@ -439,6 +439,12 @@ public class SocketsManager : MonoBehaviour
                     controlRow = new List<int>() {socket.qubitIndex},
                     targetRow = null
                 };
+
+                if (gate.DoesUseInput())
+                {
+                    gateInfo.useInput = true;
+                    gateInfo.input = gate.GetInputData();
+                }
                 count++;
                 circuitInfo.gateList.Add(gateInfo);
                 circuitInfo.columnList.Add(socket.socketIndex);
@@ -558,8 +564,9 @@ public class CircuitInfo
 public class GateInfo
 {
     public int id;
-    public bool classical = false, condition = false;
+    public bool useInput = false, classical = false, condition = false;
     public string name;
+    public int input = 0;
     public int column;
     public List<int> controlRow, targetRow;
 }

@@ -5,6 +5,7 @@ import datetime
 import sys
 import traceback
 import json
+import math
 from qiskit import QuantumCircuit
 import quantum_circuit #custom python script: needed rename
 
@@ -14,6 +15,7 @@ import quantum_circuit #custom python script: needed rename
 single_input_gate = quantum_circuit.single_input_gate
 multi_input_gate = quantum_circuit.multi_input_gate
 do_measurement_on = quantum_circuit.do_measurement_on
+input_related_gate = quantum_circuit.input_related_gate
 
 def qubit_sequence(circuit_data: dict):
     """
@@ -90,6 +92,10 @@ def qubit_sequence(circuit_data: dict):
                         cbit_arr[target_list[0]], qc = do_measurement_on(qc, control_list[0])
                 elif gate_type in multi_input_gate:
                     multi_input_gate[gate_type](qc, control_list, target_list)
+
+            elif gate.get("useInput", False):
+                input_value = gate.get("input", 0)
+                input_related_gate[gate_type](qc, control_list[0], math.radians(input_value))
 
             elif gate_type in single_input_gate:
                 single_input_gate[gate_type](qc,control_list[0])

@@ -5,6 +5,7 @@ import datetime
 import sys
 import traceback
 import json
+import math
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -22,17 +23,21 @@ from qiskit.quantum_info import Statevector
 # qc = QuantumCircuit(n)
 # qubit_amount -> position of qubit_amount
 single_input_gate = {
-    "I":lambda qc, qubit_amount : qc.id(qubit_amount),
-    "H":lambda qc, qubit_amount : qc.h(qubit_amount),
-    "X":lambda qc, qubit_amount : qc.x(qubit_amount),
-    "Y":lambda qc, qubit_amount : qc.y(qubit_amount),
-    "Z":lambda qc, qubit_amount : qc.z(qubit_amount),
-    "S":lambda qc, qubit_amount : qc.s(qubit_amount),
-    "ST":lambda qc, qubit_amount : qc.sdg(qubit_amount), #S-dagger
-    "T":lambda qc, qubit_amount : qc.t(qubit_amount),
-    "TT":lambda qc, qubit_amount : qc.tdg(qubit_amount), #T-dagger
-    "SQRTX":lambda qc, qubit_amount : qc.sx(qubit_amount),
-    "SQRTXT":lambda qc, qubit_amount : qc.sxdg(qubit_amount), #square root x - dagger
+    "I":lambda qc, qubit : qc.id(qubit),
+    "H":lambda qc, qubit : qc.h(qubit),
+    "X":lambda qc, qubit : qc.x(qubit),
+    "Y":lambda qc, qubit : qc.y(qubit),
+    "Z":lambda qc, qubit : qc.z(qubit),
+    "S":lambda qc, qubit : qc.s(qubit),
+    "ST":lambda qc, qubit : qc.sdg(qubit), #S-dagger
+    "T":lambda qc, qubit : qc.t(qubit),
+    "TT":lambda qc, qubit : qc.tdg(qubit), #T-dagger
+    "SQRTX":lambda qc, qubit : qc.sx(qubit),
+    "SQRTXT":lambda qc, qubit : qc.sxdg(qubit), #square root x - dagger
+}
+
+input_related_gate = {
+    "P":lambda qc, qubit, phase : qc.p(phase, qubit)
 }
 
 multi_input_gate = {
@@ -104,8 +109,13 @@ def create_circuit(circuit_data):
                 elif gate_type in multi_input_gate:
                     multi_input_gate[gate_type](qc, control_list, target_list)
 
+            elif gate.get("useInput", False):
+                input_value = gate.get("input", 0)
+                input_related_gate[gate_type](qc, control_list[0], math.radians(input_value))
+
             elif gate_type in single_input_gate:
                 single_input_gate[gate_type](qc,control_list[0])
+
     return qc, cbit_arr
 
 # New issue: make new case for Q-Sphere

@@ -15,7 +15,6 @@ public class IOClassical : MonoBehaviour
     [SerializeField] private float cooldownTime = .3f;
     private float lastTimeStamp = 0f;
 
-    private bool triggered = false;
     private InputActionReference activeThumbstick;
 
     [Header("Text Display")]
@@ -43,7 +42,7 @@ public class IOClassical : MonoBehaviour
         interactable.enabled = enable;
     }
 
-     private bool IsLeftController(IXRInteractor interactor)
+    private bool IsLeftController(IXRInteractor interactor)
     {
         // Match by GameObject name (default XR Rig naming)
         string name = interactor.transform.name.ToLower();
@@ -59,18 +58,16 @@ public class IOClassical : MonoBehaviour
 
         // Subscribe only that controller's thumbstick
         activeThumbstick.action.performed += OnThumbstickMove;
-        //activeThumbstick.action.canceled  += OnThumbstickStop;
     }
+    
     private void OnHoverExit(HoverExitEventArgs args) 
     {
         if (activeThumbstick != null)
         {
             activeThumbstick.action.performed -= OnThumbstickMove;
-            //activeThumbstick.action.canceled  -= OnThumbstickStop;
             activeThumbstick = null;
         }
 
-        triggered = false;
         Debug.Log("Hover exited — thumbstick unsubscribed");
     }
 
@@ -103,11 +100,6 @@ public class IOClassical : MonoBehaviour
             lastTimeStamp = Time.time;
             DoScrollDown();
             }
-    }
-
-    private void OnThumbstickStop(InputAction.CallbackContext context)
-    {
-        triggered = false;
     }
 
     private void DoScrollUp(){

@@ -134,11 +134,13 @@ public class Spawner : MonoBehaviour
             var quantumgate = spawnedObject.GetComponent<QuantumGate>();
             string name = spawnedObject.name;
             int sepIndex = name.IndexOf("_");
+            quantumgate.AdjustInputText();
             quantumgate.name = name.Remove(sepIndex);
             return;
         }
 
         QuantumGate quantumGate = spawnedObject.GetComponent<QuantumGate>();
+        quantumGate.AdjustInputText();
         quantumGate.setConditionSocket(true);
 
         // Edit spawn script (if has one): Prefab must not spawn another
