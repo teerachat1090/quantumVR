@@ -73,6 +73,7 @@ public class CircuitExecutor
 
         rotationInfoWithInput = new Dictionary<string, Func<float, GateRotation>>
         {
+            { "P",      p => new GateRotation( Vector3.up,      p)},
             { "RZ",     p => new GateRotation( Vector3.up,      p)},
             { "RX",     p => new GateRotation( Vector3.right,   p)},
             { "RY",     p => new GateRotation( Vector3.forward, p)},
