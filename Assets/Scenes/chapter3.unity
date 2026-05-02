@@ -7675,7 +7675,6 @@ MonoBehaviour:
     type: 3}
   offsetDist: -2
   centerObject: {fileID: 145394555}
-  pointToLookAt: {x: 0, y: 0, z: 0}
 --- !u!4 &145394561
 Transform:
   m_ObjectHideFlags: 0
@@ -21169,6 +21168,14 @@ MonoBehaviour:
   isController: 0
   socket: {fileID: 0}
   connect: {fileID: 0}
+  useInput: 0
+  nameText: {fileID: 0}
+  displayText: {fileID: 0}
+  leftThumbstickAction: {fileID: 0}
+  rightThumbstickAction: {fileID: 0}
+  textSlideOffset: 5
+  threshold: 0.4
+  cooldownTime: 0.3
 --- !u!114 &464406134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24221,6 +24228,14 @@ MonoBehaviour:
   isController: 0
   socket: {fileID: 0}
   connect: {fileID: 0}
+  useInput: 0
+  nameText: {fileID: 0}
+  displayText: {fileID: 0}
+  leftThumbstickAction: {fileID: 0}
+  rightThumbstickAction: {fileID: 0}
+  textSlideOffset: 5
+  threshold: 0.4
+  cooldownTime: 0.3
 --- !u!114 &529561993
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35098,7 +35113,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &824175068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37495,6 +37510,14 @@ MonoBehaviour:
   isController: 0
   socket: {fileID: 0}
   connect: {fileID: 0}
+  useInput: 0
+  nameText: {fileID: 0}
+  displayText: {fileID: 0}
+  leftThumbstickAction: {fileID: 0}
+  rightThumbstickAction: {fileID: 0}
+  textSlideOffset: 5
+  threshold: 0.4
+  cooldownTime: 0.3
 --- !u!114 &886016406
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52235,6 +52258,14 @@ MonoBehaviour:
   isController: 0
   socket: {fileID: 0}
   connect: {fileID: 0}
+  useInput: 0
+  nameText: {fileID: 0}
+  displayText: {fileID: 0}
+  leftThumbstickAction: {fileID: 0}
+  rightThumbstickAction: {fileID: 0}
+  textSlideOffset: 5
+  threshold: 0.4
+  cooldownTime: 0.3
 --- !u!114 &1249102726
 MonoBehaviour:
   m_ObjectHideFlags: 0

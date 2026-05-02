@@ -155,7 +155,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1512486793558065512
 Transform:
   m_ObjectHideFlags: 0
@@ -190,10 +190,11 @@ MonoBehaviour:
   rightThumbstickAction: {fileID: -8666952849799569744, guid: c348712bda248c246b8c49b3db54643f,
     type: 3}
   threshold: 0.5
-  middleRange: 0.01
+  cooldownTime: 0.3
   display: {fileID: 1508277599777564789}
   CBManager: {fileID: 0}
   maxPosition: 0
+  index: 0
 --- !u!114 &8755108694236966190
 MonoBehaviour:
   m_ObjectHideFlags: 0
