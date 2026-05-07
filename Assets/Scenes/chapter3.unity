@@ -1295,7 +1295,7 @@ MonoBehaviour:
     type: 3}
   classicalSocketPrefab: {fileID: 5887405409416211165, guid: e730ec20387503b4eb61f5d48ba72efb,
     type: 3}
-  storage: {fileID: 0}
+  storage: {fileID: 1308062788}
   interactionLayer:
     m_Bits: 1073741824
   socketOffset: 0

@@ -48,10 +48,10 @@ public class SocketsManager : MonoBehaviour
         else
         {
             sourceGates = storage.GetComponentsInChildren<XRGrabInteractable>();
-            if(sourceGates is null) Debug.LogWarning("Warning: Unable to get component from source gate in storage!");
+            if(sourceGates == null) Debug.LogWarning("Warning: Unable to get component from source gate in storage!");
 
             headManager = GetComponentInParent<CircuitManager>();
-            if(headManager is null) Debug.LogWarning("Warning: Unable to get component CircuitManager!");
+            if(headManager == null) Debug.LogWarning("Warning: Unable to get component CircuitManager!");
         }
     }
 
@@ -414,6 +414,8 @@ public class SocketsManager : MonoBehaviour
         Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
 
         string circuitJson = circuitToExportInit();
+        if(circuitJson == null) {Debug.LogError("We got error on circuit export!"); return;}
+        if(headManager == null) {Debug.LogError("We got error on headManager!"); return;}
         headManager.updateOverallCircuit(circuitJson);
     }
 
@@ -517,6 +519,7 @@ public class SocketsManager : MonoBehaviour
         }
         foreach(XRGrabInteractable xrGrab in sourceGates)
         {
+            if(xrGrab == null) continue;
             xrGrab.enabled = !doDisable;
         }
 
