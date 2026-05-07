@@ -81,7 +81,7 @@ public class StateVector : MonoBehaviour
         return stateVal;
     }
 
-    private float textSlide = 0.1f;
+    private float textSlide = 0.2f;
     private bool slided = false;
 
     /// <summary>
@@ -104,7 +104,7 @@ public class StateVector : MonoBehaviour
         float ratio = 0.025f + prob * 0.2f;
         nodeTransform.localScale = new Vector3(ratio, ratio, ratio);
 
-        if (prob > 0.5f && !slided)
+        if (prob >= 0.5f && !slided)
         {
             canvas.transform.Translate(Vector3.up * textSlide);
             slided = true;

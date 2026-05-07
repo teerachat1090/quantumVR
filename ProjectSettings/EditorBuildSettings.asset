@@ -14,7 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Chapter1.unity
     guid: 1e1f7272d9b7abf44afd9d9a554bb1d9
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Chapter1_Inverse.unity
     guid: afe7d5ab37cb5be45a7f9fb8ce5f0a40
   - enabled: 1
@@ -32,6 +32,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/chapter3.unity
     guid: 8aa73d5734bebc741888cd189d57db58
+  - enabled: 1
+    path: Assets/Scenes/Q-Sphere sandbox.unity
+    guid: 6b38a5ddebd749a46b30e8d5ef33d8d0
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: a0bfae5ad55ec514288a37362a0dbd93,
       type: 2}

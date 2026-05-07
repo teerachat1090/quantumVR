@@ -13,7 +13,7 @@ public class ButtonAction : MonoBehaviour
     [SerializeField] private List<UnityEvent> whenOnPressed = new List<UnityEvent>();
     [SerializeField] private int funcIndex = 0;
 
-    public enum ButtonType { Measure, Next, Prev }
+    public enum ButtonType { Measure, Next, Prev, Mode }
     [SerializeField] private ButtonType buttonType = ButtonType.Measure;
 
     private bool pressed = false;
@@ -23,6 +23,7 @@ public class ButtonAction : MonoBehaviour
     public static event Action OnMeasureButtonPressed;
     public static event Action OnNextButtonPressed;
     public static event Action OnPrevButtonPressed;
+    public static event Action OnModeButtonPressed;
 
     void Awake()
     {
@@ -96,6 +97,7 @@ public class ButtonAction : MonoBehaviour
             case ButtonType.Measure: OnMeasureButtonPressed?.Invoke(); break;
             case ButtonType.Next:    OnNextButtonPressed?.Invoke();    break;
             case ButtonType.Prev:    OnPrevButtonPressed?.Invoke();    break;
+            case ButtonType.Mode:    OnModeButtonPressed?.Invoke();    break;
         }
 
         if (whenOnPressed.Count != 1) CycleIndex();
