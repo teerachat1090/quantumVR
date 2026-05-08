@@ -81,8 +81,12 @@ public class ClassicalBitManager : MonoBehaviour
         return socket.GetBitPosition();
     }
 
+    public static event System.Action OnClassicalBitChanged;
+
     public void UpdateBitPositionToCircuit(int cBitIndex)
     {
+        OnClassicalBitChanged?.Invoke();
+        Debug.LogWarning($"bit change to {GetTargetClassicalBit(cBitIndex)}");
         if(socketsManager == null)
         {
             Debug.LogWarning("Warning: SocketsManager Reference is missing");

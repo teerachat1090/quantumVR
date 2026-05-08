@@ -31,9 +31,9 @@ public class SocketsManager : MonoBehaviour
     private CircuitManager headManager;
     // script stationed for qubit
     private List<QubitCircuit> qubitCircuits = new List<QubitCircuit>();
-    private ClassicalBitManager CBManager = null;
+    public ClassicalBitManager CBManager = null;
     private List<GameObject> multiGateList = new List<GameObject>();
-    private List<List<GateSocket>> socketMap = new List<List<GateSocket>>();
+    public List<List<GateSocket>> socketMap = new List<List<GateSocket>>();
     
     [Header("Information")]
     public int totalQubits = -1;
@@ -411,7 +411,7 @@ public class SocketsManager : MonoBehaviour
 
     public void updateCircuitByJson(string gateName, int socketIndex, int qubitIndex, bool isPlaced)
     {
-        Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
+        //Debug.Log($"📊 CircuitManager: Qubit {qubitIndex} - Socket {socketIndex} - Gate {gateName} - Placed: {isPlaced}");
 
         string circuitJson = circuitToExportInit();
         if(circuitJson == null) {Debug.LogError("We got error on circuit export!"); return;}

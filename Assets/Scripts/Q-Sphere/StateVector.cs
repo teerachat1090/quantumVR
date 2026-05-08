@@ -106,11 +106,13 @@ public class StateVector : MonoBehaviour
 
         if (prob >= 0.5f && !slided)
         {
-            canvas.transform.Translate(nodeTransform.forward  * textSlide);
+            Debug.Log("text got slided");
+            canvas.transform.Translate(nodeTransform.up  * textSlide);
             slided = true;
         } else if (prob < 0.5f && slided)
         {
-            canvas.transform.Translate(-nodeTransform.forward* textSlide);
+            Debug.Log("text slided back");
+            canvas.transform.Translate(-nodeTransform.up* textSlide);
             slided = false;
         }
 

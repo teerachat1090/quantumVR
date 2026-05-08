@@ -35,7 +35,7 @@ public class MusicController : MonoBehaviour
     if (!controller.isValid)
     {
         controller = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        Debug.Log("[Music] controller valid: " + controller.isValid);
+
     }
 
     bool buttonPressed = false;

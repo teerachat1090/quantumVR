@@ -104,20 +104,20 @@ public class IOClassical : MonoBehaviour
 
     private void DoScrollUp(){
         if(bitPosition == maxPosition) return;
-        Debug.Log($"DoScrollUp");
+        //Debug.Log($"DoScrollUp");
         bitPosition++;
         UpdateDisplay();
         TellCBManagerToUpdate();
-        Debug.Log("Event: Thumbstick UP!");
+        //Debug.Log("Event: Thumbstick UP!");
     }
 
     private void DoScrollDown(){
         if(bitPosition == 0) return;
-        Debug.Log($"DoScrollDown");
+        //Debug.Log($"DoScrollDown");
         bitPosition--;
         UpdateDisplay();
         TellCBManagerToUpdate();
-        Debug.Log("Event: Thumbstick DOWN!");
+        //Debug.Log("Event: Thumbstick DOWN!");
     }
 
     
@@ -160,8 +160,6 @@ public class IOClassical : MonoBehaviour
         }
         CBManager.UpdateBitPositionToCircuit(index);
     }
-
-    
 
     public int GetBitPosition()
     {

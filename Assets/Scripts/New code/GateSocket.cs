@@ -16,6 +16,7 @@ public class GateSocket : MonoBehaviour
     private QubitCircuit parentCircuit;
     public static event System.Action<string> OnAnyGatePlaced;
     public static event System.Action OnMeasurePlaced;
+     public static event System.Action OnIfHappend;
     public bool beLazy = false; 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -62,6 +63,7 @@ public class GateSocket : MonoBehaviour
             Debug.LogWarning("There gate block path downward.");
             return false;
         }
+        OnIfHappend?.Invoke();
         return true;
     }
 
