@@ -303,7 +303,7 @@ public class TutorialManager_Chap3 : MonoBehaviour
 
         bool ctrlPlaced =
             socketsManager.socketMap[CNOT_QUBIT][CNOT_COL].currentGate != null;
-        StartCoroutine(SomeDelay(0.25f));
+        yield return DoDelay(0.1f);
         bool tgtPlaced =
             socketsManager.socketMap[CNOT_TGT_QUBIT][CNOT_COL].currentGate != null;
 
@@ -323,12 +323,12 @@ public class TutorialManager_Chap3 : MonoBehaviour
     // SECTION 2 CNOT CHECK
     // =========================
 
-    IEnumerator SomeDelay(float second)
+    IEnumerator DoDelay(float second)
     {
         float now = Time.time;
-        Debug.LogWarning($"start delay: {now}");
+        Debug.LogWarning($"IEnum - start delay: {now}");
         yield return new WaitForSeconds(second);
-        Debug.LogWarning($"end delay: {Time.time-now}");
+        Debug.LogWarning($"IEnum - end delay: {Time.time-now}: ({now})");
     }
 
     private IEnumerator CheckSection2CNOT()
@@ -338,7 +338,7 @@ public class TutorialManager_Chap3 : MonoBehaviour
 
         bool ctrlPlaced =
             socketsManager.socketMap[S2_CNOT_QUBIT][S2_CNOT_COL].currentGate != null;
-        StartCoroutine(SomeDelay(0.25f));
+        yield return DoDelay(0.1f);
         bool tgtPlaced =
             socketsManager.socketMap[S2_CNOT_TGT_QUBIT][S2_CNOT_COL].currentGate != null;
 
@@ -400,11 +400,18 @@ public class TutorialManager_Chap3 : MonoBehaviour
     // =========================
     private void OnIfHappend()
     {
+        Debug.Log("Check condition placing");
+        StartCoroutine(CheckIfCondition());
+    }
+    private IEnumerator CheckIfCondition()
+    {
+        yield return null;
+
         if(currentStep == 26)
         {
             bool XPlaced =
             socketsManager.socketMap[X_COND_QUBIT][X_COND_COL].currentGate != null;
-            if(!XPlaced) return;
+            if(!XPlaced) yield return null;
 
             QuantumGate gate = socketsManager.socketMap[X_COND_QUBIT][X_COND_COL].currentGate;
 
@@ -419,17 +426,15 @@ public class TutorialManager_Chap3 : MonoBehaviour
         {
             bool ZPlaced =
             socketsManager.socketMap[Z_COND_QUBIT][Z_COND_COL].currentGate != null;
-            if(!ZPlaced) return;
+            if(!ZPlaced) yield return null;
 
             QuantumGate gate = socketsManager.socketMap[Z_COND_QUBIT][Z_COND_COL].currentGate;
 
             bool ZCond = gate.getGateType() == QuantumGate.inputType.condition;
             if (ZCond)
             {
-                Debug.LogWarning("If on Z-gate is passed");
                 NextStep();
-                Debug.LogWarning("Trying to bypasss step");
-                StartCoroutine(SomeDelay(1f));
+                yield return StartCoroutine(DoDelay(1f));
                 NextStep();
                 
             }
@@ -476,7 +481,6 @@ public class TutorialManager_Chap3 : MonoBehaviour
         }
         dialogueImage.sprite = dialogueSprites[currentStep];
 
-        Debug.LogWarning($"Setactive: {manualNextSteps.Contains(currentStep)}");
         next.SetActive(manualNextSteps.Contains(currentStep));
 
         if (audioSource != null && dialogueSound != null)
