@@ -23758,6 +23758,7 @@ MonoBehaviour:
   gateLayer:
     m_Bits: 1073741824
   classicalLineMaterial: {fileID: 0}
+  CBManager: {fileID: 0}
   totalQubits: -1
   totalSocketEach: -1
 --- !u!1 &1467062751
