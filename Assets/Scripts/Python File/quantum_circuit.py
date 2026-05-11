@@ -80,7 +80,7 @@ def create_circuit(circuit_data):
         print("Json file error: no field name (CBitAmount - int)!")
         sys.exit(1)
 
-    qc = QuantumCircuit(qubit_amount, qubit_amount)
+    qc = QuantumCircuit(qubit_amount, cbit_amount)
     cbit_arr = [0]*cbit_amount
 
     column_list = circuit_data.get("columnList", None)
@@ -105,8 +105,8 @@ def create_circuit(circuit_data):
 
             if target_list:
                 if gate.get("classical", False):
-                    if gate.get("condition", False) and cbit_arr[target_list[0]]:
-                        single_input_gate[gate_type](qc,control_list[0])
+                    if gate.get("condition", False):
+                        single_input_gate[gate_type](qc,control_list[0]).c_if(cbit_arr[target_list[0]], 1)
                     else:
                         cbit_arr[target_list[0]], qc = do_measurement_on(qc, control_list[0])
                 elif gate_type in multi_input_gate:

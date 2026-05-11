@@ -24,6 +24,7 @@ public class MultiInputGateConnect : MonoBehaviour
     /// </remarks>
     public void GetGateListByType(out List<int> controlsRow, out List<int> targetsRow)
     {
+        //if(!Application.isPlaying)  return;
         var control_temp = new List<int>();
         var target_temp = new List<int>();
 
