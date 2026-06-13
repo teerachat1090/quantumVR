@@ -54,6 +54,7 @@ All of these are in the **Project** tab
 
 ### Saved Data
 All input-output data related to quantum circuit is stored in json file at: <br>
+
 **Windows**: "C:\\Users\\\<username\>\\AppData\\LocalLow\\quantumVR\\quantumVR" <br>
 
 **MacOS**: "~/Library/Application Support/quantumVR/quantumVR" <br>
