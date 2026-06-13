@@ -7,7 +7,7 @@ This is Unity VR project which aim to be a learning material about basic concept
 [Getting Started](#getting-started) <br>
 [Help](#help) <br>
 [GitHub Link](#github-link) <br>
-[Author](#author)
+[Authors](#authors)
 
 ## About the Project
 
