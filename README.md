@@ -61,6 +61,18 @@ All input-output data related to quantum circuit is stored in json file at: <br>
 
 **Linux**: "~/.config/unity3d/quantumVR/quantumVR"
 
+## Simulator
+In case of not having VR headset, you can use Unity XR Device Simulator by doing this step:
+
+1. go to **'edit'** > **'Project Settings...'**
+2. see **'XR Interaction Tool Kit'** in **'XR Plug-in Management'**
+3. Select **'Use XR Interaction Simulator in scenes'**
+4. Select prefab and find it in **Project tab**
+5. drag prefab to **Hierachy tab** > **XR** > **Origin XR** and enable it
+
+After press play, you can control player by using WASD for moving on the ground and QE for moving up and down.
+(More control option can be seen in the XR Device Simuator UI)
+
 ## GitHub Link
 [https://github.com/teerachat1090/quantumVR/](https://github.com/teerachat1090/quantumVR/)
 
