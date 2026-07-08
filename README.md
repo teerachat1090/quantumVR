@@ -6,6 +6,7 @@ This is Unity VR project which aim to be a learning material about basic concept
 [About the Project](#about-the-project)<br>
 [Getting Started](#getting-started) <br>
 [Help](#help) <br>
+[XR Simulator](#xr-simulator) <br>
 [GitHub Link](#github-link) <br>
 [Authors](#authors)
 
@@ -61,8 +62,8 @@ All input-output data related to quantum circuit is stored in json file at: <br>
 
 **Linux**: "~/.config/unity3d/quantumVR/quantumVR"
 
-## Simulator
-In case of not having VR headset, you can use Unity XR Device Simulator by doing this step:
+## XR Simulator
+In case of not having VR headset, you can use Unity XR Device Simulator for testing instead by doing this step:
 
 1. go to **'edit'** > **'Project Settings...'**
 2. see **'XR Interaction Tool Kit'** in **'XR Plug-in Management'**
