@@ -42,17 +42,17 @@ This project is a part of senior project, named "**VR-Based Interactive Learning
 
 <p>Our software consist of 6 parts:<p>
 
-0. **Main menu**: This is the first place when user start this software.
+0. **Main menu**: This is the first place where user start this software and choose learning topics.
 
 1. **Qubit state & Bloch sphere**: This part will show user the representation of single qubit, Bloch sphere, and a way to interact with by using quantum gates.
 
-2. **Entanglement**: This part will show user the representation of multiple qubits (2 qubits), Q-sphere, and a classical bit and a way to interact with by using quantum gates.
+2. **Entanglement**: This part will show user the representation of multiple qubits, Q-sphere, and a classical bit including a way to interact with by using quantum gates.
 
-3. **Quantum Teleportation**: This part will show user the process of transferring quantum information from source to target destination. This section will guide user each step of how to create the protocol using quantum gates.
+3. **Quantum Teleportation**: This part will show user the process of transferring quantum information from source to target. This section will guide user each step of how to create the protocol using quantum gates.
 
-4. **Quantum Network**: This part will show user about what it differ from general network, security and computation power, and simple network topology.
+4. **Quantum Network**: This part will show user about how to send quantum information through network and simple network topology.
 
-5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit.
+5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit and it  will display the result using diagram (Q-sphere)
 
 ## Help
 
