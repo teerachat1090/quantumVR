@@ -3,8 +3,9 @@
 This is Unity VR project which aim to be a learning material about basic concept of quantum computing.
 
 ## Table of Content
-[About the Project](#about-the-project)<br>
+[About the Project](#about-the-project) <br>
 [Getting Started](#getting-started) <br>
+[Project Detail](#project-detail) <br>
 [Help](#help) <br>
 [XR Simulator](#xr-simulator) <br>
 [GitHub Link](#github-link) <br>
@@ -34,6 +35,25 @@ This project is a part of senior project, named "**VR-Based Interactive Learning
 3. **Load main scene**: go to **Project tab > Assets > Scenes > MainMenu**
 4. **Start game**: press **'Play'** at the top of screen.
 
+<br>**ฺBecause we use Git Large File Storage (LFS) for storing large files like .mp4, we not recommend downloading this project as zip; this will make those files corrupted. We advises you to clone this project by using git instead.
+
+## Project Detail
+<p>Our objective is to develop virtual reality (VR) to make user understand funtamental quantum information concept.
+
+<p>Our software consist of 6 parts:<p>
+
+0. **Main menu**: This is the first place when user start this software.
+
+1. **Qubit state & Bloch sphere**: This part will show user the representation of single qubit, Bloch sphere, and a way to interact with by using quantum gates.
+
+2. **Entanglement**: This part will show user the representation of multiple qubits (2 qubits), Q-sphere, and a classical bit and a way to interact with by using quantum gates.
+
+3. **Quantum Teleportation**: This part will show user the process of transferring quantum information from source to target destination. This section will guide user each step of how to create the protocol using quantum gates.
+
+4. **Quantum Network**: This part will show user about what it differ from general network, security and computation power, and simple network topology.
+
+5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit.
+
 ## Help
 
 ### Problem
@@ -47,7 +67,7 @@ This happen because Unity still use VR simulator, we use this for testing when w
 
 Addition step: Disable simulator related GameObject in the scene e.g. 'XR Device Simulator', 'XR Interaction Simulator'. You can find it in **Hierachy** tab.
 
-### Project Detail
+### Project Resource
 All of these are in the **Project** tab
 * **Source Code**: go to **Assets** > **Scripts**
 * **Custom asset**: go to **Assets** > **Custom Asset**
@@ -56,11 +76,9 @@ All of these are in the **Project** tab
 ### Saved Data
 All input-output data related to quantum circuit is stored in json file at: <br>
 
-**Windows**: "C:\\Users\\\<username\>\\AppData\\LocalLow\\quantumVR\\quantumVR" <br>
-
-**MacOS**: "~/Library/Application Support/quantumVR/quantumVR" <br>
-
-**Linux**: "~/.config/unity3d/quantumVR/quantumVR"
+* **Windows**: "C:\\Users\\\<username\>\\AppData\\LocalLow\\quantumVR\\quantumVR" <br>
+* **MacOS**: "~/Library/Application Support/quantumVR/quantumVR" <br>
+* **Linux**: "~/.config/unity3d/quantumVR/quantumVR"
 
 ## XR Simulator
 In case of not having VR headset, you can use Unity XR Device Simulator for testing instead by doing this step:
