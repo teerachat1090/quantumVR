@@ -65,7 +65,7 @@ This project is a part of senior project, named "**VR-Based Interactive Learning
 ![Chapter 4: topology](./Image/chapter%204%20-%20Quantum%20Network(2).jpg) &nbsp;
 &nbsp;
 
-5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit and it  will display the result using diagram (Q-sphere). The scene will be the same as chapter 2 but there will be 3 qubits and 3 classical bit instead.
+5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit and it  will display the result using diagram (Q-sphere). The scene will be the same as chapter 2 but there's no guide showing here.
 
 ## Help
 
