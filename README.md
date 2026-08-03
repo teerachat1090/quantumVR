@@ -42,17 +42,30 @@ This project is a part of senior project, named "**VR-Based Interactive Learning
 
 <p>Our software consist of 6 parts:<p>
 
+
 0. **Main menu**: This is the first place where user start this software and choose learning topics.
+![Main menu](./Image/main%20menu.jpg)
+&nbsp;
 
 1. **Qubit state & Bloch sphere**: This part will show user the representation of single qubit, Bloch sphere, and a way to interact with by using quantum gates.
+![Chapter 1](./Image/chapter%201%20-%20Qubit%20State%20&%20Bloch%20sphere.jpg)
+&nbsp;
 
 2. **Entanglement**: This part will show user the representation of multiple qubits, Q-sphere, and a classical bit including a way to interact with by using quantum gates.
+![Chapter 2](./Image/chapter%202%20-%20Entanglement.jpg)
+&nbsp;
 
-3. **Quantum Teleportation**: This part will show user the process of transferring quantum information from source to target. This section will guide user each step of how to create the protocol using quantum gates.
+3. **Quantum Teleportation**: This part will show user about how to send quantum information through network, how to make signal stronger and interactive network topology.
+![Chapter 3](./Image/chapter%203%20-%20Quantum%20Teleportation.jpg)
+&nbsp;
 
 4. **Quantum Network**: This part will show user about how to send quantum information through network and simple network topology.
+![Chapter 4: intro](./Image/chapter%204%20-%20Quantum%20Network.jpg) &nbsp;
+![Chapter 4: repeater](./Image/chapter%204%20-%20Quantum%20Network(1).jpg) &nbsp;
+![Chapter 4: topology](./Image/chapter%204%20-%20Quantum%20Network(2).jpg) &nbsp;
+&nbsp;
 
-5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit and it  will display the result using diagram (Q-sphere)
+5. **Sandbox Mode**: This is where user can freely create thier own quantum circuit and it  will display the result using diagram (Q-sphere). The scene will be the same as chapter 2 but there will be 3 qubits and 3 classical bit instead.
 
 ## Help
 
