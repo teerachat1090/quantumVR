@@ -9,11 +9,13 @@ This is Unity VR project which aim to be a learning material about basic concept
 [Help](#help) <br>
 [XR Simulator](#xr-simulator) <br>
 [GitHub Link](#github-link) <br>
-[Authors](#authors)
+[Authors](#authors) <br>
+[Project Advisor](#project-advisor) <br>
+[Committee Member](#committee-member)
 
 ## About the Project
 
-This project is a part of senior project, named "**VR-Based Interactive Learning Tool for Quantum Information Concepts**". The project is a part of education Bachelor of Engineering course from Computer Engineering deprtment in engineering faculty of King Mongkut's University of Technology Thonburi (KMUTT), semister 2025.
+This project is a part of senior project, named "**VR-Based Interactive Learning Tool for Quantum Information Concepts**". The project is submitted in partial fulfillment of the requirements for the degree of Bachelor of Engineering (Computer Engineering) faculty of engineering at King Mongkut's University Of Technology Thonburi (KMUTT), 2025.
 
 ## Getting Started
 
@@ -109,7 +111,13 @@ After press play, you can control player by using WASD for moving on the ground 
 [https://github.com/teerachat1090/quantumVR/](https://github.com/teerachat1090/quantumVR/)
 
 ## Authors
-
 * Theerakan Thadawuth 65070501029
 * Tamonwan Tabloi 65070501077
-* Teerachat Khuntanopajai 65070501090 
+* Teerachat Khuntanopajai 65070501090
+
+## Project Advisor
+* Asst.Prof. Rajchawit Sarochawikasit
+
+## Committee Member
+* Dr. Taweechai Nuntawisuttiwong
+* Dr. Piyanit Ua-areemitr
